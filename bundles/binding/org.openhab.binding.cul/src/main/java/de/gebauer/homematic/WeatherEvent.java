@@ -18,6 +18,14 @@ public class WeatherEvent extends AbstractEvent {
 	return EventType.WEATHER;
     }
 
+    public float getTemperature() {
+	return temperature;
+    }
+
+    public int getHumidity() {
+	return humidity;
+    }
+
     @Override
     public String toString() {
 	return "WeatherEvent [temperature=" + temperature + ", humidity=" + humidity + ", raw=" + super.msg + "]";

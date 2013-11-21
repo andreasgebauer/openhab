@@ -31,6 +31,7 @@ package org.openhab.binding.cul.internal;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,12 +69,17 @@ import de.gebauer.communication.cul4java.HMListener;
 import de.gebauer.communication.cul4java.impl.HMHandler;
 import de.gebauer.cul.homematic.VirtualCCU;
 import de.gebauer.cul.homematic.device.Device;
+import de.gebauer.cul.homematic.device.DeviceStore;
+import de.gebauer.cul.homematic.device.Model;
 import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.homematic.AckStatusEvent;
+import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.DeviceInfoEvent;
 import de.gebauer.homematic.Event;
+import de.gebauer.homematic.HomeMaticDeviceType;
+import de.gebauer.homematic.WeatherEvent;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 import de.tobiaswegner.communication.cul4java.FHTEvent;
 import de.tobiaswegner.communication.cul4java.FHTListener;
@@ -157,6 +163,8 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      */
     private Map<String, FHTQueueItem> fhtCommandQueue = new LinkedHashMap<String, CULBinding.FHTQueueItem>();
 
+    private DeviceStore dvcStore;
+
     public CULBinding() {
 	INSTANCE = this;
 	cul = new CULTransceiver();
@@ -171,8 +179,9 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     public void activate() {
 	fhtHandler = new FHTHandler(cul);
 	fs20Handler = new FS20Handler(cul);
-	homeMaticHandler = new HMHandler(cul, new VirtualCCU("hmId"), new MessageInterpreter(), new MessageSenderImpl(
-		cul));
+	dvcStore = new DeviceStore();
+	homeMaticHandler = new HMHandler(cul, new VirtualCCU("hmId"), new MessageInterpreter(dvcStore),
+		new MessageSenderImpl(cul));
 	fhtHandler.registerListener(this);
 	fs20Handler.registerListener(this);
 	homeMaticHandler.registerListener(this);
@@ -398,6 +407,25 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    throws ConfigurationException {
 	logger.debug("Receiving new config");
 	if (config != null) {
+	    dvcStore.clear();
+	    Enumeration<String> keys = config.keys();
+	    while (keys.hasMoreElements()) {
+		String nextElement = keys.nextElement();
+		if (nextElement.startsWith("device.")) {
+		    String[] split = nextElement.split("\\.");
+		    String deviceId = split[1];
+		    Device device = dvcStore.get(deviceId);
+		    if (device == null) {
+			String dvcType = (String) config.get("device." + deviceId + ".type");
+			String dvcName = (String) config.get("device." + deviceId + ".name");
+
+			Model model = Model.valueOf(dvcType);
+			DeviceInfo dvcInfo = new DeviceInfo(null, model, null,
+				model.getDeviceType(), 0, 1);
+			dvcStore.add(deviceId, new Device(dvcName, deviceId, dvcInfo));
+		    }
+		}
+	    }
 
 	    // to override the default refresh interval one has to add a
 	    // parameter to openhab.cfg like
@@ -406,6 +434,13 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    if (StringUtils.isNotBlank(refreshIntervalString)) {
 		refreshInterval = Long.parseLong(refreshIntervalString);
 	    }
+	    String houseCode = (String) config.get(PROPERTY_HOUSECODE);
+	    if (!StringUtils.isEmpty(houseCode)
+		    && !houseCode.equals(this.houseCode)) {
+		this.houseCode = houseCode;
+		this.homeMaticHandler.getCCU().setId(this.houseCode);
+	    }
+
 	    // read further config parameters here ...
 	    String deviceName = (String) config.get(PROPERTY_DEVICE);
 	    logger.debug("Received new device name: " + deviceName);
@@ -430,11 +465,6 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		logger.warn("The serial device is not properly configured");
 		throw new ConfigurationException("device",
 			"The serial device to use is not configured");
-	    }
-	    String houseCode = (String) config.get(PROPERTY_HOUSECODE);
-	    if (!StringUtils.isEmpty(houseCode)
-		    && !houseCode.equals(this.houseCode)) {
-		this.houseCode = houseCode;
 	    }
 
 	    String repitions = (String) config
@@ -503,8 +533,9 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		logger.debug("Setting house code on CUL to " + houseCode);
 		cul.setOwnHouseCode(houseCode);
 	    }
-	    cul.sendRAW("it" + intertechnoWavelength);
-	    cul.sendRAW("isr" + intertechnoRepitions);
+
+	    // cul.sendRAW("it" + intertechnoWavelength);
+	    // cul.sendRAW("isr" + intertechnoRepitions);
 	}
     }
 
@@ -617,88 +648,83 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	logger.debug(MessageFormat
 		.format("Received new HMEvent {0} for device {1}",
 			event, event.getReceiver()));
-	
-	// A 1A F3 84 00 1EA808 000000 21 00394A4551303730393932325800FFFF
-		// A 1A E0 84 00 1EA808 000000 21 00394A4551303730393932325800FFFF
-		// A 1A 01 84 00 1EA808 000000 21 00394A4551303730393932325800FFFF
 
-		// A 10 92 A0 01 13C86C 1EA808 00 050000000000
-		// A 0A 92 80 02 1EA808 13C86C 00
-		// A 13 93 A0 01 13C86C 1EA808 00 0802010A130BC80C6C
-		// A 0A 93 80 02 1EA808 13C86C 00
-		// A 0B 94 A0 01 13C86C 1EA808 00 06
-		// A 0A 94 80 02 1EA808 13C86C 00
+	if (event instanceof DeviceInfoEvent) {
+	    String serNo = event.getSender().getInfo().serNo;
+	    RawMessage msg = event.getRawMessage();
 
-		//
-
-		if (event instanceof DeviceInfoEvent) {
-		    String serNo = event.getSender().getInfo().serNo;
-		    RawMessage msg = event.getRawMessage();
-
-		    if (event.isBroadCast()) {
-			if (!homeMaticHandler.getCCU().isPairingEnabled()) {
-			    logger.info("Pairing not enabled.");
-			    return;
-			}
-
-		    } else if (msg.dst.equals(homeMaticHandler.getCCU().getHmId())) {
-			return;
-		    } else if (msg.msgType.equals("04") && msg.msgFlag.equals("00")) {
-			return;
-		    }
-		    Device receiver = event.getReceiver();
-		    if (receiver != null && receiver.getId() != this.homeMaticHandler.getCCU().getHmId()) {
-			logger.info("Not our pairing request.");
-			return;
-		    }
-
-		    logger.info("Initiating Pairing");
-
-		    String idStr = homeMaticHandler.getCCU().getHmId();
-		    int s = 0xA;
-		    // 13C86C
-		    // 0201 0A130BC80C6C
-		    String content = "";
-		    for (int i = 0; i < 3; i++) {
-			content += String.format("%02X", s++);
-			content += idStr.substring(i * 2, i * 2 + 2);
-		    }
-
-		    event.getSender().getCommandStack().clear();
-
-		    pushConfig(event.getSender(), 0, 0, 0, 0, "0201"
-			    + content);
-
-		    homeMaticHandler.getCCU().setHmPairSerial(serNo);
-
-		    // this.messageSender.sendCmd(event.getSourceDevice(),
-		    // event.getSourceDevice().getCommandStack().poll(), 1, 1);
-
-		} else if (event instanceof AckStatusEvent) {
-		    Device srcDevice = event.getSender();
-		    if (srcDevice.getCommandStack().isEmpty()
-			    && homeMaticHandler.getCCU().getHmPairSerial() != null && homeMaticHandler.getCCU().getHmPairSerial().equals(srcDevice.getInfo().serNo)) {
-			logger.info("Successfully paired CCU with " + srcDevice);
-			homeMaticHandler.getCCU().setHmPairSerial(null);
-		    }
-		} else {
-		    Device receiver = event.getReceiver();
-		    if (receiver != null && receiver.getId() == this.homeMaticHandler.getCCU().getHmId()) {
-			// TODO answer!!!
-
-			this.homeMaticHandler.getMessageSender()
-				.send(new AckStatusEvent(new RawMessage(), this.homeMaticHandler.getCCU(), event.getSender(), 0, null));
-
-		    }
+	    if (event.isBroadCast()) {
+		if (!homeMaticHandler.getCCU().isPairingEnabled()) {
+		    logger.info("Pairing not enabled.");
+		    return;
 		}
+
+	    } else if (msg.dst.equals(homeMaticHandler.getCCU().getId())) {
+		return;
+	    } else if (msg.msgType.equals("04") && msg.msgFlag.equals("00")) {
+		return;
+	    }
+	    Device receiver = event.getReceiver();
+	    if (receiver != null && receiver.getId() != this.homeMaticHandler.getCCU().getId()) {
+		logger.info("Not our pairing request.");
+		return;
+	    }
+
+	    logger.info("Initiating Pairing");
+
+	    String idStr = homeMaticHandler.getCCU().getId();
+	    int s = 0xA;
+	    // 13C86C
+	    // 0201 0A130BC80C6C
+	    String content = "";
+	    for (int i = 0; i < 3; i++) {
+		content += String.format("%02X", s++);
+		content += idStr.substring(i * 2, i * 2 + 2);
+	    }
+
+	    event.getSender().getCommandStack().clear();
+
+	    pushConfig(event.getSender(), 0, 0, 0, 0, "0201"
+		    + content);
+
+	    homeMaticHandler.getCCU().setHmPairSerial(serNo);
+
+	    // this.messageSender.sendCmd(event.getSourceDevice(),
+	    // event.getSourceDevice().getCommandStack().poll(), 1, 1);
+
+	} else if (event instanceof AckStatusEvent) {
+	    Device srcDevice = event.getSender();
+	    if (srcDevice.getCommandStack().isEmpty()
+		    && homeMaticHandler.getCCU().getHmPairSerial() != null
+		    && homeMaticHandler.getCCU().getHmPairSerial().equals(srcDevice.getInfo().serNo)) {
+		logger.info("Successfully paired CCU with " + srcDevice);
+		homeMaticHandler.getCCU().setHmPairSerial(null);
+	    }
+	} else if (event instanceof WeatherEvent) {
+	    float temperature = ((WeatherEvent) event).getTemperature();
+	    int humidity = ((WeatherEvent) event).getHumidity();
+	    
+	    
+	}
+	else {
+	    Device receiver = event.getReceiver();
+	    if (receiver != null && receiver.getId() == this.homeMaticHandler.getCCU().getId()) {
+		// TODO answer!!!
+
+		this.homeMaticHandler.getMessageSender()
+			.send(new AckStatusEvent(new RawMessage(), this.homeMaticHandler.getCCU(), event.getSender(),
+				0, null));
+	    }
+	}
     }
-    
+
     private void pushConfig(Device receiver, int chnl, int peerAddr, int peerChnl, int list, String content) {
 	logger.info("pushConfig: " + receiver + " " + content);
 
 	// pushCmdStack(sourceDevice, "++" + flag + "01" + src + dst + chnlStr +
 	// "05" + peerAddrStr + peerChnStr + listStr);
-	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", this.homeMaticHandler.getCCU().getId(), receiver.getId(), chnl, "05",
+	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", this.homeMaticHandler.getCCU().getId(),
+		receiver.getId(), chnl, "05",
 		String.format("%s%02X%02X", "000000", peerChnl, list)));
 
 	int tl = content.length();
@@ -708,11 +734,13 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    // pushCmdStack(sourceDevice,
 	    // "++A001" + src + dst + chnlStr + "08" + content.substring(l,
 	    // ml));
-	    pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(), receiver.getId(), chnl, "08",
+	    pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(),
+		    receiver.getId(), chnl, "08",
 		    content.substring(l, ml)));
 	}
 	// pushCmdStack(sourceDevice, "++A001" + src + dst + chnlStr + "06");
-	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(), receiver.getId(), chnl, "06", ""));
+	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(), receiver.getId(),
+		chnl, "06", ""));
     }
 
     private void pushCmdStack(Device receiver, String command) {

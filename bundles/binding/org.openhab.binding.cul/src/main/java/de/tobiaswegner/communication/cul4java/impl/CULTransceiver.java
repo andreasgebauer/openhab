@@ -82,7 +82,7 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
 	log.debug("Closing the connection to the serial device");
 	active = false;
 	if (serialPort != null) {
-	    sendRAW("X00\r\n");
+	    sendRAW("X00");
 	    try {
 		serialPort.removeEventListener();
 		serialPort.closePort();
@@ -147,7 +147,11 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
 	    try {
 		String receivedLine = serialPort.readString();
 		// log.debug("CUL received data: " + receivedLine);
-		decode(receivedLine);
+		try {
+		    decode(receivedLine);
+		} catch (RuntimeException e) {
+		    log.error("Error: ", e);
+		}
 	    } catch (SerialPortException e) {
 		log.error("Can't read from serial port", e);
 	    }

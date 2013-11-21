@@ -39,4 +39,8 @@ public class DeviceStore implements Serializable {
     public Collection<Device> getDevices() {
 	return deviceMap.values();
     }
+
+    public void clear() {
+	this.deviceMap.clear();
+    }
 }

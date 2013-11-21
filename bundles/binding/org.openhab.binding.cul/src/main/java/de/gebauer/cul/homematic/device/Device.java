@@ -24,7 +24,7 @@ public class Device implements Serializable {
 
     private String name;
 
-    private String id;
+    protected String id;
 
     private ResponseWait responseWait;
 
@@ -49,6 +49,12 @@ public class Device implements Serializable {
 	return null;
     }
 
+    /**
+     * Add to history.
+     * 
+     * @param event
+     *            event parsed
+     */
     public void addEvent(Event event) {
 	this.events.add(event);
     }
@@ -83,6 +89,10 @@ public class Device implements Serializable {
 
     public String getId() {
 	return this.id;
+    }
+
+    public void setId(final String houseCode) {
+	this.id = houseCode;
     }
 
     @Override
