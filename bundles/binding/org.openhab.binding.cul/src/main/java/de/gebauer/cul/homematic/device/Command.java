@@ -8,7 +8,7 @@ public class Command {
 	this.command = command;
     }
 
-    public String getCommand() {
+    public String toString() {
 	return this.command;
     }
 

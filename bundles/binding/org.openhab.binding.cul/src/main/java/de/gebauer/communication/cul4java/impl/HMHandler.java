@@ -10,8 +10,11 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.communication.cul4java.HMListener;
 import de.gebauer.cul.homematic.VirtualCCU;
+import de.gebauer.cul.homematic.device.DeviceStore;
+import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.MessageParser;
 import de.gebauer.cul.homematic.out.MessageSender;
+import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.homematic.Event;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 import de.tobiaswegner.communication.cul4java.impl.AbstractCulHandler;
@@ -30,11 +33,14 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
 
     private MessageSender messageSender;
 
-    public HMHandler(CULInterface cul, VirtualCCU ccu, MessageParser messageParser, MessageSender messageSender) {
+    private DeviceStore deviceStore;
+
+    public HMHandler(CULInterface cul, DeviceStore deviceStore) {
 	super(cul);
-	this.ccu = ccu;
-	this.messageParser = messageParser;
-	this.messageSender = messageSender;
+	this.deviceStore = deviceStore;
+	this.ccu = new VirtualCCU("hmId");
+	this.messageParser = new MessageInterpreter(deviceStore);
+	this.messageSender = new MessageSenderImpl(cul);
     }
 
     /*
@@ -54,7 +60,7 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
 		return;
 	    }
 
-	    LOG.debug("Parsed event " + event);
+	    // LOG.debug("Parsed event " + event);
 	    event.getSender().addEvent(event);
 
 	    for (HMListener listener : this.listeners) {
@@ -79,6 +85,10 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
 
     public MessageSender getMessageSender() {
 	return this.messageSender;
+    }
+
+    public DeviceStore getDeviceStore() {
+	return this.deviceStore;
     }
 
 }

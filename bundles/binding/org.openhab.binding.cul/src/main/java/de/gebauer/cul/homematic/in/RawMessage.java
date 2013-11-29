@@ -16,8 +16,8 @@ public class RawMessage {
 
     @Override
     public String toString() {
-	return "RawMessage [length=" + length + ", msgCount=" + msgCount + ", msgFlag=" + msgFlag + ", msgType="
-		+ msgType + ", src=" + src + ", dst=" + dst + ", p=" + p + "]";
+	return "RawMessage [" + src + "->" + dst + "#" + msgCount + "; len=" + length + ", flag=" + msgFlag + ", type="
+		+ msgType + ", p=" + p + "]";
     }
 
 }

@@ -5,8 +5,6 @@ import de.gebauer.cul.homematic.in.RawMessage;
 
 public class ClimateEvent extends AbstractEvent {
 
-    private static final byte COMMAND = 0x58;
-
     private final int command;
     private final int valvePos;
 
@@ -14,6 +12,14 @@ public class ClimateEvent extends AbstractEvent {
 	super(msg, srcDevice, receiver);
 	command = cmd;
 	valvePos = vp;
+    }
+
+    public int getCommand() {
+	return command;
+    }
+
+    public int getValvePos() {
+	return valvePos;
     }
 
     public EventType getType() {

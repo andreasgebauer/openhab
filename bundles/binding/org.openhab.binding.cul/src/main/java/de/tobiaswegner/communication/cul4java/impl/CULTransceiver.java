@@ -50,28 +50,30 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
 
     private SerialPort serialPort;
 
-    private Map<Character, CULHandler<? extends CULListener>> culHandler = new HashMap<Character, CULHandler<? extends CULListener>>();
+    private final Map<Character, CULHandler<? extends CULListener>> culHandler = new HashMap<Character, CULHandler<? extends CULListener>>();
+
+    private String buffer = "";
 
     @Override
-    public void open(String deviceName) throws
+    public void open(final String deviceName) throws
 	    IOException, TooManyListenersException, SerialPortException {
 
-	serialPort = new SerialPort(deviceName);
-	if (!serialPort.isOpened()) {
-	    boolean openPort = serialPort.openPort();
+	this.serialPort = new SerialPort(deviceName);
+	if (!this.serialPort.isOpened()) {
+	    final boolean openPort = this.serialPort.openPort();
 
 	    if (!openPort) {
 		throw new IOException("Unable to open port");
 	    }
 
-	    serialPort.setParams(38400, SerialPort.DATABITS_8,
+	    this.serialPort.setParams(38400, SerialPort.DATABITS_8,
 		    SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
 
-	    sendRAW("Ar");
-	    sendRAW("X00");
+	    this.sendRAW("Ar");
+	    this.sendRAW("X00");
 
-	    serialPort.addEventListener(this);
-	    isOpen = true;
+	    this.serialPort.addEventListener(this);
+	    this.isOpen = true;
 	}
 
 	// sendRAW("X21\r\n");
@@ -80,25 +82,25 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
     @Override
     public void close() {
 	log.debug("Closing the connection to the serial device");
-	active = false;
-	if (serialPort != null) {
-	    sendRAW("X00");
+	this.active = false;
+	if (this.serialPort != null) {
 	    try {
-		serialPort.removeEventListener();
-		serialPort.closePort();
-	    } catch (SerialPortException e) {
+		this.sendRAW("X00");
+		this.serialPort.removeEventListener();
+		this.serialPort.closePort();
+	    } catch (final SerialPortException e) {
 		e.printStackTrace();
 	    }
 	}
-	isOpen = false;
+	this.isOpen = false;
     }
 
     @Override
     public boolean isOpen() {
-	return isOpen;
+	return this.isOpen;
     }
 
-    public void FS20_Send(String HouseCode, String Address, String Command) {
+    public void FS20_Send(final String HouseCode, final String Address, final String Command) {
 	// String sendString = fs20Handler.Send(HouseCode, Address, Command);
 	//
 	// if (sendString.length() > 0)
@@ -106,53 +108,61 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
     }
 
     @Override
-    public void decode(String line) {
+    public void decode(final String line) {
 	if (line.equals(END_OF_BUFFER)) {
 	    log.error("Send buffer is full, can't send command");
 	    return;
 	}
 	log.debug("CUL received a message: " + line.replaceAll("\r\n", "\\r\\n"));
 
-	char type = line.charAt(0);
-	CULHandler<? extends CULListener> handler = getHandlerForType(type);
+	final char type = line.charAt(0);
+	final CULHandler<? extends CULListener> handler = this.getHandlerForType(type);
 
-	for (String string : line.split("\r\n")) {
-	    if (handler != null) {
-		handler.parseData(string);
-	    } else {
-		log.warn("No handler found to parse the message: " + line);
-	    }
+	if (handler != null) {
+	    handler.parseData(line);
+	} else {
+	    log.warn("No handler found to parse the message: " + line);
 	}
     }
 
     @Override
-    public void sendRAW(String sendString) {
+    public void sendRAW(String sendString)  {
 	log.debug("Sending raw message to CUL: " + sendString);
 	if (!sendString.endsWith("\r\n")) {
-	    sendString = sendString + "\r\n";
+	    sendString += "\r\n";
 	}
-	synchronized (serialPort) {
+	synchronized (this.serialPort) {
 	    try {
-		serialPort.writeString(sendString);
+		this.serialPort.writeString(sendString);
 		// log.debug("CUL sent: " + sendString);
-	    } catch (SerialPortException e) {
+	    } catch (final SerialPortException e) {
 		log.error("Can't write to serial port", e);
 	    }
 	}
     }
 
     @Override
-    public void serialEvent(SerialPortEvent event) {
+    public void serialEvent(final SerialPortEvent event) {
 	if (event.getEventType() == SerialPortEvent.RXCHAR) {
 	    try {
-		String receivedLine = serialPort.readString();
-		// log.debug("CUL received data: " + receivedLine);
-		try {
-		    decode(receivedLine);
-		} catch (RuntimeException e) {
-		    log.error("Error: ", e);
+		// this can be a partial line too
+		String receivedLine = this.buffer + this.serialPort.readString();
+		int indexOf = receivedLine.indexOf("\r\n");
+		while (indexOf != -1) {
+		    final String message = receivedLine.substring(0, indexOf);
+
+		    try {
+			this.decode(message);
+		    } catch (final RuntimeException e) {
+			log.error("Error: ", e);
+		    }
+
+		    receivedLine = receivedLine.substring(indexOf + 2);
+		    indexOf = receivedLine.indexOf("\r\n");
 		}
-	    } catch (SerialPortException e) {
+		this.buffer = receivedLine;
+
+	    } catch (final SerialPortException e) {
 		log.error("Can't read from serial port", e);
 	    }
 	} else {
@@ -162,39 +172,38 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
     }
 
     @Override
-    public void registerHandler(CULHandler<? extends CULListener> handler) {
+    public void registerHandler(final CULHandler<? extends CULListener> handler) {
 	if (handler != null) {
-	    culHandler.put(handler.getCULReceiverPrefix(), handler);
+	    this.culHandler.put(handler.getCULReceiverPrefix(), handler);
 	}
 
     }
 
     @Override
-    public void unregisterHandler(CULHandler<? extends CULListener> handler) {
+    public void unregisterHandler(final CULHandler<? extends CULListener> handler) {
 	if (handler != null) {
-	    culHandler.remove(handler.getCULReceiverPrefix());
+	    this.culHandler.remove(handler.getCULReceiverPrefix());
 	}
 
     }
 
     @Override
-    public void unregisterHandler(char type) {
-	if (culHandler.containsKey(type)) {
-	    culHandler.remove(type);
+    public void unregisterHandler(final char type) {
+	if (this.culHandler.containsKey(type)) {
+	    this.culHandler.remove(type);
 	}
 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <H extends CULHandler<?>> H getHandlerForType(char type) {
-	return (H) culHandler.get(type);
+    public <H extends CULHandler<?>> H getHandlerForType(final char type) {
+	return (H) this.culHandler.get(type);
     }
 
     @Override
-    public void setOwnHouseCode(String housecode) {
+    public void setOwnHouseCode(final String housecode) throws IOException {
 	if (!StringUtils.isEmpty(housecode) && housecode.length() == 4) {
-	    sendRAW("T01" + housecode);
+	    this.sendRAW("T01" + housecode);
 	}
 
     }

@@ -15,6 +15,16 @@ public enum MessageType {
      */
     STATUS_CHANGE(0x10),
     /**
+     * 0x11
+     */
+    COMMAND(0x11),
+
+    /**
+     * <pre>
+     * 0B .. 58 A2 ....... ...... .... 
+     * len cnt ty fl src   dest pl
+     * </pre>
+     * 
      * 0x58
      */
     CLIMATE(0x58),

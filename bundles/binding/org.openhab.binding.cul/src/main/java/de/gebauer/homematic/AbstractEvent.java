@@ -33,7 +33,7 @@ public abstract class AbstractEvent implements Event, Serializable {
 	return srcDevice;
     }
 
-    public Device getReceiver() {
+    public Device getDestination() {
 	return this.dstDevice;
     }
 

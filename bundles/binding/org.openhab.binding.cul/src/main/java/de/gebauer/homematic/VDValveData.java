@@ -3,6 +3,7 @@ package de.gebauer.homematic;
 public class VDValveData implements DeviceData {
 
     public enum MotorError {
+	OK,
 	LOOSE
     }
 
@@ -10,9 +11,17 @@ public class VDValveData implements DeviceData {
     private int valveOffset;
     private int valveErrorPosition;
     private MotorError motorError;
+    private BatteryStatus batteryStatus;
 
+    /**
+     * 
+     * @author andi
+     * 
+     */
     public enum MotorState {
-	STOP, CLOSING, OPENING
+	STOP,
+	CLOSING,
+	OPENING
     }
 
     public void setMotorState(MotorState stop) {
@@ -38,4 +47,15 @@ public class VDValveData implements DeviceData {
     public void setMotorError(MotorError motorError) {
 	this.motorError = motorError;
     }
+
+    public void setBatteryStatus(BatteryStatus ok) {
+	this.batteryStatus = ok;
+    }
+
+    @Override
+    public String toString() {
+	return "VDValveData [motor: " + motorError + " " + motorState + " " + valveOffset + "% errPos="
+		+ valveErrorPosition + ", battery:" + batteryStatus + "]";
+    }
+
 }

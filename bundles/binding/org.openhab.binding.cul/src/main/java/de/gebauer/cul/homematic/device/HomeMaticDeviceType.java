@@ -1,4 +1,4 @@
-package de.gebauer.homematic;
+package de.gebauer.cul.homematic.device;
 
 /**********************************************************
  * Defines a HomeMatic device type.

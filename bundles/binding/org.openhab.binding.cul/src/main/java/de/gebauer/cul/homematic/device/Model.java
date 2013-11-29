@@ -1,13 +1,32 @@
 package de.gebauer.cul.homematic.device;
 
-import de.gebauer.homematic.HomeMaticDeviceType;
-
 public enum Model {
+
+    /**
+     * ?
+     */
+    CUL(null, "CUL", 0x0001, ""),
+
+    /**
+     * ?
+     */
     HMLCSW1PLOM54(null, "HM-LC-SW1-PL-OM54", 0x0001, ""),
+    /**
+     * Heating Valve Device.
+     */
     HMCCVD(HomeMaticDeviceType.THERMOSTAT, "HM-CC-VD", 0x003A, "c:w"),
+    /**
+     * Thermo Control.
+     */
     HMCCTC(HomeMaticDeviceType.THERMOSTAT, "HM-CC-TC", 0x0039, "c:w"),
+    /**
+     * Window / Door Closing.
+     */
     HMSECSC(HomeMaticDeviceType.THREE_STATE_SENSOR, "HM-SEC-SC", 0x002F, "c:w"),
-    HMLCDIM1TPI2(null, "HM-LC-DIM1T-PI2", 0x00A4, "c:w");
+    /**
+     * Dimmer.
+     */
+    HMLCDIM1TPI2(HomeMaticDeviceType.DIMMER, "HM-LC-DIM1T-PI2", 0x00A4, "c:w");
 
     private final String name;
     private final int id;

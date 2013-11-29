@@ -16,6 +16,10 @@ public class WindowStateEvent extends AbstractEvent {
 	this.closed = state == 0 ? true : false;
     }
 
+    public boolean isClosed() {
+	return closed;
+    }
+
     public EventType getType() {
 	return EventType.WINDOW;
     }

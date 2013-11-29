@@ -28,6 +28,7 @@
  */
 package org.openhab.binding.cul.internal;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Dictionary;
@@ -67,19 +68,22 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.communication.cul4java.HMListener;
 import de.gebauer.communication.cul4java.impl.HMHandler;
+import de.gebauer.cul.homematic.DimmerChangeEvent;
 import de.gebauer.cul.homematic.VirtualCCU;
 import de.gebauer.cul.homematic.device.Device;
 import de.gebauer.cul.homematic.device.DeviceStore;
+import de.gebauer.cul.homematic.device.HomeMaticDeviceType;
 import de.gebauer.cul.homematic.device.Model;
 import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.homematic.AckStatusEvent;
+import de.gebauer.homematic.ClimateEvent;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.DeviceInfoEvent;
 import de.gebauer.homematic.Event;
-import de.gebauer.homematic.HomeMaticDeviceType;
 import de.gebauer.homematic.WeatherEvent;
+import de.gebauer.homematic.WindowStateEvent;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 import de.tobiaswegner.communication.cul4java.FHTEvent;
 import de.tobiaswegner.communication.cul4java.FHTListener;
@@ -165,10 +169,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 
     private DeviceStore dvcStore;
 
-    public CULBinding() {
+    public CULBinding(CULInterface culTransceiver) {
 	INSTANCE = this;
-	cul = new CULTransceiver();
+	cul = culTransceiver;
 	logger.debug("Created a new instance of the CULBinding");
+    }
+
+    public CULBinding() {
+	this(new CULTransceiver());
     }
 
     /**
@@ -177,11 +185,10 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * protocol handler and bind the CUL to the configured port.
      */
     public void activate() {
+	dvcStore = new DeviceStore();
 	fhtHandler = new FHTHandler(cul);
 	fs20Handler = new FS20Handler(cul);
-	dvcStore = new DeviceStore();
-	homeMaticHandler = new HMHandler(cul, new VirtualCCU("hmId"), new MessageInterpreter(dvcStore),
-		new MessageSenderImpl(cul));
+	homeMaticHandler = new HMHandler(cul, dvcStore);
 	fhtHandler.registerListener(this);
 	fs20Handler.registerListener(this);
 	homeMaticHandler.registerListener(this);
@@ -327,6 +334,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		FHTQueueItem item = new FHTQueueItem((FHTBindingConfig) config,
 			command);
 		fhtCommandQueue.put(config.getAddress(), item);
+	    } else if (config instanceof HomeMaticBindingConfig) {
+		config.executeCommand(cul, command);
+		try {
+		    homeMaticHandler.getMessageSender().processCmdStack(
+			    homeMaticHandler.getDeviceStore().get(((HomeMaticBindingConfig) config).getId()));
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
 	    } else {
 		synchronized (cul) {
 		    config.executeCommand(cul, command);
@@ -420,8 +435,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 			String dvcName = (String) config.get("device." + deviceId + ".name");
 
 			Model model = Model.valueOf(dvcType);
-			DeviceInfo dvcInfo = new DeviceInfo(null, model, null,
-				model.getDeviceType(), 0, 1);
+			DeviceInfo dvcInfo = new DeviceInfo(null, model, null, 0, 1);
 			dvcStore.add(deviceId, new Device(dvcName, deviceId, dvcInfo));
 		    }
 		}
@@ -439,6 +453,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		    && !houseCode.equals(this.houseCode)) {
 		this.houseCode = houseCode;
 		this.homeMaticHandler.getCCU().setId(this.houseCode);
+		dvcStore.add(this.houseCode, this.homeMaticHandler.getCCU());
 	    }
 
 	    // read further config parameters here ...
@@ -452,9 +467,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 			bindCulInterface();
 		    } catch (Exception e) {
 			isProperlyConfigured = false;
-			logger.error(
-				"Can't open CUL device after configiration change",
-				e);
+			logger.error("Can't open CUL device after configuration change", e);
 			throw new ConfigurationException(PROPERTY_DEVICE,
 				"Can't open CUL device", e);
 		    }
@@ -643,13 +656,19 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	}
     }
 
+    /**
+     * Method handling the event.
+     * 
+     * @throws
+     */
     @Override
     public void receivedEvent(Event event) {
 	logger.debug(MessageFormat
-		.format("Received new HMEvent {0} for device {1}",
-			event, event.getReceiver()));
+		.format("Received {0} for device {1}",
+			event, event.getDestination()));
 
 	if (event instanceof DeviceInfoEvent) {
+	    // pairing
 	    String serNo = event.getSender().getInfo().serNo;
 	    RawMessage msg = event.getRawMessage();
 
@@ -660,32 +679,23 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		}
 
 	    } else if (msg.dst.equals(homeMaticHandler.getCCU().getId())) {
+		// TODO why?
 		return;
 	    } else if (msg.msgType.equals("04") && msg.msgFlag.equals("00")) {
+		// TODO why?
 		return;
 	    }
-	    Device receiver = event.getReceiver();
-	    if (receiver != null && receiver.getId() != this.homeMaticHandler.getCCU().getId()) {
+	    Device destination = event.getDestination();
+	    if (destination != null && destination.getId() != this.homeMaticHandler.getCCU().getId()) {
 		logger.info("Not our pairing request.");
 		return;
 	    }
 
 	    logger.info("Initiating Pairing");
 
-	    String idStr = homeMaticHandler.getCCU().getId();
-	    int s = 0xA;
-	    // 13C86C
-	    // 0201 0A130BC80C6C
-	    String content = "";
-	    for (int i = 0; i < 3; i++) {
-		content += String.format("%02X", s++);
-		content += idStr.substring(i * 2, i * 2 + 2);
-	    }
-
 	    event.getSender().getCommandStack().clear();
 
-	    pushConfig(event.getSender(), 0, 0, 0, 0, "0201"
-		    + content);
+	    pushConfig(event.getSender(), 0, 0, 0, 0);
 
 	    homeMaticHandler.getCCU().setHmPairSerial(serNo);
 
@@ -699,31 +709,89 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		    && homeMaticHandler.getCCU().getHmPairSerial().equals(srcDevice.getInfo().serNo)) {
 		logger.info("Successfully paired CCU with " + srcDevice);
 		homeMaticHandler.getCCU().setHmPairSerial(null);
+	    } else {
+		Boolean success = ((AckStatusEvent) event).getSuccess();
+		if (Boolean.TRUE.equals(success)) {
+
+		}
 	    }
 	} else if (event instanceof WeatherEvent) {
 	    float temperature = ((WeatherEvent) event).getTemperature();
 	    int humidity = ((WeatherEvent) event).getHumidity();
-	    
-	    
-	}
-	else {
-	    Device receiver = event.getReceiver();
-	    if (receiver != null && receiver.getId() == this.homeMaticHandler.getCCU().getId()) {
-		// TODO answer!!!
 
-		this.homeMaticHandler.getMessageSender()
-			.send(new AckStatusEvent(new RawMessage(), this.homeMaticHandler.getCCU(), event.getSender(),
-				0, null));
+	    Device device = this.dvcStore.get(event.getSender().getId());
+
+	    AbstractCulBindingConfig config = getWritableBindingForAddress(device.getName() + ":" + "TEMPERATURE");
+	    if (config != null) {
+		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(temperature));
 	    }
+	    config = getWritableBindingForAddress(device.getName() + ":" + "HUMIDITY");
+	    if (config != null) {
+		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(humidity));
+	    }
+
+	} else if (event instanceof ClimateEvent) {
+	    int command = ((ClimateEvent) event).getCommand();
+	    int valvePos = ((ClimateEvent) event).getValvePos();
+
+	    Device device = this.dvcStore.get(event.getDestination().getId());
+
+	    AbstractCulBindingConfig config = getWritableBindingForAddress(device.getName() + ":" + "DESIRED");
+	    if (config != null) {
+		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(command));
+	    }
+	    config = getWritableBindingForAddress(device.getName() + ":" + "VALVEPOS");
+	    if (config != null) {
+		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(valvePos));
+	    }
+	} else if (event instanceof WindowStateEvent) {
+	    AbstractCulBindingConfig config = getWritableBindingForAddress(event.getSender().getName() + ":" + "STATE");
+	    if (config != null) {
+		eventPublisher.postUpdate(config.getItem().getName(),
+			((WindowStateEvent) event).isClosed() ? OpenClosedType.CLOSED
+				: OpenClosedType.OPEN);
+	    }
+	    event.getSender().addToSendQueue(
+		    new AckStatusEvent(null, this.homeMaticHandler.getCCU(), event.getSender(), 1, null));
+	    // event.getSender().getCommandStack().add(new
+	    // de.gebauer.cul.homematic.device.Command(command));
+	} else if (event instanceof DimmerChangeEvent) {
+	    AbstractCulBindingConfig config = getWritableBindingForAddress(event.getSender().getName() + ":" + "DIM");
+	    if (config != null) {
+		int state = ((DimmerChangeEvent) event).getState();
+		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(state));
+		event.getSender().addToSendQueue(
+			new AckStatusEvent(new RawMessage(), this.homeMaticHandler.getCCU(), event
+				.getSender(), 0, null));
+	    }
+	}
+	Device destination = event.getDestination();
+	if (destination != null && destination.getId() == this.homeMaticHandler.getCCU().getId()) {
+	    // TODO answer!!!
+
+	    // event.getSender().addToSendQueue(
+	    // new AckStatusEvent(new RawMessage(),
+	    // this.homeMaticHandler.getCCU(), event
+	    // .getSender(), 0, null));
 	}
     }
 
-    private void pushConfig(Device receiver, int chnl, int peerAddr, int peerChnl, int list, String content) {
+    private void pushConfig(Device receiver, int chnl, int peerAddr, int peerChnl, int list) {
+	String idStr = homeMaticHandler.getCCU().getId();
+	int s = 0xA;
+	// 13C86C
+	// 0201 0A130BC80C6C
+	String content = "0201";
+	for (int i = 0; i < 3; i++) {
+	    content += String.format("%02X", s++);
+	    content += idStr.substring(i * 2, i * 2 + 2);
+	}
 	logger.info("pushConfig: " + receiver + " " + content);
 
 	// pushCmdStack(sourceDevice, "++" + flag + "01" + src + dst + chnlStr +
 	// "05" + peerAddrStr + peerChnStr + listStr);
-	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", this.homeMaticHandler.getCCU().getId(),
+	String format = "++A001%s%s%02X%s%s";
+	pushCmdStack(receiver, String.format(format, this.homeMaticHandler.getCCU().getId(),
 		receiver.getId(), chnl, "05",
 		String.format("%s%02X%02X", "000000", peerChnl, list)));
 
@@ -734,12 +802,12 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    // pushCmdStack(sourceDevice,
 	    // "++A001" + src + dst + chnlStr + "08" + content.substring(l,
 	    // ml));
-	    pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(),
+	    pushCmdStack(receiver, String.format(format, homeMaticHandler.getCCU().getId(),
 		    receiver.getId(), chnl, "08",
 		    content.substring(l, ml)));
 	}
 	// pushCmdStack(sourceDevice, "++A001" + src + dst + chnlStr + "06");
-	pushCmdStack(receiver, String.format("++A001%s%s%02X%s%s", homeMaticHandler.getCCU().getId(), receiver.getId(),
+	pushCmdStack(receiver, String.format(format, homeMaticHandler.getCCU().getId(), receiver.getId(),
 		chnl, "06", ""));
     }
 

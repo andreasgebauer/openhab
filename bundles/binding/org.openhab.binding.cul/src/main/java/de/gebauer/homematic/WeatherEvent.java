@@ -28,7 +28,7 @@ public class WeatherEvent extends AbstractEvent {
 
     @Override
     public String toString() {
-	return "WeatherEvent [temperature=" + temperature + ", humidity=" + humidity + ", raw=" + super.msg + "]";
+	return "WeatherEvent [" + temperature + "°C " + humidity + "%, raw=" + super.msg + "]";
     }
 
 }

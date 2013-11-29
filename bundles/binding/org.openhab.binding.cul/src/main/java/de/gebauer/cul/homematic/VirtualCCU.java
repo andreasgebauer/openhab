@@ -4,6 +4,11 @@ import de.gebauer.cul.homematic.device.Device;
 
 public class VirtualCCU extends Device {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
     private boolean pairingEnabled;
     private String hmPairSerial = "";
 

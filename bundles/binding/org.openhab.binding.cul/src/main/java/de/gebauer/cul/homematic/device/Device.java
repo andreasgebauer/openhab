@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.Event;
 
@@ -16,19 +19,19 @@ public class Device implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
+    private static final Logger LOG = LoggerFactory.getLogger(Device.class);
+
     private DeviceInfo info;
 
-    private transient List<Event> events = new ArrayList<Event>();
-
-    private String lastMessage;
+    private transient List<Event> eventsReceived = new ArrayList<Event>();
 
     private String name;
 
     protected String id;
 
-    private ResponseWait responseWait;
-
     private transient Queue<Command> cmdStack = new ArrayDeque<Command>();
+
+    private transient Queue<Event> eventStack = new ArrayDeque<Event>();
 
     private int rxType;
 
@@ -43,8 +46,8 @@ public class Device implements Serializable {
     }
 
     public Event getLastEvent() {
-	if (this.events.size() > 0) {
-	    return this.events.get(events.size() - 1);
+	if (this.eventsReceived.size() > 0) {
+	    return this.eventsReceived.get(eventsReceived.size() - 1);
 	}
 	return null;
     }
@@ -56,23 +59,11 @@ public class Device implements Serializable {
      *            event parsed
      */
     public void addEvent(Event event) {
-	this.events.add(event);
-    }
-
-    public String getLastMessage() {
-	return this.lastMessage;
-    }
-
-    public void setLastMessage(String msgX) {
-	this.lastMessage = msgX;
+	this.eventsReceived.add(event);
     }
 
     public String getName() {
 	return name;
-    }
-
-    public ResponseWait getResponseWait() {
-	return this.responseWait;
     }
 
     public Queue<Command> getCommandStack() {
@@ -126,8 +117,18 @@ public class Device implements Serializable {
     }
 
     public void restore() {
-	this.events = new ArrayList<Event>();
+	this.eventsReceived = new ArrayList<Event>();
 	this.cmdStack = new ArrayDeque<Command>();
+	this.eventStack = new ArrayDeque<Event>();
+    }
+
+    public void addToSendQueue(Event event) {
+	LOG.info("Adding {} to send queue", event);
+	this.eventStack.add(event);
+    }
+
+    public Queue<Event> getEventStack() {
+	return this.eventStack;
     }
 
 }

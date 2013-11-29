@@ -17,6 +17,6 @@ public interface Event {
 
     Device getSender();
 
-    Device getReceiver();
+    Device getDestination();
 
 }

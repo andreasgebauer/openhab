@@ -8,7 +8,7 @@ import de.gebauer.homematic.Event;
 
 public interface MessageSender {
 
-    String sendCmd(Device sourceDevice, Command poll, int i, int j) throws IOException;
+    String sendCmd(Device sourceDevice, Command poll) throws IOException;
 
     /**
      * Process the command stack for the device given.
@@ -18,8 +18,8 @@ public interface MessageSender {
      * @return the message sent
      * @throws IOException
      */
-    String processCmdStack(Device srcDevice) throws IOException;
+    void processCmdStack(Device srcDevice) throws IOException;
 
-    void send(Event event);
+    void send(Event event) throws IOException;
 
 }

@@ -19,27 +19,28 @@
 
 package de.tobiaswegner.communication.cul4java;
 
+import java.io.IOException;
 
 public interface CULInterface {
 
-	public void close();
+    public void close();
 
-	public boolean isOpen();
+    public boolean isOpen();
 
-	public void open(String deviceName) throws Exception;
+    public void open(String deviceName) throws Exception;
 
-	public void decode(String cmdLine);
+    public void decode(String cmdLine);
 
-	public void sendRAW(String sendString);
+    public void sendRAW(String sendString);
 
-	public void registerHandler(CULHandler<?> handler);
-	
-	public void unregisterHandler(CULHandler<?> handler);
-	
-	public void unregisterHandler(char type);
-	
-	public <H extends CULHandler<?>> H getHandlerForType(char type);
-	
-	public void setOwnHouseCode(String housecode);
-	
+    public void registerHandler(CULHandler<?> handler);
+
+    public void unregisterHandler(CULHandler<?> handler);
+
+    public void unregisterHandler(char type);
+
+    public <H extends CULHandler<?>> H getHandlerForType(char type);
+
+    public void setOwnHouseCode(String housecode) throws IOException;
+
 }

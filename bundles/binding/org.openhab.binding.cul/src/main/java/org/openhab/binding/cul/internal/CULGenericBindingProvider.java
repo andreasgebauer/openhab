@@ -101,6 +101,9 @@ public class CULGenericBindingProvider extends AbstractGenericBindingProvider
 		if (config != null) {
 			addBindingConfig(item, config);
 		}
+		if("PairingSwitch".equals(item.getName())){
+		    
+		}
 	}
 
 	private void addBindingConfig(Item item, AbstractCulBindingConfig config) {

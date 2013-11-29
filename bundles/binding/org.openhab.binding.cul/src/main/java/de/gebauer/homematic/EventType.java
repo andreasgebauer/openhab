@@ -12,5 +12,6 @@ public enum EventType {
     ACK,
     CONFIG_START,
     STATUS_CHANGE,
-    WINDOW;
+    WINDOW,
+    DIMM;
 }
