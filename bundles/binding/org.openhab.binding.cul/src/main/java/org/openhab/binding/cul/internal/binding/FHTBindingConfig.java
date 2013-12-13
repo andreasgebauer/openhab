@@ -98,7 +98,7 @@ public class FHTBindingConfig extends AbstractCulBindingConfig {
 	}
 
 	@Override
-	public void executeCommand(CULInterface cul, Command command) {
+	public boolean executeCommand(CULInterface cul, Command command) {
 		if (isCommandAllowed(command)) {
 			FHTHandler handler = cul.getHandlerForType('T');
 			if (command instanceof DecimalType) {
@@ -117,6 +117,7 @@ public class FHTBindingConfig extends AbstractCulBindingConfig {
 
 			}
 		}
+		return false;
 
 	}
 

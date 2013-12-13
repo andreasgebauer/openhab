@@ -98,9 +98,9 @@ public class IntertechnoBindingConfig extends AbstractCulBindingConfig {
 	}
 
 	@Override
-	public void executeCommand(CULInterface cul, Command command) {
+	public boolean executeCommand(CULInterface cul, Command command) {
 		if (!isCommandAllowed(command)) {
-			return;
+			return false;
 		}
 		OnOffType onOff = (OnOffType) command;
 		String sendString = null;
@@ -113,6 +113,7 @@ public class IntertechnoBindingConfig extends AbstractCulBindingConfig {
 			break;
 		}
 		cul.sendRAW(sendString);
+		return false;
 	}
 
 	@Override

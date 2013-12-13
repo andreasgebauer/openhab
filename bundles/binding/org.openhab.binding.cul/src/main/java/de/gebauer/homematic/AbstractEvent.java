@@ -1,45 +1,17 @@
 package de.gebauer.homematic;
 
-import java.io.Serializable;
-
-import de.gebauer.cul.homematic.device.Device;
 import de.gebauer.cul.homematic.in.RawMessage;
+import de.gebauer.homematic.device.AbstractDevice;
 
-public abstract class AbstractEvent implements Event, Serializable {
+public abstract class AbstractEvent extends AbstractMessage {
 
-    protected RawMessage msg;
-    private Device srcDevice;
-    private Device dstDevice;
-
-    public AbstractEvent(RawMessage msg, Device srcDevice, Device dstDevice) {
-	this.msg = msg;
-	this.srcDevice = srcDevice;
-	this.dstDevice = dstDevice;
-    }
-
-    public boolean isBroadCast() {
-	return this.msg.dst.equals(BROAD_CAST_ADDRESS);
-    }
-
-    public int getCount() {
-	return Integer.valueOf(this.msg.msgCount, 16);
-    }
-
-    public RawMessage getRawMessage() {
-	return this.msg;
-    }
-
-    public Device getSender() {
-	return srcDevice;
-    }
-
-    public Device getDestination() {
-	return this.dstDevice;
+    public AbstractEvent(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel) {
+	super(msg, srcDevice, dstDevice, channel);
     }
 
     @Override
-    public String toString() {
-	return "AbstractEvent [hmEvent=" + msg + "]";
+    public String getPayload() {
+	// we don't need a payload
+	return null;
     }
-
 }

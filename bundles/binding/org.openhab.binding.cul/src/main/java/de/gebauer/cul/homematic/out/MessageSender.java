@@ -2,13 +2,11 @@ package de.gebauer.cul.homematic.out;
 
 import java.io.IOException;
 
-import de.gebauer.cul.homematic.device.Command;
-import de.gebauer.cul.homematic.device.Device;
-import de.gebauer.homematic.Event;
+import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
+import de.gebauer.homematic.Message;
+import de.gebauer.homematic.device.AbstractDevice;
 
 public interface MessageSender {
-
-    String sendCmd(Device sourceDevice, Command poll) throws IOException;
 
     /**
      * Process the command stack for the device given.
@@ -18,8 +16,10 @@ public interface MessageSender {
      * @return the message sent
      * @throws IOException
      */
-    void processCmdStack(Device srcDevice) throws IOException;
+    void processCmdStack(AbstractDevice srcDevice) throws IOException;
 
-    void send(Event event) throws IOException;
+    void send(WrappedMessage event) throws IOException;
+
+    void tearDown();
 
 }

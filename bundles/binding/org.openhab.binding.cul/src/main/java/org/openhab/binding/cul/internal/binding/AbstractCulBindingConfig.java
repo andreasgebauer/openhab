@@ -65,7 +65,7 @@ public abstract class AbstractCulBindingConfig implements BindingConfig {
 
     public abstract boolean isCommandAllowed(Command command);
 
-    public abstract void executeCommand(CULInterface cul, Command command);
+    public abstract boolean executeCommand(CULInterface cul, Command command);
 
     public abstract boolean isWriteable();
 

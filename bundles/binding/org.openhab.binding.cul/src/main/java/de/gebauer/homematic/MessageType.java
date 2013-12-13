@@ -7,18 +7,36 @@ public enum MessageType {
      */
     UNKNOWN(0x00),
     /**
+     * 0x01
+     */
+    CONFIG(0x01),
+    /**
      * 0x02
      */
     ACK(0x02),
+
+    /**
+     * 0x04
+     */
+    UNKNOWN2(0x04),
+
     /**
      * 0x10
      */
-    STATUS_CHANGE(0x10),
+    SWITCH(0x10),
     /**
      * 0x11
      */
     COMMAND(0x11),
+    /**
+     * 0x12
+     */
+    COMMAND2(0x12),
 
+    /**
+     * 0x41
+     */
+    SENSOR(0x41),
     /**
      * <pre>
      * 0B .. 58 A2 ....... ...... .... 
@@ -27,17 +45,19 @@ public enum MessageType {
      * 
      * 0x58
      */
-    CLIMATE(0x58),
-    /**
-     * 0x41
-     */
-    WINDOW(0x41),
+    THERMOSTAT(0x58),
     /**
      * 0x70
      */
-    WEATHER(0x70);
+    THSENSOR(0x70),
+
+    /**
+     * ?
+     */
+    UNKNOWN1(0x3E);
 
     private int msgType;
+
     private String msgTypeStr;
 
     MessageType(int msgType) {
@@ -61,4 +81,13 @@ public enum MessageType {
     public boolean is(String msgType) {
 	return this.msgTypeStr.equals(msgType);
     }
+
+    public int getInt() {
+	return msgType;
+    }
+
+    public String getStr() {
+	return msgTypeStr;
+    }
+
 }

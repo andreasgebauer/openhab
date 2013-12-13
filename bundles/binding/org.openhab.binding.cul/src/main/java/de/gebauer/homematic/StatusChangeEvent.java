@@ -1,37 +1,49 @@
 package de.gebauer.homematic;
 
-import de.gebauer.cul.homematic.device.Device;
 import de.gebauer.cul.homematic.in.RawMessage;
+import de.gebauer.homematic.device.AbstractDevice;
 
-public class StatusChangeEvent extends AbstractEvent implements Event {
+public class StatusChangeEvent extends AbstractEvent implements Message {
 
-    public static class ChannelStatus {
+    public static class ChannelStatus implements DeviceState {
 
-	public int channel;
+	public short channel;
 	public String peerId;
+	public short peerChannel;
 
 	@Override
 	public String toString() {
-	    return "ChannelStatus [channel=" + channel + ", peerId=" + peerId + "]";
+	    return "ChannelStatus [channel=" + channel + ", peerId=" + peerId + ":" + peerChannel + "]";
 	}
 
     }
 
-    private ChannelStatus chStatus;
+    private DeviceState deviceStateData;
+    private short subtype;
 
-    public StatusChangeEvent(RawMessage msg, Device device, Device dstDevice, ChannelStatus chStatus) {
-	super(msg, device, dstDevice);
-	this.chStatus = chStatus;
+    public StatusChangeEvent(RawMessage msg, AbstractDevice device, AbstractDevice dstDevice, DeviceState chStatus, short channel) {
+	super(msg, device, dstDevice, channel);
+	this.deviceStateData = chStatus;
+	this.subtype = 0x06;
     }
 
     @Override
-    public EventType getType() {
-	return EventType.STATUS_CHANGE;
+    public MessageType getType() {
+	return MessageType.SWITCH;
     }
 
     @Override
     public String toString() {
-	return "StatusChangeEvent [msg=" + msg + "chStatus=" + chStatus + "]";
+	return "StatusChangeEvent [msg=" + msg + "chStatus=" + deviceStateData + "]";
+    }
+
+    public int getChannel() {
+	return 0;
+    }
+
+    @Override
+    public boolean needsAck() {
+	return true;
     }
 
 }

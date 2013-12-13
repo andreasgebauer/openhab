@@ -66,9 +66,9 @@ public class FS20BindingConfig extends AbstractCulBindingConfig {
 	}
 
 	@Override
-	public void executeCommand(CULInterface cul, Command command) {
+	public boolean executeCommand(CULInterface cul, Command command) {
 		if (!isCommandAllowed(command)) {
-			return;
+			return false;
 		}
 		FS20Handler handler = cul.getHandlerForType('F');
 		FS20Command fs20Command = FS20CommandHelper
@@ -79,6 +79,7 @@ public class FS20BindingConfig extends AbstractCulBindingConfig {
 			log.warn("Trying to send invalid command of type "
 					+ command.getClass().getSimpleName());
 		}
+		return false;
 
 	}
 

@@ -5,9 +5,9 @@ import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.gebauer.cul.homematic.device.HomeMaticDeviceType;
-import de.gebauer.cul.homematic.device.Model;
 import de.gebauer.cul.homematic.in.MessageInterpreter;
+import de.gebauer.homematic.device.HomeMaticDeviceType;
+import de.gebauer.homematic.device.Model;
 
 public class DeviceInfo implements Serializable {
     /**
