@@ -1,10 +1,10 @@
 package de.gebauer.cul.homematic.in;
 
-import de.gebauer.homematic.MessageFlag;
-import de.gebauer.homematic.MessageType;
+import de.gebauer.homematic.msg.MessageFlag;
+import de.gebauer.homematic.msg.MessageType;
 
 /**
- * len cnt
+ * len cnt flag type src dst p
  * 
  * @author andi
  * 

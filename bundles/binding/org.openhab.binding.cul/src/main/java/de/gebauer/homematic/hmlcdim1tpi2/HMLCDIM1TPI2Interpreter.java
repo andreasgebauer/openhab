@@ -4,9 +4,10 @@ import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.Message;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.Model;
+import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.Message;
 
 public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
 
@@ -156,32 +157,67 @@ public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
     public Message read(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
 	switch (msg.getMsgType()) {
 	case SWITCH:
-	    String payload = msg.getPayload();
 	    // after pressing button on device:
 	    // 06010000 OFF
 	    // 0601C800 ON
-	    int subType = toInt(payload, 0, 2);
-	    short channel = toShort(payload, 2, 2);
-	    int dontknow3 = toInt(payload, 6, 2);
+	    int subType = toInt(msg.getPayload(), 0, 2);
+	    short channel = toShort(msg.getPayload(), 2, 2);
+	    int dontknow3 = toInt(msg.getPayload(), 6, 2);
 	    // 200 is on?
 	    // 0 is off
-	    int state = toInt(payload, 4, 2);
+	    int state = toInt(msg.getPayload(), 4, 2);
 
 	    return new DimmerStateChangeEvent(msg, src, dst, state, subType, channel);
-	}
 
-	// TODO need to interpret ACK
-	// type: 02
-	// flag: 80
-	// payload: 0101C80033
+	case ACK:
+
+	    channel = toShort(msg.getPayload(), 2, 2);
+
+	    short success = toShort(msg.getPayload(), 6, 2);
+	    short rssi = toShort(msg.getPayload(), 8, 2);
+
+	    return new AckStatusMessage(msg, src, dst, channel, rssi, success != 0);
+	    // flag: 80
+
+	    // failed: bit 5 nor 6 is set (0)
+	    // 0
+	    // 0E09800220E91613C86D 01 01 C8 00 3C
+	    // 0E10800220E91613C86D 01 01 C8 00 3A
+	    // 0E10800220E91613C86D 01 01 C8 00 3A
+
+	    // 40
+	    // 0E12800220E91613C86D 01 01 28 00 3A
+
+	    // 57
+	    // 0E12800220E91613C86D 01 01 28 00 3A
+
+	    // 100
+	    // 0E0A800220E91613C86D 01 01 00 00 39
+	    // 0E0A800220E91613C86D 01 01 00 00 3A
+	    // 0E0B800220E91613C86D 01 01 00 00 38
+
+	    // working: bit 5 or 6 is set
+	    // 0
+	    // 0E0A800220E91613C86D 01 01 C7 20 3D
+	    // 0E0D800220E91613C86D 01 01 C7 20 3B
+	    // 0E0F800220E91613C86D 01 01 C7 20 3A
+
+	    // 20
+	    // 0E12800220E91613C86D 01 01 4D 20 3A
+
+	    // 39
+	    // 0E11800220E91613C86D 01 01 C7 20 3C
+
+	    // 89
+	    // 0E13800220E91613C86D 01 01 29 10 39
+
+	    // 100
+	    // 0E0C800220E91613C86D 01 01 03 10 39
+	    // 0E0E800220E91613C86D 01 01 01 10 3A
+	    // 0E10800220E91613C86D 01 01 01 10 3A
+	}
 
 	return null;
     }
 
-    @Override
-    public Model getModel() {
-	return Model.HMLCDIM1TPI2;
-    }
-
-    
 }

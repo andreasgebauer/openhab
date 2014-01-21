@@ -28,6 +28,7 @@
  */
 package org.openhab.binding.cul.internal.binding;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.openhab.core.binding.BindingConfig;
@@ -65,7 +66,7 @@ public abstract class AbstractCulBindingConfig implements BindingConfig {
 
     public abstract boolean isCommandAllowed(Command command);
 
-    public abstract boolean executeCommand(CULInterface cul, Command command);
+    public abstract boolean executeCommand(CULInterface cul, Command command) throws IOException;
 
     public abstract boolean isWriteable();
 

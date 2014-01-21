@@ -23,7 +23,7 @@ import java.io.IOException;
 
 public interface CULInterface {
 
-    public void close();
+    public void close() throws IOException;
 
     public boolean isOpen();
 
@@ -31,7 +31,7 @@ public interface CULInterface {
 
     public void decode(String cmdLine);
 
-    public void sendRAW(String sendString);
+    public void sendRAW(String sendString) throws IOException;
 
     public void registerHandler(CULHandler<?> handler);
 

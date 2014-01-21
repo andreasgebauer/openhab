@@ -13,7 +13,6 @@ Bundle-Description: This is the CULBinding binding of the open Home Aut
 Import-Package: gnu.io,
  jssc,
  org.apache.commons.lang,
- org.joda.time,
  org.openhab.core.binding,
  org.openhab.core.events,
  org.openhab.core.items,
@@ -27,11 +26,15 @@ Import-Package: gnu.io,
  org.osgi.service.event,
  org.quartz,
  org.quartz.impl,
+ org.quartz.utils,
  org.slf4j
-Export-Package: de.tobiaswegner.communication.cul4java,
- org.openhab.binding.cul
+Export-Package: de.gebauer.communication.cul4java,
+ de.gebauer.communication.cul4java.impl,
+ de.gebauer.cul.homematic.in,
+ de.gebauer.homematic,
+ de.tobiaswegner.communication.cul4java
 Bundle-DocURL: http://www.openhab.org
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Service-Component: OSGI-INF/binding.xml, OSGI-INF/genericbindingprovider.xml
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy

@@ -1,7 +1,5 @@
 package de.gebauer.homematic.device;
 
-import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
-
 public enum Model {
 
     /**
@@ -10,7 +8,7 @@ public enum Model {
     CCU(null, "CUL", 0x0001, ""),
 
     /**
-     * ?
+     * Light control. Switch.
      */
     HMLCSW1PLOM54(null, "HM-LC-SW1-PL-OM54", 0x0001, ""),
     /**
@@ -26,16 +24,25 @@ public enum Model {
      */
     HMSECSC(HomeMaticDeviceType.THREE_STATE_SENSOR, "HM-Sec-SC", 0x002F, "c:w"),
     /**
-     * Dimmer.
+     * Light Control. Dimmer.
      */
     HMLCDIM1TPI2(HomeMaticDeviceType.DIMMER, "HM-LC-DIM1T-PI2", 0x00A4, "c:w");
 
-    private Class<DeviceMessageInterpreter> messageInterpreter;
+    private HomeMaticDeviceType deviceType;
     private final String name;
     private final int id;
     private String rxt;
-    private HomeMaticDeviceType deviceType;
 
+    /**
+     * 
+     * @param deviceType
+     *            the device type
+     * @param name
+     *            the model name
+     * @param id
+     *            the id
+     * @param rxt
+     */
     Model(final HomeMaticDeviceType deviceType, final String name, final int id, final String rxt) {
 	this.deviceType = deviceType;
 	this.name = name;
@@ -50,6 +57,10 @@ public enum Model {
 	    }
 	}
 	return null;
+    }
+
+    public int getId() {
+	return this.id;
     }
 
     public String getName() {

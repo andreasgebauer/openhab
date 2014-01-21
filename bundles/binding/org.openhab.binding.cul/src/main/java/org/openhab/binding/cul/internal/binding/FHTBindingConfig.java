@@ -28,6 +28,7 @@
  */
 package org.openhab.binding.cul.internal.binding;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -98,7 +99,7 @@ public class FHTBindingConfig extends AbstractCulBindingConfig {
 	}
 
 	@Override
-	public boolean executeCommand(CULInterface cul, Command command) {
+	public boolean executeCommand(CULInterface cul, Command command) throws IOException {
 		if (isCommandAllowed(command)) {
 			FHTHandler handler = cul.getHandlerForType('T');
 			if (command instanceof DecimalType) {
@@ -121,7 +122,7 @@ public class FHTBindingConfig extends AbstractCulBindingConfig {
 
 	}
 
-	public void updateTime(CULInterface cul, Date currentDate) {
+	public void updateTime(CULInterface cul, Date currentDate) throws IOException {
 		FHTHandler handler = cul.getHandlerForType('T');
 		handler.setDateTime(getAddress(), currentDate);
 	}

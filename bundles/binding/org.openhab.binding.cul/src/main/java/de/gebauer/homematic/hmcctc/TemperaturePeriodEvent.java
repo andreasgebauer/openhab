@@ -1,10 +1,10 @@
 package de.gebauer.homematic.hmcctc;
 
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.AbstractEvent;
-import de.gebauer.homematic.Message;
-import de.gebauer.homematic.MessageType;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AbstractEvent;
+import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageType;
 
 public class TemperaturePeriodEvent extends AbstractEvent implements Message {
 
@@ -55,10 +55,6 @@ public class TemperaturePeriodEvent extends AbstractEvent implements Message {
 
     private String getString(TemperaturePeriod period) {
 	return " to " + period.getTime() + ": " + period.temp + "°C";
-    }
-
-    public int getChannel() {
-	return 0;
     }
 
     @Override

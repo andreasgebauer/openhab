@@ -1,12 +1,10 @@
 package de.gebauer.cul.homematic.in;
 
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
-import de.gebauer.homematic.ConfigStartCommand;
-import de.gebauer.homematic.Message;
-import de.gebauer.homematic.MessageType;
-import de.gebauer.homematic.SetCommand;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.Model;
+import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageType;
+import de.gebauer.homematic.msg.SetMessage;
 
 public class CCUInterpreter implements DeviceMessageInterpreter {
 
@@ -46,7 +44,7 @@ public class CCUInterpreter implements DeviceMessageInterpreter {
 
 	    if (m.getPayload().length() >= 6) {
 		short value = toShort(m.getPayload(), 4, 2);
-		return new SetCommand(m, src, dst, chnl, value);
+		return new SetMessage(m, src, dst, chnl, value);
 	    }
 	} else if (MessageType.COMMAND2 == m.getMsgType()) {
 	    // there is no payload!
@@ -54,15 +52,10 @@ public class CCUInterpreter implements DeviceMessageInterpreter {
 	    // flag: A1
 	    if (m.getPayload().length() >= 2) {
 		short channel = toShort(m.getPayload(), 2, 2);
-//		return new ConfigStartCommand(m, src, dst, channel, (short) -1);
+		// return new ConfigStartCommand(m, src, dst, channel, (short) -1);
 	    }
 	}
 	return null;
-    }
-
-    @Override
-    public Model getModel() {
-	return Model.CCU;
     }
 
 }

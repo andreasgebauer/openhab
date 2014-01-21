@@ -4,5 +4,5 @@ import de.gebauer.homematic.device.AbstractDevice;
 
 public interface Valve {
 
-    void setTo(AbstractDevice src, short valvePos);
+    boolean setTo(AbstractDevice src, short valvePos);
 }

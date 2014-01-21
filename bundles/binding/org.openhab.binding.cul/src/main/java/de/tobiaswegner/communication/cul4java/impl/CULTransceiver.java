@@ -55,32 +55,35 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
     private String buffer = "";
 
     @Override
-    public void open(final String deviceName) throws
-	    IOException, TooManyListenersException, SerialPortException {
+    public void open(final String deviceName) throws IOException {
 
-	this.serialPort = new SerialPort(deviceName);
-	if (!this.serialPort.isOpened()) {
-	    final boolean openPort = this.serialPort.openPort();
+	try {
+	    this.serialPort = new SerialPort(deviceName);
+	    if (!this.serialPort.isOpened()) {
+		final boolean openPort = this.serialPort.openPort();
 
-	    if (!openPort) {
-		throw new IOException("Unable to open port");
+		if (!openPort) {
+		    throw new IOException("Unable to open port");
+		}
+
+		this.serialPort.setParams(38400, SerialPort.DATABITS_8,
+			SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+
+		this.sendRAW("Ar");
+		this.sendRAW("X00");
+
+		this.serialPort.addEventListener(this);
+		this.isOpen = true;
 	    }
-
-	    this.serialPort.setParams(38400, SerialPort.DATABITS_8,
-		    SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-
-	    this.sendRAW("Ar");
-	    this.sendRAW("X00");
-
-	    this.serialPort.addEventListener(this);
-	    this.isOpen = true;
+	} catch (SerialPortException e) {
+	    throw new IOException(e);
 	}
 
 	// sendRAW("X21\r\n");
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
 	log.debug("Closing the connection to the serial device");
 	this.active = false;
 	if (this.serialPort != null) {
@@ -89,7 +92,7 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
 		this.serialPort.removeEventListener();
 		this.serialPort.closePort();
 	    } catch (final SerialPortException e) {
-		e.printStackTrace();
+		throw new IOException(e);
 	    }
 	}
 	this.isOpen = false;
@@ -126,7 +129,7 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
     }
 
     @Override
-    public void sendRAW(String sendString)  {
+    public void sendRAW(String sendString) throws IOException {
 	log.debug("Sending raw message to CUL: " + sendString);
 	if (!sendString.endsWith("\r\n")) {
 	    sendString += "\r\n";
@@ -134,9 +137,8 @@ public class CULTransceiver implements CULInterface, SerialPortEventListener {
 	synchronized (this.serialPort) {
 	    try {
 		this.serialPort.writeString(sendString);
-		// log.debug("CUL sent: " + sendString);
-	    } catch (final SerialPortException e) {
-		log.error("Can't write to serial port", e);
+	    } catch (Exception e) {
+		throw new IOException(e);
 	    }
 	}
     }

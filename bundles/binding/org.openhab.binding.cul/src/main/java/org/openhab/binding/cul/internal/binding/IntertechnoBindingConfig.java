@@ -1,5 +1,6 @@
 package org.openhab.binding.cul.internal.binding;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -98,7 +99,7 @@ public class IntertechnoBindingConfig extends AbstractCulBindingConfig {
 	}
 
 	@Override
-	public boolean executeCommand(CULInterface cul, Command command) {
+	public boolean executeCommand(CULInterface cul, Command command) throws IOException {
 		if (!isCommandAllowed(command)) {
 			return false;
 		}

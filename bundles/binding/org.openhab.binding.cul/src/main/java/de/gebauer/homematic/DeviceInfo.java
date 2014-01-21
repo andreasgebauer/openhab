@@ -9,6 +9,13 @@ import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.homematic.device.HomeMaticDeviceType;
 import de.gebauer.homematic.device.Model;
 
+/**
+ * vvmmmmsssssssssssssssssssstt <br>
+ * version model serial
+ * 
+ * @author andi
+ * 
+ */
 public class DeviceInfo implements Serializable {
     /**
      * 
@@ -26,25 +33,18 @@ public class DeviceInfo implements Serializable {
      */
     public Model mdl;
     public String serNo;
-    public int peerChannelA;
-    public int peerChannelB;
 
-    public DeviceInfo(final String version, final Model mdl, final String serNo, final int peerChannelA,
-	    final int peerChannelB) {
+    public DeviceInfo(final String version, final Model mdl, final String serNo) {
 	assert version != null;
 	assert mdl != null;
 	this.version = version;
 	this.mdl = mdl;
 	this.serNo = serNo;
-	this.peerChannelA = peerChannelA;
-	this.peerChannelB = peerChannelB;
     }
 
     @Override
     public String toString() {
-	return "DeviceInfo [version=" + this.version + ", mdl=" + this.mdl.getName() + ", serNo=" + this.serNo
-		+ ", peerChannelA="
-		+ this.peerChannelA + ", peerChannelB=" + this.peerChannelB + "]";
+	return "DeviceInfo [version=" + this.version + ", mdl=" + this.mdl.getName() + ", serNo=" + this.serNo + "]";
     }
 
     public static DeviceInfo parse(final String pl) {
@@ -53,16 +53,13 @@ public class DeviceInfo implements Serializable {
 	if (mdl == null) {
 	    LOG.error("No model defined for " + mdl);
 	}
+	final String serNo = pl.substring(6, 26);
 	// TODO is this the same as the MessageType?
 	final String subTypeStr = pl.substring(26, 28);
 	final HomeMaticDeviceType subtype = HomeMaticDeviceType.valueOfID(subTypeStr);
 	if (subtype == null) {
 	    LOG.error("No device type defined for " + subTypeStr);
 	}
-	final String serNo = pl.substring(6, 26);
-	final int peerChannelA = MessageInterpreter.toInt(pl, 28, 2);
-	final int peerChannelB = MessageInterpreter.toInt(pl, 30, 2);
-
-	return new DeviceInfo(version, mdl, serNo, peerChannelA, peerChannelB);
+	return new DeviceInfo(version, mdl, serNo);
     }
 }

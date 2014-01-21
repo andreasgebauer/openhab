@@ -12,12 +12,14 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 
 import de.gebauer.communication.cul4java.impl.HMHandler;
+import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.HomeMaticDeviceType;
 import de.gebauer.homematic.hmcctc.ControlMode;
 import de.gebauer.homematic.hmcctc.ThermoControlDevice;
-import de.gebauer.homematic.hmlcdim1tpi2.DimCommand;
+import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
+import de.gebauer.homematic.hmlcdim1tpi2.Dimmer;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 
 public class HomeMaticBindingConfig extends AbstractCulBindingConfig {
@@ -69,22 +71,21 @@ public class HomeMaticBindingConfig extends AbstractCulBindingConfig {
     @Override
     public boolean executeCommand(CULInterface cul, Command command) {
 	HMHandler hmHandler = cul.getHandlerForType('A');
-	DeviceStore store = hmHandler.getDeviceStore();
-	AbstractDevice destination = store.get(this.id);
+	AbstractDevice destination = hmHandler.getDeviceStore().get(this.id);
 	State state = this.item.getState();
 
-	if (destination != null && destination.getInfo().mdl.getDeviceType() == HomeMaticDeviceType.DIMMER) {
-	    DimCommand event = null;
+	if (destination instanceof Dimmer) {
+	    DimMessage message = null;
 	    if (command instanceof PercentType) {
 		int intValue = ((PercentType) command).intValue();
-		event = new DimCommand(hmHandler.getCCU(), destination, intValue);
+		message = new DimMessage(hmHandler.getCCU(), destination, intValue);
 	    } else if (command instanceof OnOffType) {
 		switch ((OnOffType) command) {
 		case ON:
-		    event = new DimCommand(hmHandler.getCCU(), destination, true);
+		    message = new DimMessage(hmHandler.getCCU(), destination, true);
 		    break;
 		case OFF:
-		    event = new DimCommand(hmHandler.getCCU(), destination, false);
+		    message = new DimMessage(hmHandler.getCCU(), destination, false);
 		    break;
 		default:
 		    break;
@@ -93,22 +94,20 @@ public class HomeMaticBindingConfig extends AbstractCulBindingConfig {
 		if (state instanceof UnDefType) {
 		    state = PercentType.ZERO;
 		}
-		PercentType stateAs = (PercentType) item.getStateAs(PercentType.class);
-		// TODO increase based on current value
+		DecimalType stateAs = (DecimalType) state;
 		switch ((IncreaseDecreaseType) command) {
 		case INCREASE:
-		    event = new DimCommand(hmHandler.getCCU(), destination, stateAs.intValue() + 5);
+		    message = new DimMessage(hmHandler.getCCU(), destination, stateAs.intValue() + 5);
 		    break;
 		case DECREASE:
-		    event = new DimCommand(hmHandler.getCCU(), destination, stateAs.intValue() - 5);
+		    message = new DimMessage(hmHandler.getCCU(), destination, stateAs.intValue() - 5);
 		    break;
 		default:
 		    break;
 		}
 	    }
-	    if (event != null) {
-		destination.addToSendQueue(event);
-		// handlerForType.getMessageSender().send(event);
+	    if (message != null) {
+		destination.addToSendQueue(new SimpleCommand(message));
 	    }
 	    return true;
 	} else if (destination instanceof ThermoControlDevice) {

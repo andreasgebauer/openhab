@@ -1,9 +1,9 @@
 package de.gebauer.homematic.hmsecsc;
 
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.AbstractEvent;
-import de.gebauer.homematic.MessageType;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AbstractEvent;
+import de.gebauer.homematic.msg.MessageType;
 
 public class ShutterStateEvent extends AbstractEvent {
 

@@ -19,6 +19,7 @@
 
 package de.tobiaswegner.communication.cul4java.impl;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -169,7 +170,7 @@ public class FHTHandler extends AbstractCulHandler<FHTListener> {
 		}
 	}
 
-	public void setDesiredTemperature(String device, double temperature) {
+	public void setDesiredTemperature(String device, double temperature) throws IOException {
 		if ((temperature >= 5.5) && (temperature <= 30.5)) {
 			int temp = (int) (temperature * 2.0);
 
@@ -180,7 +181,7 @@ public class FHTHandler extends AbstractCulHandler<FHTListener> {
 
 	}
 
-	public void setFHTMode(String device, FHTMode mode) {
+	public void setFHTMode(String device, FHTMode mode) throws IOException {
 		if (mode != null) {
 			writeRegister(device, "3E", mode.getValue());
 		} else {
@@ -188,7 +189,7 @@ public class FHTHandler extends AbstractCulHandler<FHTListener> {
 		}
 	}
 
-	public void setDateTime(String device, Date date) {
+	public void setDateTime(String device, Date date) throws IOException {
 		String[] rawDateValues = configDateFormat.format(date).split(":");
 		writeRegister(device, "64",
 				convertDecimalStringToHexString(rawDateValues[0]));
@@ -211,7 +212,7 @@ public class FHTHandler extends AbstractCulHandler<FHTListener> {
 		return hexString;
 	}
 
-	private void writeRegister(String device, String register, String value) {
+	private void writeRegister(String device, String register, String value) throws IOException {
 		StringBuffer sendBuffer = new StringBuffer(8);
 		sendBuffer.append(getCULReceiverPrefix());
 		sendBuffer.append(device);

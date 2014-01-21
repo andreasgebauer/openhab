@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests for the Homematic binding
+Bundle-SymbolicName: org.openhab.binding.cul.test
+Bundle-Version: 1.4.0.qualifier
+Bundle-Vendor: openHAB.org
+Fragment-Host: org.openhab.binding.cul;bundle-version="1.4.0.qualifier"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: org.junit;bundle-version="4.8.1"
+Import-Package: de.gebauer.communication.cul4java,
+ de.gebauer.communication.cul4java.impl,
+ de.gebauer.cul.homematic.in,
+ de.gebauer.homematic,
+ de.tobiaswegner.communication.cul4java

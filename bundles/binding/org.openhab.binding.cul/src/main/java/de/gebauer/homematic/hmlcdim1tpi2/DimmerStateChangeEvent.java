@@ -1,10 +1,10 @@
 package de.gebauer.homematic.hmlcdim1tpi2;
 
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.AbstractEvent;
-import de.gebauer.homematic.Message;
-import de.gebauer.homematic.MessageType;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AbstractEvent;
+import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageType;
 
 /**
  * Event send when button is pressed on device.

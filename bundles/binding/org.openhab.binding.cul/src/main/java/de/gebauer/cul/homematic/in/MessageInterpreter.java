@@ -2,24 +2,35 @@ package de.gebauer.cul.homematic.in;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.gebauer.homematic.AckStatusMessage;
 import de.gebauer.homematic.DeviceInfo;
-import de.gebauer.homematic.DeviceInfoEvent;
-import de.gebauer.homematic.Message;
-import de.gebauer.homematic.MessageType;
-import de.gebauer.homematic.StatusChangeEvent;
+import de.gebauer.homematic.Utils;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.device.Channelable;
 import de.gebauer.homematic.device.DeviceFactory;
 import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.Model;
+import de.gebauer.homematic.msg.AbstractMessage;
+import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.ConfigPeerListMessage;
+import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
+import de.gebauer.homematic.msg.DeviceInfoEvent;
+import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageType;
+import de.gebauer.homematic.msg.ParamChangeMessage;
+import de.gebauer.homematic.msg.ParamResponseMessage;
+import de.gebauer.homematic.msg.StatusChangeEvent;
 
-public class MessageInterpreter implements MessageParser {
+public class MessageInterpreter implements MessageParser, DeviceMessageInterpreter {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageInterpreter.class);
     private static final Logger MESSAGES = LoggerFactory.getLogger("MESSAGES");
@@ -35,67 +46,81 @@ public class MessageInterpreter implements MessageParser {
     }
 
     @Override
-    public Message parse(final String readLine) throws IOException {
+    public Message parse(final String readLine) {
 
-	final RawMessage msg = this.getRawMessage(readLine);
+	final RawMessage msg = getRawMessage(readLine);
 
-	MESSAGES.info(msg.toString());
+	AbstractDevice src = this.deviceStore.get(msg.getSrc());
+	final AbstractDevice dst = this.deviceStore.get(msg.getDst());
 
-	AbstractDevice srcDevice = this.deviceStore.get(msg.getSrc());
+	return this.read(msg, src, dst);
+    }
 
-	// add unknown device;
-	if (srcDevice == null && MessageType.UNKNOWN == msg.getMsgType()) {
-	    srcDevice = this.infoUpdtDevData(srcDevice, msg.getSrc(), msg.getPayload());
+    @Override
+    public Message read(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
+	long diff = -1;
+	long delta = -1;
+	if (dst != null) {
+	    Message lastEventReceived = dst.getLastEventReceived();
+	    if (lastEventReceived != null) {
+		Calendar lastMsgTs = lastEventReceived.getTimestamp();
+		Calendar now = Calendar.getInstance();
+		long diffMillis = now.getTime().getTime() - lastMsgTs.getTime().getTime();
+		diff = diffMillis / 1000;
+	    }
+	}
+	if (src != null) {
+	    if (msg.getDst().equals(AbstractMessage.BROAD_CAST_ADDRESS)) {
+		Iterator<Message> eventsSent = src.getEventsSent();
+		Message last = null;
+		while (eventsSent.hasNext()) {
+		    Message next = eventsSent.next();
+		    if (next.isBroadCast()) {
+			if (diff == -1) {
+			    diff = Calendar.getInstance().getTimeInMillis() - next.getTimestamp().getTimeInMillis();
+			} else {
+			    if (last != null) {
+				delta = diff - Math.abs((last.getTimestamp().getTimeInMillis() - next.getTimestamp().getTimeInMillis()));
+				break;
+			    }
+			}
+			last = next;
+		    }
+		}
+	    }
 	}
 
-	if (srcDevice == null) {
+	MESSAGES.info("{} {} {}", msg.toString(), diff, delta);
+
+	if (MessageType.UNKNOWN == msg.getMsgType()) {
+	    // add unknown device;
+	    src = this.infoUpdtDevData(msg.getSrc(), msg.getPayload());
+	    // 20003A4A45513033313333373258010100
+	    final String peerChA = msg.getPayload().substring(28, 30);
+	    final String peerChB = msg.getPayload().substring(30, 32);
+	    final String cmd = msg.getPayload().substring(32);
+
+	    return new DeviceInfoEvent(msg, src, dst, src.getInfo(), toShort(peerChA), toShort(peerChB), cmd);
+	}
+
+	if (src == null) {
 	    LOG.info("Unknown device " + msg.getSrc());
 	    return null;
 	}
 
-	// TODO check msgCount, msgType, src, dst, p
-
-	// if (hmId.equals(msg.dst)) {
-	// // update message counter to receiver
-	// messageSender.setCmdCnt(toInt(msg.msgCount));
-	// }
-
-	final Message parse = this.parseCommon(msg);
-
-	if (parse != null) {
-	    return parse;
-	}
-
-	// if (parse instanceof AckStatusEvent) {
-	// int channel = toInt(msg.p, 0, 2);
-	// if (channel == 0) {
-	// return new AckStatusEvent(msg, srcDevice, channel);
-	// }
-	// int status = toInt(msg.p, 4, 2);
-	// int rssi = toInt(msg.p, 8, 2);
-	// return new AckStatusEvent(msg, srcDevice, channel, status, rssi);
-	// } else
-
-	if (MessageType.UNKNOWN == msg.getMsgType()) {
-	    this.infoUpdtDevData(srcDevice, msg.getSrc(), msg.getPayload());
-	    return new DeviceInfoEvent(msg, srcDevice);
-
-	} else {
-	    final AbstractDevice dst = this.deviceStore.get(msg.getDst());
-
-	    final DeviceMessageInterpreter interpreter = srcDevice.getInterpreter();
-	    if (interpreter != null) {
-		final Message read = interpreter.read(msg, srcDevice, dst);
-
-		if (read == null) {
-		    LOG.warn("Could not interpret {}", msg);
-		}
-
-		return read;
+	final DeviceMessageInterpreter interpreter = src.getInterpreter();
+	if (interpreter != null) {
+	    Message intrprMsg = interpreter.read(msg, src, dst);
+	    if (intrprMsg == null) {
+		// return a commonly parsed message
+		intrprMsg = this.parseCommon(msg, src, dst);
 	    }
 
-	    LOG.warn("Could not interpret {}", msg);
+	    if (intrprMsg != null) {
+		return intrprMsg;
+	    }
 	}
+	LOG.warn("Could not interpret {}", msg);
 
 	return null;
     }
@@ -124,36 +149,40 @@ public class MessageInterpreter implements MessageParser {
 	return rxtEntity;
     }
 
-    private AbstractDevice infoUpdtDevData(AbstractDevice srcDevice, final String src, final String p) {
+    private AbstractDevice infoUpdtDevData(final String src, final String p) {
+	AbstractDevice dev = this.deviceStore.get(src);
 	final DeviceInfo deviceInfo = DeviceInfo.parse(p);
 
-	if (srcDevice == null) {
-	    String name = "CUL_HM_" + src;
+	String name;
+	if (dev != null) {
+	    name = dev.getName();
+	    // update info
+	    dev.setInfo(deviceInfo);
+	} else {
+	    name = "CUL_HM_" + src;
 	    if (deviceInfo.mdl != null && deviceInfo.mdl.getDeviceType() != null) {
 		name = "CUL_HM_" + deviceInfo.mdl.getDeviceType().name() + "_" + src;
 	    } else if (deviceInfo.mdl != null) {
 		name = "CUL_HM_" + deviceInfo.mdl.name() + "_" + src;
 	    }
-	    srcDevice = new DeviceFactory().createDevice(name, src, deviceInfo);
-	    this.deviceStore.add(src, srcDevice);
+	    dev = new DeviceFactory().createDevice(name, src, deviceInfo);
+	    this.deviceStore.add(src, dev);
 	    LOG.info("Auto-Defined device " + name + ".");
 	}
-	return srcDevice;
 
+	return dev;
     }
 
     /**
      * Tries to parse the event by message type.
      * 
      * @param msg
+     * @param dst
+     * @param src
      * @return
      * @throws IOException
      */
-    private Message parseCommon(final RawMessage msg) throws IOException {
-	final AbstractDevice src = this.deviceStore.get(msg.getSrc());
-	final AbstractDevice dst = this.deviceStore.get(msg.getDst());
-
-	final PendType pendType = null;
+    private Message parseCommon(final RawMessage msg, AbstractDevice src, AbstractDevice dst) {
 
 	// .. ..
 	// CMD MT
@@ -164,7 +193,7 @@ public class MessageInterpreter implements MessageParser {
 
 	short chnl = -1;
 	// see if channel is defined separate
-	String subType = msg.getPayload().substring(0, 2);
+	final String subType = msg.getPayload().substring(0, 2);
 	if (msg.getPayload().length() >= 4) {
 	    final String channel = msg.getPayload().substring(2, 4);
 	    chnl = toShort(channel);
@@ -184,7 +213,7 @@ public class MessageInterpreter implements MessageParser {
 	    }
 
 	    boolean success;
-	    String reply;
+	    final String reply;
 
 	    if (subType.startsWith("8")) {
 		success = false;
@@ -206,18 +235,113 @@ public class MessageInterpreter implements MessageParser {
 	    }
 
 	case SWITCH:
-	    subType = msg.getPayload().substring(0, 2);
+	    final Message lastEventSend = src.getLastEventSent();
+
 	    if (subType.equals("01")) {
-		LOG.warn("STORE PEER LIST!!!");
-		// store peer list
-		if (pendType == PendType.PEER_LIST) {
+		if (lastEventSend instanceof ConfigPeerListMessage) {
+		    LOG.warn("STORE PEER LIST!!!");
+		    // store peer list
 		    final String peers = msg.getPayload().substring(2);
+		    Channelable chn = src.getChannel(chnl);
+		    if (chn == null) {
+			chn = src;
+		    }
+		    // my $chnhash = $modules{CUL_HM}{defptr}{$src.$chn};
+		    // $chnhash = $shash if (!$chnhash);
 
 		}
 	    }
 	    else if (subType.equals("02") || subType.equals("03")) {
 		// param response
 		LOG.warn("PARAM RESPONSE!!!");
+		Message lastEventSent = dst.getLastEventSent();
+		// if last event sent was register read we store the params here
+		if (lastEventSent instanceof ConfigRegisterReadMessage) {
+		    ConfigRegisterReadMessage registerReadCommand = (ConfigRegisterReadMessage) lastEventSent;
+		    final short peerChannel = registerReadCommand.getPeerChannel();
+		    // 0209000A0F0000
+		    Channelable channel = src.getChannel(peerChannel);
+		    if (channel == null) {
+			channel = src;
+		    }
+		    short list = registerReadCommand.getPeerList();
+		    if (list == -1) {
+			// use default
+			list = 0;
+		    }
+		    matcher = Utils.matcherFor(msg.getPayload(), "(..)(.*)");
+		    String format = null, data = null;
+		    if (matcher.matches()) {
+			format = matcher.group(1);
+			data = matcher.group(2);
+		    }
+
+		    if ("02".equals(format)) {
+			// list 2: format aa:dd aa:dd ...
+			matcher = Utils.matcherFor(data, "(..)(..)");
+			data = matcher.replaceAll(" $1:$2");
+		    } else if ("03".equals(format)) {
+			// my $addr;
+			// my @dataList;
+			// ($addr,$data) = (hex($1),$2) if ($data =~ m/(..)(.*)/);
+			// if ($addr == 0){
+			// $data = "00:00";
+			// }
+			// else{
+			// $data =~s/(..)/$1:/g;
+			// foreach my $d1 (split(":",$data)){
+			// push (@dataList,sprintf("%02X:%s",$addr++,$d1));
+			// }
+			// $data = join(" ",@dataList);
+			// }
+			matcher = Utils.matcherFor(data, "(..)(.*)");
+			if (matcher.matches()) {
+			    short addr;
+			    if ((addr = toShort(matcher.group(1))) == 0) {
+				data = "00:00";
+			    } else {
+				// $data =~s/(..)/$1:/g;
+				// foreach my $d1 (split(":",$data)){
+				// push (@dataList,sprintf("%02X:%s",$addr++,$d1));
+				// }
+				// $data = join(" ",@dataList);
+
+				Map<Integer, String> dataMap = new HashMap<Integer, String>();
+
+				data = matcher.group(2);
+
+				data = data.substring(0, 2) + " " + data.substring(2);
+			    }
+			}
+		    }
+
+		    final String regLN = "RegL_" + list + ":" + registerReadCommand.getPeerId();
+		    // store data
+		    LOG.debug("Reg: {}", regLN);
+
+		    matcher = Utils.matcherFor(data, ".* 00:00$");
+		    if (matcher.matches()) {
+			if (list == 0) {
+			    // my $name = CUL_HM_id2Name($src);
+			    // $shash->{READINGS}{PairedTo}{VAL} = sprintf("%02X%02X%02X",
+			    // CUL_HM_getRegFromStore($name,10,0,"00000000"),
+			    // CUL_HM_getRegFromStore($name,11,0,"00000000"),
+			    // CUL_HM_getRegFromStore($name,12,0,"00000000"));
+			    // $shash->{READINGS}{PairedTo}{TIME} = TimeNow();
+			    final String name = src.getName();
+
+			    LOG.debug("Paired with {}!", name);
+			}
+
+			LOG.debug("No response remaining");
+			// CUL_HM_respPendRm($shash);
+			// delete $chnhash->{helper}{shadowReg}{$regLN};#remove shadowhash
+		    } else {
+
+		    }
+		    return new ParamResponseMessage(msg, src, dst, format, data);
+		}
+
 	    } else if (subType.equals("04")) {
 		// param change
 		matcher = Pattern.compile("^04(..)(........)(..)(.*)").matcher(msg.getPayload());
@@ -226,15 +350,13 @@ public class MessageInterpreter implements MessageParser {
 		    final int list = toInt(matcher.group(3));
 		    final String data = matcher.group(4);
 
-		    final String listName = "RegL_" + list + ":";
-
-		    // LOG.info("data=" + data + " listName=" + listName);
+		    LOG.info("RegL_{}: {}", list, data);
 
 		    final StatusChangeEvent.ChannelStatus chStatus = new StatusChangeEvent.ChannelStatus();
 		    chStatus.channel = chnl;
 		    chStatus.peerId = peerId;
 
-		    // return new StatusChangeEvent(msg, src, dst, chStatus);
+		    return new ParamChangeMessage(msg, src, dst, chnl, peerId, list, data);
 		}
 	    } else if (subType.equals("06")) {
 		// status request processing
@@ -258,7 +380,7 @@ public class MessageInterpreter implements MessageParser {
 
     }
 
-    private RawMessage getRawMessage(final String readLine) {
+    public static RawMessage getRawMessage(final String readLine) {
 	final RawMessageBuilder rawMessage = new RawMessageBuilder();
 
 	final Pattern compile = Pattern.compile("A(..)(..)(..)(..)(......)(......)(.*)");

@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.openhab.bundles</groupId>
+		<artifactId>binding</artifactId>
+		<version>1.4.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>org.openhab.binding</groupId>
+	<artifactId>org.openhab.binding.cul.test</artifactId>
+	<packaging>eclipse-test-plugin</packaging>
+
+	<properties>
+		<bundle.symbolicName>org.openhab.binding.cul.test</bundle.symbolicName>
+		<bundle.namespace>org.openhab.binding.cul.test</bundle.namespace>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>org.openhab.binding.cul</artifactId>
+			<version>${project.version}</version>
+			<type>eclipse-plugin</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+			<version>1.9.5</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+			</plugin>
+		</plugins>
+	</build>
+</project>

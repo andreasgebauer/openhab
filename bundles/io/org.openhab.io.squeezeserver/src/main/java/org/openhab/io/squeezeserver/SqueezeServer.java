@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2013, openHAB.org and others.
+ * Copyright (c) 2010-2014, openHAB.org and others.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -257,6 +257,7 @@ public class SqueezeServer implements ManagedService {
         playersByMacAddress.clear();
         
 		if (config == null || config.isEmpty()) {
+			logger.warn("Empty or null configuration. Ignoring.");            	
 			return;
 		}
         
@@ -294,6 +295,8 @@ public class SqueezeServer implements ManagedService {
                 
             	playersById.put(playerId, player);
                 playersByMacAddress.put(macAddress, player);
+            } else {
+    			logger.warn("Unexpected or unsupported configuration: " + key + ". Ignoring.");            	
             }
         }
         

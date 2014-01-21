@@ -13,9 +13,9 @@ import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.MessageParser;
 import de.gebauer.cul.homematic.out.MessageSender;
 import de.gebauer.cul.homematic.out.MessageSenderImpl;
-import de.gebauer.homematic.Message;
 import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.VirtualCCU;
+import de.gebauer.homematic.msg.Message;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 import de.tobiaswegner.communication.cul4java.impl.AbstractCulHandler;
 
@@ -38,7 +38,8 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
     public HMHandler(CULInterface cul, DeviceStore deviceStore) {
 	super(cul);
 	this.deviceStore = deviceStore;
-	this.ccu = new VirtualCCU("hmId");
+	this.ccu = new VirtualCCU("CCU");
+	this.ccu.scheduleCycle();
 	this.messageParser = new MessageInterpreter(deviceStore);
 	this.messageSender = new MessageSenderImpl(cul);
     }
@@ -59,16 +60,22 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
 	    }
 
 	    // LOG.debug("Parsed event " + event);
-	    event.getSender().addEventReceived(event);
+	    if (event.getDestination() != null) {
+		event.getDestination().messageReceived(event);
+	    }
+	    event.getSource().messageSent(event);
 
 	    for (HMListener listener : this.listeners) {
 		listener.receivedMessage(event);
 	    }
 
-	    messageSender.processCmdStack(event.getSender());
+	    // just process if the message received is for us or if we received a broadcast
+	    if (event.isBroadCast() || this.ccu.equals(event.getDestination())) {
+		messageSender.processCmdStack(event.getSource());
+	    }
 
 	} catch (IOException e) {
-	    e.printStackTrace();
+	    LOG.error("Error while writing to ");
 	}
     }
 

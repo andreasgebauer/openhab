@@ -4,17 +4,18 @@ import java.lang.reflect.Method;
 
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
-import de.gebauer.homematic.ConfigEndCommand;
-import de.gebauer.homematic.ConfigStartCommand;
-import de.gebauer.homematic.ConfigWriteCommand;
 import de.gebauer.homematic.DeviceInfo;
-import de.gebauer.homematic.HaveDataMessage;
-import de.gebauer.homematic.MessageFlag;
+import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.ConfigEndMessage;
+import de.gebauer.homematic.msg.ConfigStartMessage;
+import de.gebauer.homematic.msg.ConfigWriteMessage;
+import de.gebauer.homematic.msg.HaveDataMessage;
+import de.gebauer.homematic.msg.MessageFlag;
 
 public class ThermoControlDevice extends AbstractDevice implements ThermoControl {
 
-    private final DeviceMessageInterpreter interpreter = new HMCCTCInterpreter();
+    private static final DeviceMessageInterpreter interpreter = new HMCCTCInterpreter();
 
     public ThermoControlDevice(final String name, final String id, final DeviceInfo info) {
 	super(name, id, info);
@@ -34,13 +35,23 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
     @Override
     public boolean controlMode(final AbstractDevice src, final ControlMode ctrlMode) {
 	final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A1);
-	this.addToSendQueue(new HaveDataMessage(msgBuilder.build(), src, this));
+
+	SetControlModeCommand command = new SetControlModeCommand();
+
+	command.add(new HaveDataMessage(msgBuilder.build(), src, this));
+
+	// central 0110 0001 0000
+	// manual 0100 0000 0000
+	// auto 0108 0000 1000
+	// party 0118 0001 1000
 
 	final short channel = (short) 02;
 	msgBuilder.setMsgFlag(MessageFlag.VAL_A0);
-	this.addToSendQueue(new ConfigStartCommand(msgBuilder.build(), src, this, channel, 0, (short) 0, (short) 5));
-	this.addToSendQueue(new ConfigWriteCommand(msgBuilder.build(), src, this, channel, String.format("%04X", 0x0100 + ctrlMode.getVal())));
-	this.addToSendQueue(new ConfigEndCommand(msgBuilder.build(), src, this, channel));
+	command.add(new ConfigStartMessage(msgBuilder.build(), src, this, channel, "000000", (short) 0, (short) 5));
+	command.add(new ConfigWriteMessage(msgBuilder.build(), src, this, channel, String.format("%04X", 0x0100 + (ctrlMode.getVal() << 3))));
+	command.add(new ConfigEndMessage(msgBuilder.build(), src, this, channel));
+
+	this.addToSendQueue(command);
 
 	return false;
     }
@@ -52,7 +63,7 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
 
     @Override
     public DeviceMessageInterpreter getInterpreter() {
-	return this.interpreter;
+	return interpreter;
     }
 
 }

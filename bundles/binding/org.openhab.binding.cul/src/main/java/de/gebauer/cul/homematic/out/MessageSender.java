@@ -3,8 +3,8 @@ package de.gebauer.cul.homematic.out;
 import java.io.IOException;
 
 import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
-import de.gebauer.homematic.Message;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.Message;
 
 public interface MessageSender {
 

@@ -19,6 +19,7 @@
 
 package de.tobiaswegner.communication.cul4java.impl;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class FS20Handler extends AbstractCulHandler<FS20Listener> {
 		super(cul);
 	}
 
-	public void send(String houseCode, String address, FS20Command command) {
+	public void send(String houseCode, String address, FS20Command command) throws IOException {
 		if (validateHouseCodeAndAddress(houseCode, address)) {
 			String sendString = "F" + houseCode + address
 					+ command.getHexValue();
@@ -46,7 +47,7 @@ public class FS20Handler extends AbstractCulHandler<FS20Listener> {
 	}
 
 	public void send(String houseCode, String address, FS20Command command,
-			String extension) {
+			String extension) throws IOException {
 		if (validateHouseCodeAndAddress(houseCode, address)) {
 			String sendString = "F" + houseCode + address
 					+ command.getHexValue() + extension;

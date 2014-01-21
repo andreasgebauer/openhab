@@ -8,13 +8,18 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.gebauer.cul.homematic.in.PendType;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.CommunicationHandler;
-import de.gebauer.homematic.Message;
-import de.gebauer.homematic.MessageFlag;
-import de.gebauer.homematic.MessageType;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.device.Channelable;
+import de.gebauer.homematic.msg.AbstractConfigMessage;
+import de.gebauer.homematic.msg.ConfigPeerListMessage;
+import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
+import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageFlag;
+import de.gebauer.homematic.msg.MessageType;
 import de.tobiaswegner.communication.cul4java.CULInterface;
 
 /**
@@ -24,45 +29,43 @@ import de.tobiaswegner.communication.cul4java.CULInterface;
  */
 public class MessageSenderImpl implements MessageSender {
 
-    private static final int MILLIS_WAIT_FOR_ACK = 150;
-
     public static class WrappedMessage implements Message {
 
-	private Message wrapped;
+	private final Message wrapped;
 	public short resendCount;
 
-	public WrappedMessage(Message wrapped) {
+	public WrappedMessage(final Message wrapped) {
 	    this.wrapped = wrapped;
 	}
 
 	@Override
 	public MessageType getType() {
-	    return wrapped.getType();
+	    return this.wrapped.getType();
 	}
 
 	@Override
 	public int getCount() {
-	    return wrapped.getCount();
+	    return this.wrapped.getCount();
 	}
 
 	@Override
 	public boolean isBroadCast() {
-	    return wrapped.isBroadCast();
+	    return this.wrapped.isBroadCast();
 	}
 
 	@Override
 	public RawMessage getRawMessage() {
-	    return wrapped.getRawMessage();
+	    return this.wrapped.getRawMessage();
 	}
 
 	@Override
-	public void setRawMessage(RawMessage msg) {
+	public void setRawMessage(final RawMessage msg) {
 	    this.wrapped.setRawMessage(msg);
 	}
 
 	@Override
-	public AbstractDevice getSender() {
-	    return this.wrapped.getSender();
+	public AbstractDevice getSource() {
+	    return this.wrapped.getSource();
 	}
 
 	@Override
@@ -71,7 +74,7 @@ public class MessageSenderImpl implements MessageSender {
 	}
 
 	@Override
-	public int getChannel() {
+	public short getChannel() {
 	    return this.wrapped.getChannel();
 	}
 
@@ -91,13 +94,32 @@ public class MessageSenderImpl implements MessageSender {
 	}
 
 	@Override
-	public void setAnswer(Message answer) {
-	    this.wrapped.setAnswer(answer);
+	public void setResponse(final Message answer) {
+	    this.wrapped.setResponse(answer);
 	}
 
 	@Override
 	public String toString() {
-	    return wrapped.toString();
+	    return this.wrapped.toString();
+	}
+
+	public Message getWrapped() {
+	    return this.wrapped;
+	}
+
+	@Override
+	public void setRequest(Message request) {
+	    this.wrapped.setRequest(request);
+	}
+
+	@Override
+	public Message getRequest() {
+	    return this.wrapped.getRequest();
+	}
+
+	@Override
+	public Calendar getTimestamp() {
+	    return wrapped.getTimestamp();
 	}
 
     }
@@ -107,18 +129,10 @@ public class MessageSenderImpl implements MessageSender {
 
     private final CULInterface ioDevice;
 
-    private int cmdCount = 0;
-    private ExecutorService scheduler = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
 
     public MessageSenderImpl(final CULInterface ioDevice) {
 	this.ioDevice = ioDevice;
-    }
-
-    private void increaseMessageCount() {
-	this.cmdCount = this.cmdCount != -1 ? this.cmdCount + 1 : 1;
-	if (this.cmdCount > 255) {
-	    this.cmdCount -= 255;
-	}
     }
 
     /*
@@ -128,17 +142,13 @@ public class MessageSenderImpl implements MessageSender {
      */
     @Override
     public void processCmdStack(final AbstractDevice destination) throws IOException {
-	if (destination.getEventStack().isEmpty()) {
-	    LOG.debug("Nothing to send for " + destination);
+	if (destination.getCommandStack().isEmpty()) {
+	    LOG.trace("Nothing to send for " + destination);
 	    return;
 	}
 
-	LOG.debug("Processing send stack of {}: {}", destination, destination.getEventStack());
-	this.scheduler.submit(new CommunicationHandler(this, wrap(destination.getEventStack().poll()), Calendar.getInstance()));
-    }
-
-    private WrappedMessage wrap(Message poll) {
-	return new WrappedMessage(poll);
+	LOG.debug("Processing send stack of {}: {} messages pending", destination, destination.getCommandStack().size());
+	this.executor.submit(new CommunicationHandler(this, destination.getCommandStack().poll(), Calendar.getInstance()));
     }
 
     @Override
@@ -150,71 +160,143 @@ public class MessageSenderImpl implements MessageSender {
 	// ACK response to WindowStateEvent:
 	// A 0B 19 80 02 13C86C 2190C5 01 00
 
-	String messageType = null;
-	MessageFlag messageFlag = message.getRawMessage().getMsgFlag();
-	String payload = message.getPayload();
+	final String payload = message.getPayload();
+	final MessageFlag messageFlag = message.getRawMessage().getMsgFlag();
+	final MessageType messageType;
+	if (message.getRawMessage() != null && message.getRawMessage().getMsgType() != null) {
+	    messageType = message.getRawMessage().getMsgType();
+	} else {
+	    messageType = message.getType();
+	}
 
 	if (payload == null) {
 	    LOG.warn("No message content created for {}", message);
 	    return;
 	}
 
-	final String sender = message.getSender().getId();
-	final String destination = message.getDestination().getId();
+	final AbstractDevice src = message.getSource();
+	final AbstractDevice dst = message.getDestination();
 
-	// ty fl src dst pl
-	final String command = String.format("%02X%02X%s%s%s", messageFlag.val, message.getType().getInt(), sender,
-		destination, payload);
+	// fl ty src dst pl
+	final String command = String.format("%02X%02X%s%s%s",
+		messageFlag.val,
+		messageType.getInt(),
+		src.getId(),
+		dst.getId(),
+		payload);
 
 	final int length = command.length() / 2 + 1;
-	final Message lastEvent = message.getDestination().getLastEventReceived();
+	final Message lastEvent = dst.getLastEventReceived();
 
 	final int msgCount = lastEvent != null ? lastEvent.getCount() + 1 : 1;
 
-	if (message.getRawMessage() != null && message.getRawMessage().getMsgType() != null) {
-	    messageType = message.getRawMessage().getMsgType().getStr();
-	}
-
 	message.setRawMessage(new RawMessageBuilder()
-		.setDst(destination)
+		.setDst(dst.getId())
 		.setLength(String.format("%02X", length))
 		.setMsgCount(String.format("%02X", msgCount))
-		.setMsgFlag(String.format("%02X", messageFlag.val))
+		.setMsgFlag(messageFlag)
 		.setMsgType(messageType)
 		.setPayload(payload)
-		.setSrc(sender).build()
+		.setSrc(src.getId()).build()
 		);
 
 	final String rawCommand = String.format("As%02X%02X%s", length, msgCount, command);
 
 	MESSAGES.info(message.getRawMessage().toString());
-	LOG.info("Sending event " + message);
+	LOG.info("Sending " + message);
 	this.ioDevice.sendRAW(rawCommand);
-	message.getDestination().messageSent(message);
+	src.messageSent(message);
+	dst.messageReceived(message);
 
-	if (message.needsAck() && !message.hasAck()) {
-	    if (message.resendCount == 3) {
-		LOG.warn("3 retries failed. Giving up.");
+	responseSetup(dst, message.getWrapped(), message.needsAck());
+    }
+
+    private void responseSetup(AbstractDevice dvc, Message cmd, boolean waitForAck)
+    {
+	// store all we need to handle the response
+	// setup repeatTimer and cmdStackControll
+	double rTo = 1.5; // default response timeout
+	if (cmd instanceof AbstractConfigMessage) {
+	    AbstractConfigMessage configCmd = (AbstractConfigMessage) cmd;
+	    if (configCmd instanceof ConfigPeerListMessage) {
+		// PeerList-------------
+		// --- remember request params in device level
+		dvc.getResponseWait().setPending(PendType.PEER_LIST);
+		dvc.getResponseWait().forChannel(cmd.getChannel()); // channel info we await
+
+		// define timeout - holdup cmdStack until response complete or timeout
+		// InternalTimer(gettimeofday()+rTo, "CUL_HM_respPendTout", "respPend:$dst", 0);
+
+		// --- remove readings in channel
+		Channelable chnhash = dvc.getChannel(cmd.getChannel());
+		// empty old list
+		if (chnhash == null) {
+		    chnhash = dvc;
+		}
+
+		chnhash.setPeerList(null);
+		return;
+	    } else if (configCmd instanceof ConfigRegisterReadMessage) {
+		// RegisterRead-------
+		String peerId = configCmd.getPeerId();
+		short list = configCmd.getPeerList();
+
+		// $peerID = ($peerID ne "00000000")?CUL_HM_id2Name($peerID):"";
+		// $peerID =~ s/ /_/g;//subs blanks
+		// --- set messaging items
+		dvc.getResponseWait().setPending(PendType.REGISTER_READ);
+		dvc.getResponseWait().forChannel(configCmd.getPeerChannel());
+		dvc.getResponseWait().forList(configCmd.getPeerList());
+		dvc.getResponseWait().forPeer(configCmd.getPeerId());// this is the HMid + channel
+
+		// define timeout - holdup cmdStack until response complete or timeout
+		// InternalTimer(gettimeofday()+$rTo,"CUL_HM_respPendTout","respPend:$dst", 0);#todo General change timer to 1.5
+		// --- remove channel entries that will be replaced
+
+		if (list != 3 && list != 4) {
+		    peerId = null;
+		}
+
+		Channelable chnhash = dvc.getChannel(cmd.getChannel());
+		if (chnhash == null) {
+		    chnhash = dvc;
+		}
+		chnhash.setRegL(list, peerId, null);
+
+		// $chnhash = $hash if(!$chnhash);
+
+		// empty val since reading will be cumulative
+		// chnhash->{READINGS}{"RegL_".$list.":".$peerID}{VAL}="";
+		// delete ($chnhash->{READINGS}{"RegL_".$list.":".$peerID}{TIME});
+		return;
+	    } else if (configCmd.getSubType() == 0x0E) {
+		// StatusReq----------
+		// --- set messaging items
+		dvc.getResponseWait().setPending(PendType.STATUS_REQUEST);
+		dvc.getResponseWait().forChannel(cmd.getChannel());
+
+		// define timeout - holdup cmdStack until response complete or timeout
+		// InternalTimer(gettimeofday()+$rTo, "CUL_HM_respPendTout", "respPend:$dst", 0);
 		return;
 	    }
-
-	    try {
-		Thread.sleep(MILLIS_WAIT_FOR_ACK);
-	    } catch (InterruptedException e) {
-		e.printStackTrace();
-	    }
-
-	    if (message.hasAck()) {
-		return;
-	    }
-
-	    this.scheduler.submit(new CommunicationHandler(this, message, Calendar.getInstance()));
 	}
-
+	if (waitForAck) {
+	    dvc.getResponseWait().setPending(PendType.ACK);
+	    dvc.getResponseWait().forCmd(cmd);
+	    // my $iohash = hash->{IODev};
+	    // //$hash->{helper}{respWait}{Pending}= "Ack";
+	    // $hash->{helper}{respWait}{cmd} = $cmd;
+	    // $hash->{helper}{respWait}{msgId} = $msgId; #msgId we wait to ack
+	    // $hash->{helper}{respWait}{reSent} = 1;
+	    //
+	    // short off = 2;
+	    // //$off += 0.15*int(@{$iohash->{QUEUE}}) if($iohash->{QUEUE});
+	    // InternalTimer(gettimeofday()+$off, "CUL_HM_Resend", $hash, 0);
+	}
     }
 
     @Override
     public void tearDown() {
-	this.scheduler.shutdown();
+	this.executor.shutdown();
     }
 }

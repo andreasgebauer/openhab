@@ -17,6 +17,7 @@ Export-Package: org.quartz,
  org.quartz.impl,
  org.quartz.impl.calendar,
  org.quartz.impl.matchers,
+ org.quartz.impl.triggers,
  org.quartz.utils
 Import-Package: org.osgi.framework,
  org.osgi.service.component,
