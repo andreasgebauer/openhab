@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Service-Component: OSGI-INF/binding.xml, OSGI-INF/genericbindingprovider.xml
+Bundle-ManifestVersion: 2
+Bundle-Name: openHAB Boblight4J Hue Client
+Bundle-SymbolicName: org.openhab.binding.boblight4j
+Bundle-Version: 1.4.0.qualifier
+Bundle-Vendor: openHAB.org
+Bundle-Activator: org.openhab.binding.boblight4j.internal.Boblight4JBundleActivator
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: .,
+ lib/boblight4j-client-commons-0.2.0-SNAPSHOT.jar,
+ lib/boblight4j-common-0.2.0-SNAPSHOT.jar,
+ lib/args4j-2.0.16.jar
+Import-Package: org.openhab.core.binding,
+ org.openhab.core.items,
+ org.openhab.core.library.types,
+ org.openhab.core.types,
+ org.openhab.model.item.binding,
+ org.osgi.framework,
+ org.osgi.service.cm,
+ org.slf4j
+Export-Package: org.openhab.binding.boblight4j
