@@ -82,6 +82,7 @@
     <module>org.openhab.binding.maxcube.test</module>
     <module>org.openhab.binding.cul</module>
     <module>org.openhab.binding.cul.test</module>
+    <module>org.openhab.binding.boblight4j</module>
   </modules>
 
 </project>

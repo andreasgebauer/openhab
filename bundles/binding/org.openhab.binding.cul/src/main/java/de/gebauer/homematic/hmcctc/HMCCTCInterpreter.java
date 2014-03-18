@@ -20,6 +20,7 @@ import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.hmcctc.TemperaturePeriodEvent.TemperaturePeriod;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
 import de.gebauer.homematic.hmccvd.ValveData;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusMessage;
 import de.gebauer.homematic.msg.CommandMessage;
 import de.gebauer.homematic.msg.Config2Message;
@@ -482,6 +483,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 
 		StatusChangeEvent.ChannelStatus chStatus = new StatusChangeEvent.ChannelStatus();
 		chStatus.channel = toShort(msg.getPayload(), 2, 2);
+		// fails: A0D008410 206185 000000 06000000
 		chStatus.peerId = data.substring(2, 6);
 		chStatus.peerChannel = toShort(data.substring(2, 6));
 
@@ -506,20 +508,23 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		short peerChannel = toShort(matcher.group(3));
 		short list = toShort(matcher.group(4));
 		String peerAddr = matcher.group(2);
+		AbstractMessageParameter msgParam = new AbstractMessageParameter(msg, src, dst, channel);
 		if (channel == 0x02) {
+
+
 		    // send when tc wants to disconnect from vd
 		    // 22:05:30.849 [1EA808->1C4E7F #19; len=10, flag=VAL_A0, type=CONFIG, p=01021EA8080200]
 		    // 22:05:30.972 [1C4E7F->1EA808 #19; len=0A, flag=VAL_80, type=ACK, p=00]
-		    return new Config2Message(msg, src, dst, channel, peerAddr, peerChannel, list);
+		    return new Config2Message(msgParam, peerAddr, peerChannel, list);
 		} else if (channel == 0x04) {
 		    // sth like a request to synchronize
 		    // [1EA808->1C475A #49; len=10, flag=VAL_A0, type=CONFIG, p=0104 000000 00 05]
-		    return new ConfigRegisterReadMessage(msg, src, dst, channel, peerAddr, peerChannel, list);
+		    return new ConfigRegisterReadMessage(msgParam, peerAddr, peerChannel, list);
 		} else if (channel == 0x05) {
 		    // 10 14 A0 01 1EA808 1C4E7F 01 05 1EA808 01 05
 		    // payload: 0105 1EA808 0105
 		    // payload: 0105 1EA808 0105
-		    return new ConfigStartMessage(msg, src, dst, channel, peerAddr, peerChannel, list);
+		    return new ConfigStartMessage(msgParam, peerAddr, peerChannel, list);
 		}
 	    }
 	    // 0F 15 A0 01 1EA808 1C4E7F 01 08 09 05 0A 00
@@ -576,7 +581,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
     // 81 initial
     // 137 +56
     // 123 -14
-    
+
     // for each cycle
     // next = cur-14 < 120 ? cur+50 : cur-14
 

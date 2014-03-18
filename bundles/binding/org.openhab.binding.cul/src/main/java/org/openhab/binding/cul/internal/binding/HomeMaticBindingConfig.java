@@ -14,8 +14,6 @@ import org.openhab.core.types.UnDefType;
 import de.gebauer.communication.cul4java.impl.HMHandler;
 import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.DeviceStore;
-import de.gebauer.homematic.device.HomeMaticDeviceType;
 import de.gebauer.homematic.hmcctc.ControlMode;
 import de.gebauer.homematic.hmcctc.ThermoControlDevice;
 import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;

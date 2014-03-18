@@ -17,7 +17,7 @@ public class SetMessage extends AbstractMessage {
     private short value;
 
     public SetMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short chnl, short value) {
-	super(msg, srcDevice, dstDevice, chnl);
+	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, chnl));
 	this.value = value;
     }
 

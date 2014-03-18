@@ -20,7 +20,7 @@ public class ParamChangeMessage extends AbstractMessage implements Message {
     private String data;
 
     public ParamChangeMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, String peerId, int list, String data) {
-	super(msg, src, dst, channel);
+	super(new AbstractMessageParameter(msg, src, dst, channel));
 	this.peerId = peerId;
 	this.list = list;
 	this.data = data;

@@ -18,11 +18,11 @@ public abstract class AbstractMessage implements Message, Serializable {
     private Message request;
     private Calendar timestamp;
 
-    public AbstractMessage(final RawMessage msg, final AbstractDevice src, final AbstractDevice dst, final Short channel) {
-	this.msg = msg;
-	this.src = src;
-	this.dst = dst;
-	this.channel = channel;
+    public AbstractMessage(AbstractMessageParameter parameterObject) {
+	this.msg = parameterObject.msg;
+	this.src = parameterObject.src;
+	this.dst = parameterObject.dst;
+	this.channel = parameterObject.channel;
 	this.timestamp = Calendar.getInstance();
     }
 

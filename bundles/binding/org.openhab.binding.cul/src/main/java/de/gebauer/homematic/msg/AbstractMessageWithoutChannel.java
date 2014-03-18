@@ -16,7 +16,7 @@ public abstract class AbstractMessageWithoutChannel extends AbstractMessage {
     }
 
     public AbstractMessageWithoutChannel(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short chnl) {
-	super(msg, srcDevice, dstDevice, chnl);
+	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, chnl));
     }
 
     @Override

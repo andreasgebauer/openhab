@@ -13,6 +13,7 @@ import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.VirtualCCU;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusMessage;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.ParamResponseMessage;
@@ -111,7 +112,8 @@ public class CULBindingTest {
 	    }
 	};
 	RawMessage msg = new RawMessageBuilder().setMsgCount("00").build();
-	src.messageSent(new ConfigRegisterReadMessage(msg, ccu, src, channel, null, (short) -1, (short) -1));
+	AbstractMessageParameter msgParam = new AbstractMessageParameter(msg, ccu, src, channel);
+	src.messageSent(new ConfigRegisterReadMessage(msgParam, null, (short) -1, (short) -1));
 
 	binding.receivedMessage(new ParamResponseMessage(msg, src, ccu, null, " 00:00"));
 

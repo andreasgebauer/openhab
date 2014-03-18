@@ -71,7 +71,7 @@ public class BindingConfigParser {
             try {
                 config.getClass().getDeclaredField(key).set(config, value);
             } catch (Exception e) {
-                logger.error("Could set value " + value + " to attribute " + key + " in class " + config.getClass());
+                logger.error("Could not set value " + value + " to attribute " + key + " in class " + config.getClass());
                 throw new BindingConfigParseException("Could set value " + value + " to attribute " + key + " in class "
                         + config.getClass());
             }

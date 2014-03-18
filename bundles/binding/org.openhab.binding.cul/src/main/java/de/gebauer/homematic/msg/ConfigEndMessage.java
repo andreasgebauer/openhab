@@ -19,10 +19,10 @@ public class ConfigEndMessage extends AbstractMessage implements Message {
      * 
      */
     private static final long serialVersionUID = 1L;
-    private short subType;
+    private final short subType;
 
-    public ConfigEndMessage(RawMessage raw, AbstractDevice src, AbstractDevice dst, short channel) {
-	super(raw, src, dst, channel);
+    public ConfigEndMessage(AbstractMessageParameter msgParam) {
+	super(msgParam);
 	this.subType = 0x06;
     }
 

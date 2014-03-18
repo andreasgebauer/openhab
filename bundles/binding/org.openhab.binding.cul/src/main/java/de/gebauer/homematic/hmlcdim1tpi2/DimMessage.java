@@ -4,6 +4,7 @@ import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.msg.AbstractMessage;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.MessageFlag;
 import de.gebauer.homematic.msg.MessageType;
 
@@ -73,7 +74,7 @@ public class DimMessage extends AbstractMessage {
      * @param state
      */
     public DimMessage(AbstractDevice srcDevice, AbstractDevice dstDevice, boolean state) {
-	super(null, srcDevice, dstDevice, (short) 1);
+	super(new AbstractMessageParameter(null, srcDevice, dstDevice, (short) 1));
 	this.onOffState = state;
     }
 
@@ -85,7 +86,7 @@ public class DimMessage extends AbstractMessage {
      * @param dimFactor
      */
     public DimMessage(AbstractDevice srcDevice, AbstractDevice dstDevice, int dimFactor) {
-	super(null, srcDevice, dstDevice, (short) 1);
+	super(new AbstractMessageParameter(null, srcDevice, dstDevice, (short) 1));
 	this.dimFactor = dimFactor;
     }
 

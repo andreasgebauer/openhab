@@ -24,9 +24,8 @@ public class ConfigRegisterReadMessage extends AbstractConfigMessage {
      */
     private static final long serialVersionUID = 1L;
 
-    public ConfigRegisterReadMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice dstDevice, final short channel,
-	    final String peerAddress, final short peerChannel, final short paramList) {
-	super(msg, srcDevice, dstDevice, channel, peerAddress, peerChannel, paramList);
+    public ConfigRegisterReadMessage(AbstractMessageParameter msgParam, final String peerAddress, final short peerChannel, final short paramList) {
+	super(msgParam, peerAddress, peerChannel, paramList);
     }
 
     @Override

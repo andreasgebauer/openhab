@@ -75,8 +75,8 @@ import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.Utils;
-import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.command.PairingCommand;
+import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.DeviceFactory;
 import de.gebauer.homematic.device.DeviceStore;
@@ -87,11 +87,9 @@ import de.gebauer.homematic.hmcctc.WeatherEvent;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
 import de.gebauer.homematic.hmlcdim1tpi2.DimmerStateChangeEvent;
 import de.gebauer.homematic.hmsecsc.ShutterStateEvent;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusMessage;
-import de.gebauer.homematic.msg.ConfigEndMessage;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
-import de.gebauer.homematic.msg.ConfigStartMessage;
-import de.gebauer.homematic.msg.ConfigWriteMessage;
 import de.gebauer.homematic.msg.DeviceInfoEvent;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageFlag;
@@ -119,7 +117,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    .getLogger(CULBinding.class);
 
     public static CULBinding INSTANCE;
-    private CULInterface cul;
+    private final CULInterface cul;
     private FHTHandler fhtHandler;
     private FS20Handler fs20Handler;
     public HMHandler homeMaticHandler;
@@ -172,14 +170,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * We can send only a limited amount of commands per time slot and the ui issues a new command update every time you press the '+' or '-' buttons, so we
      * queue these commands here and only execute the last one
      */
-    private Map<String, FHTQueueItem> fhtCommandQueue = new LinkedHashMap<String, CULBinding.FHTQueueItem>();
+    private final Map<String, FHTQueueItem> fhtCommandQueue = new LinkedHashMap<String, CULBinding.FHTQueueItem>();
 
     DeviceStore dvcStore;
 
-    public CULBinding(CULInterface culTransceiver, DeviceStore deviceStore) {
+    public CULBinding(final CULInterface culTransceiver, final DeviceStore deviceStore) {
 	INSTANCE = this;
-	cul = culTransceiver;
-	dvcStore = deviceStore;
+	this.cul = culTransceiver;
+	this.dvcStore = deviceStore;
 	logger.debug("Created a new instance of the CULBinding");
     }
 
@@ -191,55 +189,56 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * Here we are creating the protocol handlers and bind them to the CUL interface. Also we register this as a protocol listener for every protocol handler
      * and bind the CUL to the configured port.
      */
+    @Override
     public void activate() {
-	fhtHandler = new FHTHandler(cul);
-	fs20Handler = new FS20Handler(cul);
-	homeMaticHandler = new HMHandler(cul, dvcStore);
-	fhtHandler.registerListener(this);
-	fs20Handler.registerListener(this);
-	homeMaticHandler.registerListener(this);
-	cul.registerHandler(fhtHandler);
-	cul.registerHandler(fs20Handler);
-	cul.registerHandler(homeMaticHandler);
-	logger.debug("Activating CULBinding with device " + deviceName);
+	this.fhtHandler = new FHTHandler(this.cul);
+	this.fs20Handler = new FS20Handler(this.cul);
+	this.homeMaticHandler = new HMHandler(this.cul, this.dvcStore);
+	this.fhtHandler.registerListener(this);
+	this.fs20Handler.registerListener(this);
+	this.homeMaticHandler.registerListener(this);
+	this.cul.registerHandler(this.fhtHandler);
+	this.cul.registerHandler(this.fs20Handler);
+	this.cul.registerHandler(this.homeMaticHandler);
+	logger.debug("Activating CULBinding with device " + this.deviceName);
 	try {
-	    bindCulInterface();
-	} catch (Exception e) {
+	    this.bindCulInterface();
+	} catch (final Exception e) {
 	    logger.error("Can't open CUL device", e);
 	}
     }
 
     private void scheduleTimeUpdateJob() {
-	if (!doTimeUpdate) {
+	if (!this.doTimeUpdate) {
 	    return;
 	}
 	try {
-	    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
-	    JobDetail detail = JobBuilder.newJob(UpdateFHTTimeJob.class)
+	    final Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
+	    final JobDetail detail = JobBuilder.newJob(UpdateFHTTimeJob.class)
 		    .withIdentity("FHT time update job", "cul").build();
 
-	    CronTrigger trigger = TriggerBuilder
+	    final CronTrigger trigger = TriggerBuilder
 		    .newTrigger()
 		    .forJob(detail)
 		    .withSchedule(
-			    CronScheduleBuilder.cronSchedule(cronExpression))
+			    CronScheduleBuilder.cronSchedule(this.cronExpression))
 		    .build();
-	    updateTimeJobKey = detail.getKey();
+	    this.updateTimeJobKey = detail.getKey();
 	    sched.scheduleJob(detail, trigger);
-	} catch (SchedulerException e) {
+	} catch (final SchedulerException e) {
 	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
     }
 
     private void unscheduleTimeUpdateJob() {
-	if (updateTimeJobKey == null) {
+	if (this.updateTimeJobKey == null) {
 	    return;
 	}
 	try {
-	    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
-	    sched.deleteJob(updateTimeJobKey);
-	} catch (SchedulerException e) {
+	    final Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
+	    sched.deleteJob(this.updateTimeJobKey);
+	} catch (final SchedulerException e) {
 	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
@@ -249,12 +248,13 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     /**
      * Here we are closing the serial device and deactivating the receive mode of the CUL.
      */
+    @Override
     public void deactivate() {
 	logger.debug("Deactivating CULBinding, closing serial device");
 	this.homeMaticHandler.tearDown();
 	try {
-	    cul.close();
-	} catch (IOException e) {
+	    this.cul.close();
+	} catch (final IOException e) {
 	    logger.error("Error while writing to cul", e);
 	}
     }
@@ -264,7 +264,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      */
     @Override
     protected long getRefreshInterval() {
-	return refreshInterval;
+	return this.refreshInterval;
     }
 
     /**
@@ -280,9 +280,9 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      */
     @Override
     public boolean isProperlyConfigured() {
-	logger.debug(isProperlyConfigured ? "We are properly configured"
+	logger.debug(this.isProperlyConfigured ? "We are properly configured"
 		: "We are not properly configured");
-	return isProperlyConfigured;
+	return this.isProperlyConfigured;
     }
 
     /**
@@ -299,36 +299,36 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 
 	logger.debug(MessageFormat
 		.format("execute() method is called, executing {0} waiting commands for FHTs!",
-			fhtCommandQueue.size()));
-	LinkedHashMap<String, FHTQueueItem> copyQueue = new LinkedHashMap<String, CULBinding.FHTQueueItem>();
-	copyQueue.putAll(fhtCommandQueue);
-	for (String address : copyQueue.keySet()) {
-	    FHTQueueItem item = copyQueue.get(address);
+			this.fhtCommandQueue.size()));
+	final LinkedHashMap<String, FHTQueueItem> copyQueue = new LinkedHashMap<String, CULBinding.FHTQueueItem>();
+	copyQueue.putAll(this.fhtCommandQueue);
+	for (final String address : copyQueue.keySet()) {
+	    final FHTQueueItem item = copyQueue.get(address);
 	    if (item != null) {
-		synchronized (cul) {
+		synchronized (this.cul) {
 		    try {
 			item.execute();
-		    } catch (IOException e) {
+		    } catch (final IOException e) {
 			logger.error("Error while execution", e);
 		    }
 		}
 	    }
-	    fhtCommandQueue.remove(address);
+	    this.fhtCommandQueue.remove(address);
 	}
 
     }
 
     public List<FHTBindingConfig> getAllFHTBindingConfigs() {
-	List<FHTBindingConfig> allFHTConfigs = new LinkedList<FHTBindingConfig>();
-	for (CULBindingProvider provider : providers) {
+	final List<FHTBindingConfig> allFHTConfigs = new LinkedList<FHTBindingConfig>();
+	for (final CULBindingProvider provider : this.providers) {
 	    allFHTConfigs.addAll(provider.getFHT80bBindings());
 	}
 	return allFHTConfigs;
     }
 
-    public void updateFHTTime(FHTBindingConfig config, Date date) throws IOException {
-	synchronized (cul) {
-	    config.updateTime(cul, date);
+    public void updateFHTTime(final FHTBindingConfig config, final Date date) throws IOException {
+	synchronized (this.cul) {
+	    config.updateTime(this.cul, date);
 	}
     }
 
@@ -337,29 +337,30 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * @{inheritDoc
      */
     @Override
-    protected void internalReceiveCommand(String itemName, Command command) {
+    protected void internalReceiveCommand(final String itemName, final Command command) {
 	// the code being executed when a command was sent on the openHAB
 	// event bus goes here. This method is only called if one of the
 	// BindingProviders provide a binding for the given 'itemName'.
 	logger.debug("internalReceiveCommand() is called for item " + itemName);
-	AbstractCulBindingConfig config = getBindingForItem(itemName);
+	final AbstractCulBindingConfig config = this.getBindingForItem(itemName);
 
 	try {
 	    if (config != null && config.isWriteable()) {
 		if (config instanceof FHTBindingConfig) {
-		    FHTQueueItem item = new FHTQueueItem((FHTBindingConfig) config, command);
-		    fhtCommandQueue.put(config.getAddress(), item);
+		    final FHTQueueItem item = new FHTQueueItem((FHTBindingConfig) config, command);
+		    this.fhtCommandQueue.put(config.getAddress(), item);
 		} else if (config instanceof HomeMaticBindingConfig) {
-		    if (config.executeCommand(cul, command)) {
-			homeMaticHandler.getMessageSender().processCmdStack(homeMaticHandler.getDeviceStore().get(((HomeMaticBindingConfig) config).getId()));
+		    if (config.executeCommand(this.cul, command)) {
+			this.homeMaticHandler.getMessageSender().processCmdStack(
+				this.homeMaticHandler.getDeviceStore().get(((HomeMaticBindingConfig) config).getId()));
 		    }
 		} else {
-		    synchronized (cul) {
-			config.executeCommand(cul, command);
+		    synchronized (this.cul) {
+			config.executeCommand(this.cul, command);
 		    }
 		}
 	    }
-	} catch (IOException e) {
+	} catch (final IOException e) {
 	    logger.error("Unexpected Exception:", e);
 	}
     }
@@ -368,14 +369,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * @{inheritDoc
      */
     @Override
-    protected void internalReceiveUpdate(String itemName, State newState) {
+    protected void internalReceiveUpdate(final String itemName, final State newState) {
 	// the code being executed when a state was sent on the openHAB
 	// event bus goes here. This method is only called if one of the
 	// BindingProviders provide a binding for the given 'itemName'.
 	logger.debug("internalReceiveUpdate() is called for item " + itemName);
-	for (CULBindingProvider provider : providers) {
+	for (final CULBindingProvider provider : this.providers) {
 	    logger.debug("Checking provider with names {}", provider.getItemNames());
-	    AbstractCulBindingConfig parameterAddress = provider.getBindingConfigForItem(itemName);
+	    final AbstractCulBindingConfig parameterAddress = provider.getBindingConfigForItem(itemName);
 
 	    // setStateOnDevice(newState, parameterAddress);
 	}
@@ -385,14 +386,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * To check wether we provide a valid binding for the given item name
      */
     @Override
-    protected boolean providesBindingFor(String itemName) {
-	return getBindingForItem(itemName) != null;
+    protected boolean providesBindingFor(final String itemName) {
+	return this.getBindingForItem(itemName) != null;
     }
 
-    private AbstractCulBindingConfig getBindingForItem(String itemName) {
-	if (providers != null) {
-	    for (BindingProvider provider : this.providers) {
-		BindingConfig config = ((CULBindingProvider) provider)
+    private AbstractCulBindingConfig getBindingForItem(final String itemName) {
+	if (this.providers != null) {
+	    for (final BindingProvider provider : this.providers) {
+		final BindingConfig config = ((CULBindingProvider) provider)
 			.getBindingConfigForItem(itemName);
 		if (config != null) {
 		    return (AbstractCulBindingConfig) config;
@@ -404,33 +405,29 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	return null;
     }
 
-    private AbstractCulBindingConfig getReadOnlyBindingForAddress(String address) {
-	if (providers != null) {
-	    for (CULBindingProvider provider : providers) {
-		AbstractCulBindingConfig config = provider
+    private AbstractCulBindingConfig getReadOnlyBindingForAddress(final String address) {
+	if (this.providers != null) {
+	    for (final CULBindingProvider provider : this.providers) {
+		final AbstractCulBindingConfig config = provider
 			.getReadOnlyBindingConfigForAddress(address);
 		if (config != null) {
 		    return config;
 		}
 	    }
 	}
-	logger.warn("Couldn't find read only config for device with address "
-		+ address);
 	return null;
     }
 
-    private AbstractCulBindingConfig getWritableBindingForAddress(String address) {
-	if (providers != null) {
-	    for (CULBindingProvider provider : providers) {
-		AbstractCulBindingConfig config = provider
+    private AbstractCulBindingConfig getWritableBindingForAddress(final String address) {
+	if (this.providers != null) {
+	    for (final CULBindingProvider provider : this.providers) {
+		final AbstractCulBindingConfig config = provider
 			.getWriteableBindingConfigForAddress(address);
 		if (config != null) {
 		    return config;
 		}
 	    }
 	}
-	logger.warn("Couldn't find writeable config for device with address "
-		+ address);
 	return null;
     }
 
@@ -438,25 +435,25 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * @{inheritDoc
      */
     @Override
-    public void updated(Dictionary<String, ?> config)
+    public void updated(final Dictionary<String, ?> config)
 	    throws ConfigurationException {
 	logger.debug("Receiving new config");
 	if (config != null) {
-	    dvcStore.clear();
-	    Enumeration<String> keys = config.keys();
+	    this.dvcStore.clear();
+	    final Enumeration<String> keys = config.keys();
 	    while (keys.hasMoreElements()) {
-		String nextElement = keys.nextElement();
+		final String nextElement = keys.nextElement();
 		if (nextElement.startsWith("device.")) {
-		    String[] split = nextElement.split("\\.");
-		    String deviceId = split[1];
-		    AbstractDevice device = dvcStore.get(deviceId);
+		    final String[] split = nextElement.split("\\.");
+		    final String deviceId = split[1];
+		    final AbstractDevice device = this.dvcStore.get(deviceId);
 		    if (device == null) {
-			String dvcType = (String) config.get("device." + deviceId + ".type");
-			String dvcName = (String) config.get("device." + deviceId + ".name");
+			final String dvcType = (String) config.get("device." + deviceId + ".type");
+			final String dvcName = (String) config.get("device." + deviceId + ".name");
 
-			Model model = Model.valueOf(dvcType);
-			DeviceInfo dvcInfo = new DeviceInfo(null, model, null);
-			dvcStore.add(deviceId, new DeviceFactory().createDevice(dvcName, deviceId, dvcInfo));
+			final Model model = Model.valueOf(dvcType);
+			final DeviceInfo dvcInfo = new DeviceInfo(null, model, null);
+			this.dvcStore.add(deviceId, new DeviceFactory().createDevice(dvcName, deviceId, dvcInfo));
 		    }
 		}
 	    }
@@ -464,11 +461,11 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    // to override the default refresh interval one has to add a
 	    // parameter to openhab.cfg like
 	    // <bindingName>:refresh=<intervalInMs>
-	    String refreshIntervalString = (String) config.get("refresh");
+	    final String refreshIntervalString = (String) config.get("refresh");
 	    if (StringUtils.isNotBlank(refreshIntervalString)) {
-		refreshInterval = Long.parseLong(refreshIntervalString);
+		this.refreshInterval = Long.parseLong(refreshIntervalString);
 	    }
-	    String houseCode = (String) config.get(PROPERTY_HOUSECODE);
+	    final String houseCode = (String) config.get(PROPERTY_HOUSECODE);
 	    if (!StringUtils.isEmpty(houseCode)) {
 		this.houseCode = houseCode;
 		this.homeMaticHandler.getCCU().setId(this.houseCode);
@@ -476,80 +473,80 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    }
 
 	    // read further config parameters here ...
-	    String deviceName = (String) config.get(PROPERTY_DEVICE);
+	    final String deviceName = (String) config.get(PROPERTY_DEVICE);
 	    logger.debug("Received new device name: " + deviceName);
 	    if (!StringUtils.isEmpty(deviceName)) {
 		if (!deviceName.equals(this.deviceName)) {
 		    this.deviceName = deviceName;
 		    try {
-			cul.close();
-			bindCulInterface();
-		    } catch (Exception e) {
-			isProperlyConfigured = false;
+			this.cul.close();
+			this.bindCulInterface();
+		    } catch (final Exception e) {
+			this.isProperlyConfigured = false;
 			logger.error("Can't open CUL device after configuration change", e);
 			throw new ConfigurationException(PROPERTY_DEVICE, "Can't open/close CUL device", e);
 		    }
-		    isProperlyConfigured = true;
+		    this.isProperlyConfigured = true;
 		}
 	    } else {
-		isProperlyConfigured = false;
+		this.isProperlyConfigured = false;
 		logger.warn("The serial device is not properly configured");
 		throw new ConfigurationException("device",
 			"The serial device to use is not configured");
 	    }
 
-	    String repitions = (String) config
+	    final String repitions = (String) config
 		    .get(PROPERTY_INTERTECHNO_REPITIONS);
 	    if (!StringUtils.isEmpty(repitions)) {
 		try {
-		    intertechnoRepitions = Integer.parseInt(repitions);
-		} catch (NumberFormatException e) {
+		    this.intertechnoRepitions = Integer.parseInt(repitions);
+		} catch (final NumberFormatException e) {
 		    throw new ConfigurationException(
 			    PROPERTY_INTERTECHNO_REPITIONS,
 			    "This is not a parseable integer " + repitions, e);
 		}
 	    }
 
-	    String wavelength = (String) config
+	    final String wavelength = (String) config
 		    .get(PROPERTY_INTERTECHNO_WAVE_LENGTH);
 	    if (!StringUtils.isEmpty(wavelength)) {
 		try {
-		    intertechnoWavelength = Integer.parseInt(wavelength);
-		    if (intertechnoWavelength < 360
-			    || intertechnoWavelength > 470) {
+		    this.intertechnoWavelength = Integer.parseInt(wavelength);
+		    if (this.intertechnoWavelength < 360
+			    || this.intertechnoWavelength > 470) {
 			throw new ConfigurationException(
 				PROPERTY_INTERTECHNO_WAVE_LENGTH,
 				"The length of a single wave puls must be between 360 and 470");
 		    }
-		} catch (NumberFormatException e) {
+		} catch (final NumberFormatException e) {
 		    throw new ConfigurationException(
 			    PROPERTY_INTERTECHNO_WAVE_LENGTH,
 			    "This is not a parseable integer " + repitions, e);
 		}
 	    }
-	    String cronParam = (String) config.get(PROPERTY_UPDATE_CRON);
+	    final String cronParam = (String) config.get(PROPERTY_UPDATE_CRON);
 	    if (!StringUtils.isEmpty(cronParam)) {
-		if (!cronParam.equals(cronExpression)) {
+		if (!cronParam.equals(this.cronExpression)) {
 		    this.cronExpression = cronParam;
 		    logger.debug("Read cron expression for time update: "
-			    + cronExpression);
-		    unscheduleTimeUpdateJob();
+			    + this.cronExpression);
+		    this.unscheduleTimeUpdateJob();
 		}
 	    }
-	    String updateTime = (String) config.get(PROPERTY_UPDATE_TIME);
+	    final String updateTime = (String) config.get(PROPERTY_UPDATE_TIME);
 	    if (!StringUtils.isEmpty(updateTime)) {
-		boolean update = Boolean.parseBoolean(updateTime);
-		doTimeUpdate = update;
-		if (doTimeUpdate) {
+		final boolean update = Boolean.parseBoolean(updateTime);
+		this.doTimeUpdate = update;
+		if (this.doTimeUpdate) {
 		    logger.debug("Activating time update for FHTs");
-		    scheduleTimeUpdateJob();
+		    this.scheduleTimeUpdateJob();
 		} else {
-		    unscheduleTimeUpdateJob();
+		    this.unscheduleTimeUpdateJob();
 		}
 	    }
-	    String pairingEnabled = (String) config.get(PAIRING);
+	    final String pairingEnabled = (String) config.get(PAIRING);
 	    if (!StringUtils.isEmpty(pairingEnabled)) {
-		OnOffType onOff = OnOffType.valueOf(pairingEnabled);
+		final OnOffType onOff = OnOffType.valueOf(pairingEnabled);
 		switch (onOff) {
 		case ON:
 		    this.pairingEnabled = true;
@@ -566,30 +563,30 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     }
 
     private void bindCulInterface() throws Exception {
-	if (deviceName != null) {
-	    cul.open(deviceName);
-	    if (houseCode != null) {
-		logger.debug("Setting house code on CUL to " + houseCode);
-		cul.setOwnHouseCode(houseCode);
+	if (this.deviceName != null) {
+	    this.cul.open(this.deviceName);
+	    if (this.houseCode != null) {
+		logger.debug("Setting house code on CUL to " + this.houseCode);
+		this.cul.setOwnHouseCode(this.houseCode);
 	    }
 
-	    cul.sendRAW("it" + intertechnoWavelength);
-	    cul.sendRAW("isr" + intertechnoRepitions);
+	    this.cul.sendRAW("it" + this.intertechnoWavelength);
+	    this.cul.sendRAW("isr" + this.intertechnoRepitions);
 	}
     }
 
     @Override
-    public void messageReceived(String housecode, String address,
-	    FS20Command command) {
+    public void messageReceived(final String housecode, final String address,
+	    final FS20Command command) {
 	logger.debug(MessageFormat
 		.format("Received fs20 message with housecode {0} from address {1} with command {2}",
 			housecode, address, command.toString()));
-	AbstractCulBindingConfig config = getReadOnlyBindingForAddress(housecode
+	final AbstractCulBindingConfig config = this.getReadOnlyBindingForAddress(housecode
 		+ address);
 	if (config != null) {
-	    State state = FS20CommandHelper.getStateFromFS20Command(command);
+	    final State state = FS20CommandHelper.getStateFromFS20Command(command);
 	    if (state != null) {
-		eventPublisher.postUpdate(config.getItem().getName(), state);
+		this.eventPublisher.postUpdate(config.getItem().getName(), state);
 	    } else {
 		logger.warn("Can't find matching state for fs20 command "
 			+ command.toString());
@@ -599,20 +596,20 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     }
 
     @Override
-    public void receivedFHTState(String device,
-	    de.tobiaswegner.communication.cul4java.FHTState state) {
+    public void receivedFHTState(final String device,
+	    final de.tobiaswegner.communication.cul4java.FHTState state) {
 	logger.debug(MessageFormat.format("Received state {0} for device {1}",
 		state, device));
-	AbstractCulBindingConfig config = getReadOnlyBindingForAddress(device);
+	final AbstractCulBindingConfig config = this.getReadOnlyBindingForAddress(device);
 	if (config != null) {
 	    switch (state) {
 	    case WINDOW_CLOSED:
-		eventPublisher.postUpdate(config.getItem().getName(),
+		this.eventPublisher.postUpdate(config.getItem().getName(),
 			OpenClosedType.CLOSED);
 		break;
 
 	    case WINDOW_OPEN:
-		eventPublisher.postUpdate(config.getItem().getName(),
+		this.eventPublisher.postUpdate(config.getItem().getName(),
 			OpenClosedType.OPEN);
 		break;
 	    case BATTERY_LOW:
@@ -624,8 +621,8 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     }
 
     @Override
-    public void receivedFHTValue(String device, FHTEvent event,
-	    double temperature) {
+    public void receivedFHTValue(final String device, final FHTEvent event,
+	    final double temperature) {
 	logger.debug(MessageFormat
 		.format("Received new FHTEvent {0} for device {1} with temperature {2}",
 			event, device, temperature));
@@ -634,16 +631,16 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	case ACTUATOR_SETTING:
 	    break;
 	case DESIRED_TEMPREATURE:
-	    config = getWritableBindingForAddress(device);
+	    config = this.getWritableBindingForAddress(device);
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(),
+		this.eventPublisher.postUpdate(config.getItem().getName(),
 			new DecimalType(temperature));
 	    }
 	    break;
 	case MEASURED_TEMPERATURE:
-	    config = getReadOnlyBindingForAddress(device);
+	    config = this.getReadOnlyBindingForAddress(device);
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(),
+		this.eventPublisher.postUpdate(config.getItem().getName(),
 			new DecimalType(temperature));
 	    }
 	    break;
@@ -654,31 +651,31 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
     }
 
     @Override
-    public void receivedActuatorStatus(String device, int actuatorNumer,
-	    double opening) {
+    public void receivedActuatorStatus(final String device, final int actuatorNumer,
+	    final double opening) {
 	logger.debug(MessageFormat
 		.format("Received new valve opening ({0}) for valve number {1} on device {2}",
 			opening, actuatorNumer, device));
-	AbstractCulBindingConfig config = getReadOnlyBindingForAddress(device
+	final AbstractCulBindingConfig config = this.getReadOnlyBindingForAddress(device
 		+ "0" + actuatorNumer);
 	if (config != null) {
-	    eventPublisher.postUpdate(config.getItem().getName(),
+	    this.eventPublisher.postUpdate(config.getItem().getName(),
 		    new PercentType(Double.toString(opening)));
 	}
 
     }
 
     private class FHTQueueItem {
-	private FHTBindingConfig config;
-	private Command command;
+	private final FHTBindingConfig config;
+	private final Command command;
 
-	public FHTQueueItem(FHTBindingConfig config, Command command) {
+	public FHTQueueItem(final FHTBindingConfig config, final Command command) {
 	    this.command = command;
 	    this.config = config;
 	}
 
 	public void execute() throws IOException {
-	    config.executeCommand(cul, command);
+	    this.config.executeCommand(CULBinding.this.cul, this.command);
 	}
     }
 
@@ -688,14 +685,14 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      * @throws
      */
     @Override
-    public void receivedMessage(Message message) {
+    public void receivedMessage(final Message message) {
 	logger.debug(MessageFormat.format("Received {0} for {1}", message, message.getDestination()));
 
-	VirtualCCU ccu = this.homeMaticHandler.getCCU();
+	final VirtualCCU ccu = this.homeMaticHandler.getCCU();
 	if (message instanceof DeviceInfoEvent) {
 	    // pairing
-	    String serNo = message.getSource().getInfo().serNo;
-	    RawMessage msg = message.getRawMessage();
+	    final String serNo = message.getSource().getInfo().serNo;
+	    final RawMessage msg = message.getRawMessage();
 
 	    if (!ccu.isPairingEnabled()) {
 		logger.info("Pairing not enabled.");
@@ -709,7 +706,7 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		// TODO why?
 		return;
 	    }
-	    AbstractDevice destination = message.getDestination();
+	    final AbstractDevice destination = message.getDestination();
 	    if (destination != null && destination.getId() != ccu.getId()) {
 		logger.info("Not our pairing request.");
 		return;
@@ -719,53 +716,33 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    message.getSource().getCommandStack().clear();
 	    final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A0);
 
-	    PairingCommand pairingCommand = new PairingCommand();
-
-	    short channel = 0;
 	    // 02010A130BC80C6D
-	    short pChnl = (short) 0;
 	    if (message.getSource().getInfo().mdl == Model.HMCCVD) {
 		// ACT as TC
+		PairingCommand pairingCommand = new PairingCommand();
+		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, "0000000000");
+		final String pAddr = "000000";
+		final short chnl = (short) 01;
+		final short pList = (short) 5;
+		final short pChnl = (short) 0;
 
-		DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, "0000000000");
 		// [1EA808->1C475A #48; len=1A, flag=VAL_A0, type=UNKNOWN, p=21 0039 4A455130373039393232 58 00 02 00]
-		pairingCommand
-			.add(new DeviceInfoEvent(msgBuilder.build(), homeMaticHandler.getCCU(), message.getSource(), info, (short) 0x00, (short) 0x02, "00"));
+		pairingCommand.add(new DeviceInfoEvent(msgBuilder.build(), ccu, message.getSource(), info, (short) 0x00, (short) 0x02, "00"));
 
-		String pAddr = "000000";
-
-		short chnl = (short) 01;
-		short pList = (short) 5;
 		// [1EA808->1C475A #49; len=10, flag=VAL_A0, type=CONFIG, p=0104 000000 00 05] ConfigRegisterReadCommand
-		pairingCommand
-			.add(new ConfigRegisterReadMessage(msgBuilder.build(), homeMaticHandler.getCCU(), message.getSource(), chnl, pAddr, pChnl, pList));
+		AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), ccu, message.getSource(), chnl);
+		pairingCommand.add(new ConfigRegisterReadMessage(msgParam, pAddr, pChnl, pList));
+		message.getSource().addToSendQueue(pairingCommand);
 	    } else {
-		// common pairing
-		String content = "0201";
-		int s = 0xA;
-
-		for (int i = 0; i < 3; i++) {
-		    content += String.format("%02X", s++);
-		    content += homeMaticHandler.getCCU().getId().substring(i * 2, i * 2 + 2);
-		}
-
-		pairingCommand.add(new ConfigStartMessage(msgBuilder.build(), ccu, message.getSource(), channel, "000000", pChnl, pChnl));
-		for (int l = 0; l < content.length(); l += 28) {
-		    int ml = content.length() - l < 28 ? content.length() - l : 8;
-		    pairingCommand.add(new ConfigWriteMessage(msgBuilder.build(), ccu, message.getSource(), channel, content.substring(l, ml)));
-		}
-		pairingCommand.add(new ConfigEndMessage(msgBuilder.build(), ccu, message.getSource(), channel));
+		message.getSource().addToSendQueue(new PairingCommand(ccu, message.getSource()));
 	    }
 
-	    message.getSource().addToSendQueue(pairingCommand);
-
-	    homeMaticHandler.getCCU().setHmPairSerial(serNo);
-
+	    this.homeMaticHandler.getCCU().setHmPairSerial(serNo);
 	}
 
 	final AbstractDevice source = message.getSource();
 	if (ccu.equals(message.getDestination())) {
-	    Message request = message.getDestination().getEventSend(message.getCount());
+	    final Message request = message.getDestination().getEventSend(message.getCount());
 	    // if we have sent a request the we add the response as answer
 	    // TODO consider time passed by since we sent the message
 	    if (request != null && request.getSource().equals(ccu)) {
@@ -774,9 +751,9 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 		message.setRequest(request);
 
 		if (message instanceof ParamResponseMessage) {
-		    ParamResponseMessage paramResponseMessage = (ParamResponseMessage) message;
-		    ConfigRegisterReadMessage configReadRequest = (ConfigRegisterReadMessage) request;
-		    Matcher matcher = Utils.matcherFor(paramResponseMessage.getData(), ".* 00:00$");
+		    final ParamResponseMessage paramResponseMessage = (ParamResponseMessage) message;
+		    final ConfigRegisterReadMessage configReadRequest = (ConfigRegisterReadMessage) request;
+		    final Matcher matcher = Utils.matcherFor(paramResponseMessage.getData(), ".* 00:00$");
 		    if (matcher.matches()) {
 			if (configReadRequest.getPeerList() == 0) {
 			    logger.info("Successfully paired {} with {} ", source, message.getDestination());
@@ -798,47 +775,47 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	}
 
 	if (message instanceof WeatherEvent) {
-	    float temperature = ((WeatherEvent) message).getTemperature();
-	    int humidity = ((WeatherEvent) message).getHumidity();
+	    final float temperature = ((WeatherEvent) message).getTemperature();
+	    final int humidity = ((WeatherEvent) message).getHumidity();
 
-	    AbstractDevice device = this.dvcStore.get(message.getSource().getId());
+	    final AbstractDevice device = this.dvcStore.get(message.getSource().getId());
 
-	    AbstractCulBindingConfig config = getWritableBindingForAddress(device.getName() + ":" + "TEMPERATURE");
+	    AbstractCulBindingConfig config = this.getWritableBindingForAddress(device.getName() + ":" + "TEMPERATURE");
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(temperature));
+		this.eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(temperature));
 	    }
-	    config = getWritableBindingForAddress(device.getName() + ":" + "HUMIDITY");
+	    config = this.getWritableBindingForAddress(device.getName() + ":" + "HUMIDITY");
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(humidity));
+		this.eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(humidity));
 	    }
 
 	} else if (message instanceof ClimateMessage) {
-	    int command = ((ClimateMessage) message).getCommand();
-	    int valvePos = ((ClimateMessage) message).getValvePos();
+	    final int command = ((ClimateMessage) message).getCommand();
+	    final int valvePos = ((ClimateMessage) message).getValvePos();
 
-	    AbstractDevice device = this.dvcStore.get(message.getDestination().getId());
+	    final AbstractDevice device = this.dvcStore.get(message.getDestination().getId());
 
-	    AbstractCulBindingConfig config = getWritableBindingForAddress(device.getName() + ":" + "DESIRED");
+	    AbstractCulBindingConfig config = this.getWritableBindingForAddress(device.getName() + ":" + "DESIRED");
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(command));
+		this.eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(command));
 	    }
-	    config = getWritableBindingForAddress(device.getName() + ":" + "VALVEPOS");
+	    config = this.getWritableBindingForAddress(device.getName() + ":" + "VALVEPOS");
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(valvePos));
+		this.eventPublisher.postUpdate(config.getItem().getName(), new DecimalType(valvePos));
 	    }
 	} else if (message instanceof ShutterStateEvent) {
-	    AbstractCulBindingConfig config = getWritableBindingForAddress(message.getSource().getName() + ":" + "STATE");
+	    final AbstractCulBindingConfig config = this.getWritableBindingForAddress(message.getSource().getName() + ":" + "STATE");
 	    if (config != null) {
-		eventPublisher.postUpdate(config.getItem().getName(),
+		this.eventPublisher.postUpdate(config.getItem().getName(),
 			((ShutterStateEvent) message).isClosed() ? OpenClosedType.CLOSED
 				: OpenClosedType.OPEN);
 	    }
 	} else if (message instanceof DimmerStateChangeEvent) {
-	    AbstractCulBindingConfig config = getWritableBindingForAddress(message.getSource().getName() + ":" + "DIM");
+	    final AbstractCulBindingConfig config = this.getWritableBindingForAddress(message.getSource().getName() + ":" + "DIM");
 	    if (config != null) {
-		int state = ((DimmerStateChangeEvent) message).getState() / 2;
+		final int state = ((DimmerStateChangeEvent) message).getState() / 2;
 		((DimmerItem) config.getItem()).setState(new PercentType(state));
-		eventPublisher.postUpdate(config.getItem().getName(), new PercentType(state));
+		this.eventPublisher.postUpdate(config.getItem().getName(), new PercentType(state));
 	    }
 	} else if (message instanceof TemperaturePeriodEvent) {
 	    // TODO need to send special ACK!?!
@@ -846,8 +823,8 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	}
 
 	if (ccu.equals(message.getDestination()) && message.needsAck()) {
-	    RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
-	    message.getSource().addToSendQueue(new SimpleCommand(new AckStatusMessage(build, ccu, message.getSource(), (short) message.getChannel(), null)));
+	    final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
+	    message.getSource().addToSendQueue(new SimpleCommand(new AckStatusMessage(build, ccu, message.getSource(), message.getChannel(), null)));
 	}
     }
 }

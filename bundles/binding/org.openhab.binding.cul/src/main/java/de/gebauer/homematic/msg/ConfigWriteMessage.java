@@ -5,8 +5,7 @@ import de.gebauer.homematic.device.AbstractDevice;
 
 /**
  * 
- * ..08....
- * ccttdddd
+ * ..08.... ccttdddd
  * 
  * @author andi
  * 
@@ -16,8 +15,8 @@ public class ConfigWriteMessage extends AbstractMessage implements Message {
     private String data;
     private short subType;
 
-    public ConfigWriteMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, Short channel, String data) {
-	super(msg, src, dst, channel);
+    public ConfigWriteMessage(AbstractMessageParameter msgParam, String data) {
+	super(msgParam);
 	this.data = data;
 	this.subType = 0x08;
     }

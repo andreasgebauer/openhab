@@ -20,7 +20,8 @@ public class ConfigStartCommandTest {
 
 	final AbstractDevice srcDevice = new DeviceFactory().createDevice(null, null, new DeviceInfo(null, null, null));
 	final AbstractDevice dstDevice = new DeviceFactory().createDevice(null, null, new DeviceInfo(null, null, null));
-	final String payload = new ConfigStartMessage(null, srcDevice, dstDevice, channel, peerAddress, peerChannel, paramList).getPayload();
+	final AbstractMessageParameter msgParam = new AbstractMessageParameter(null, srcDevice, dstDevice, channel);
+	final String payload = new ConfigStartMessage(msgParam, peerAddress, peerChannel, paramList).getPayload();
 
 	assertEquals("0205111111A105", payload);
     }

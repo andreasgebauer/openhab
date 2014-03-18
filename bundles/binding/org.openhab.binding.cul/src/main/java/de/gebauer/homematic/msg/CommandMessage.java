@@ -13,7 +13,7 @@ public class CommandMessage extends AbstractMessage implements Message {
     private String payload;
 
     public CommandMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel, String payload) {
-	super(msg, srcDevice, dstDevice, channel);
+	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, channel));
 	this.payload = payload;
     }
 

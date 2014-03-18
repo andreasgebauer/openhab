@@ -7,6 +7,7 @@ import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.ConfigEndMessage;
 import de.gebauer.homematic.msg.ConfigStartMessage;
 import de.gebauer.homematic.msg.ConfigWriteMessage;
@@ -47,9 +48,11 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
 
 	final short channel = (short) 02;
 	msgBuilder.setMsgFlag(MessageFlag.VAL_A0);
-	command.add(new ConfigStartMessage(msgBuilder.build(), src, this, channel, "000000", (short) 0, (short) 5));
-	command.add(new ConfigWriteMessage(msgBuilder.build(), src, this, channel, String.format("%04X", 0x0100 + (ctrlMode.getVal() << 3))));
-	command.add(new ConfigEndMessage(msgBuilder.build(), src, this, channel));
+
+	AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), src, this, channel);
+	command.add(new ConfigStartMessage(msgParam, "000000", (short) 0, (short) 5));
+	command.add(new ConfigWriteMessage(msgParam, String.format("%04X", 0x0100 + (ctrlMode.getVal() << 3))));
+	command.add(new ConfigEndMessage(msgParam));
 
 	this.addToSendQueue(command);
 

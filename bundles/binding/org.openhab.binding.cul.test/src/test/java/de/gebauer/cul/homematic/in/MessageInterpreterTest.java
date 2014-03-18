@@ -12,6 +12,7 @@ import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.hmcctc.ThermoControlDevice;
 import de.gebauer.homematic.hmccvd.ValveDevice;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.ParamResponseMessage;
@@ -29,7 +30,8 @@ public class MessageInterpreterTest {
 	AbstractDevice vd = new ValveDevice("1C4E7F", "1C4E7F", new DeviceInfo("10", Model.HMCCVD, "1C4E7F"));
 	AbstractDevice tc = new ThermoControlDevice("1C4E7F", "1C4E7F", new DeviceInfo("10", Model.HMCCVD, "1C4E7F"));
 
-	ConfigRegisterReadMessage regReadCmd = new ConfigRegisterReadMessage(null, tc, vd, channel, peerAddress, peerChannel, paramList);
+	AbstractMessageParameter msgParam = new AbstractMessageParameter(null, tc, vd, channel);
+	ConfigRegisterReadMessage regReadCmd = new ConfigRegisterReadMessage(msgParam, peerAddress, peerChannel, paramList);
 	vd.messageReceived(regReadCmd);
 	tc.messageSent(regReadCmd);
 

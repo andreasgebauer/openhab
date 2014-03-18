@@ -1,7 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
 
 /**
  * ..03......
@@ -11,9 +9,9 @@ import de.gebauer.homematic.device.AbstractDevice;
  */
 public class ConfigPeerListMessage extends AbstractConfigMessage {
 
-    public ConfigPeerListMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel, String peerAddress, short peerChannel,
+    public ConfigPeerListMessage(AbstractMessageParameter msgParam, String peerAddress, short peerChannel,
 	    short paramList) {
-	super(msg, srcDevice, dstDevice, channel, peerAddress, peerChannel, paramList);
+	super(msgParam, peerAddress, peerChannel, paramList);
     }
 
     @Override

@@ -22,7 +22,6 @@ package de.tobiaswegner.communication.cul4java.impl;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TooManyListenersException;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;

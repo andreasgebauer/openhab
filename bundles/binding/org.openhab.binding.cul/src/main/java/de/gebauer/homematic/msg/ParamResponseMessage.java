@@ -39,7 +39,7 @@ public class ParamResponseMessage extends AbstractMessage implements Message {
     private String format;
 
     public ParamResponseMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, String format, String data) {
-	super(msg, src, dst, null);
+	super(new AbstractMessageParameter(msg, src, dst, null));
 	this.format = format;
 	this.data = data;
     }

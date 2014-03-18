@@ -23,9 +23,8 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
     protected final short peerChannel;
     protected final short paramList;
 
-    public AbstractConfigMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice dstDevice, final short channel,
-	    final String peerAddress, final short peerChannel, final short paramList) {
-	super(msg, srcDevice, dstDevice, channel);
+    public AbstractConfigMessage(final AbstractMessageParameter msgParam, final String peerAddress, final short peerChannel, final short paramList) {
+	super(msgParam);
 	// byte 2 from payload
 	this.peerAddress = peerAddress;
 	this.peerChannel = peerChannel;

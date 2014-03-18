@@ -15,7 +15,7 @@ public class InfoActuatorStatusMessage extends AbstractMessage implements Messag
     protected ChannelStatus chStatus;
 
     public InfoActuatorStatusMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, ChannelStatus chStatus) {
-	super(msg, src, dst, channel);
+	super(new AbstractMessageParameter(msg, src, dst, channel));
 	this.chStatus = chStatus;
     }
 

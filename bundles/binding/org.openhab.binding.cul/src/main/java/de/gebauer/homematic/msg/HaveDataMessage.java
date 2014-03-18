@@ -6,7 +6,7 @@ import de.gebauer.homematic.device.AbstractDevice;
 public class HaveDataMessage extends AbstractMessage {
 
     public HaveDataMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
-	super(msg, src, dst, null);
+	super(new AbstractMessageParameter(msg, src, dst, null));
     }
 
     @Override

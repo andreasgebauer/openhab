@@ -13,9 +13,8 @@ import de.gebauer.homematic.device.AbstractDevice;
  */
 public class ConfigStartMessage extends AbstractConfigMessage {
 
-    public ConfigStartMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice dstDevice, final short channel,
-	    final String peerAddress, final short peerChannel, final short paramList) {
-	super(msg, srcDevice, dstDevice, channel, peerAddress, peerChannel, paramList);
+    public ConfigStartMessage(AbstractMessageParameter msgParam, final String peerAddress, final short peerChannel, final short paramList) {
+	super(msgParam, peerAddress, peerChannel, paramList);
     }
 
     @Override
