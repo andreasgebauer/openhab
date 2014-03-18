@@ -1,0 +1,8 @@
+/.settings
+/.gitignore
+/.project
+/pom.xml
+/org.openhab.binding.digitalstrom
+/org.openhab.binding.dmx.artnet
+/org.openhab.binding.dmx.ola
+/org.openhab.binding.dmx.test
