@@ -7,6 +7,7 @@ import org.boblight4j.client.CommandLineArgs;
 import org.boblight4j.client.LightsHolderImpl;
 import org.boblight4j.client.RemoteClient;
 import org.boblight4j.client.SocketClientImpl;
+import org.openhab.binding.boblight4j.internal.binding.Boblight4JBindingConfig;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.PercentType;
@@ -24,10 +25,13 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 
     private String host;
 
+    private Boblight4JGenericBindingProvider provider;
+
     @Override
     protected void execute() {
+	
 	// TODO Auto-generated method stub
-
+	
     }
 
     @Override
@@ -38,6 +42,11 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
     @Override
     protected String getName() {
 	return "Boblight4JBinding Refresh Service";
+    }
+
+    public void addBindingProvider(Boblight4JGenericBindingProvider provider) {
+	super.addBindingProvider(provider);
+	this.provider = provider;
     }
 
     @Override
@@ -82,26 +91,36 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 	    this.setup(this.host);
 	}
 
-	if (this.remoteClient != null) {
-	    if (command instanceof HSBType) {
-		final PercentType red = ((HSBType) command).getRed();
-		final PercentType green = ((HSBType) command).getGreen();
-		final PercentType blue = ((HSBType) command).getBlue();
+	Boblight4JBindingConfig config = this.providers.iterator().next().getConfig(itemName);
+	if (this.remoteClient == null) {
+	    logger.warn("Could not setup client. Unable to execute command");
+	} else {
+	    try {
+		if (command instanceof HSBType) {
+		    final PercentType red = ((HSBType) command).getRed();
+		    final PercentType green = ((HSBType) command).getGreen();
+		    final PercentType blue = ((HSBType) command).getBlue();
 
-		// load the color into int array
-		final int rgb[] = new int[] { red.intValue(), green.intValue(), blue.intValue() };
-
-		try {
-		    // set all lights to the color we want and send it
-		    this.remoteClient.getLightsHolder().addPixel(null, rgb);
+		    // load the color into int array
+		    final int rgb[] = new int[] { red.intValue(), green.intValue(), blue.intValue() };
+		    if (config.getBindingConfig().equals("All")) {
+			// set all lights to the color we want and send it
+			this.remoteClient.getLightsHolder().addPixel(null, rgb);
+		    } else {
+			for (String lightName : config.getBindingConfig().split(",")) {
+			    this.remoteClient.getLightsHolder().addPixel(lightName, rgb);
+			}
+		    }
 
 		    // some error happened, probably connection
 		    // broken, so bitch and try again
 		    this.remoteClient.sendRgb(true, null);
-
-		} catch (final Exception e) {
-		    logger.error("Exception occured during add pixel or sending rgb values", e);
 		}
+
+	    } catch (final Exception e) {
+		logger.error("Exception occured during add pixel or sending rgb values. Destroying client.", e);
+		this.remoteClient.destroy();
+		this.remoteClient = null;
 	    }
 	}
     }
