@@ -208,14 +208,13 @@ public class MessageSenderImpl implements MessageSender {
 	src.messageSent(message);
 	dst.messageReceived(message);
 
-	responseSetup(dst, message.getWrapped(), message.needsAck());
+	responseSetup(dst, message.getWrapped());
     }
 
-    private void responseSetup(AbstractDevice dvc, Message cmd, boolean waitForAck)
+    private void responseSetup(AbstractDevice dvc, Message cmd)
     {
 	// store all we need to handle the response
 	// setup repeatTimer and cmdStackControll
-	double rTo = 1.5; // default response timeout
 	if (cmd instanceof AbstractConfigMessage) {
 	    AbstractConfigMessage configCmd = (AbstractConfigMessage) cmd;
 	    if (configCmd instanceof ConfigPeerListMessage) {
@@ -234,7 +233,6 @@ public class MessageSenderImpl implements MessageSender {
 		    chnhash = dvc;
 		}
 
-		chnhash.setPeerList(null);
 		return;
 	    } else if (configCmd instanceof ConfigRegisterReadMessage) {
 		// RegisterRead-------
@@ -280,7 +278,7 @@ public class MessageSenderImpl implements MessageSender {
 		return;
 	    }
 	}
-	if (waitForAck) {
+	if (cmd.needsAck()) {
 	    dvc.getResponseWait().setPending(PendType.ACK);
 	    dvc.getResponseWait().forCmd(cmd);
 	    // my $iohash = hash->{IODev};

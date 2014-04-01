@@ -15,7 +15,7 @@ public class CommunicationHandler extends Thread {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommunicationHandler.class);
 
-    private static final int MILLIS_WAIT_FOR_ACK = 200;
+    private static final int MILLIS_WAIT_FOR_ACK = 300;
     private static final int MAX_RETRIES = 5;
 
     private final Command command;
@@ -31,7 +31,7 @@ public class CommunicationHandler extends Thread {
     @Override
     public void run() {
 	Message msg = null;
-	boolean success = false;
+	boolean success = true;
 	while ((msg = this.command.getNextMessage()) != null) {
 	    final WrappedMessage wrappedMsg = new WrappedMessage(msg);
 	    int resendCount = 0;
@@ -48,10 +48,12 @@ public class CommunicationHandler extends Thread {
 
 		if (wrappedMsg.needsAck() && !wrappedMsg.hasAck() && resendCount == MAX_RETRIES) {
 		    LOG.warn("{} retries failed. Giving up.", MAX_RETRIES);
+		    success = false;
 		    break;
 		}
 	    } catch (final Exception e) {
 		LOG.error("", e);
+		success = false;
 	    }
 	}
 

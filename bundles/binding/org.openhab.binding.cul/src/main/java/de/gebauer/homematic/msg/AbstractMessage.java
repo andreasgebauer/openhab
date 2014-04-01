@@ -79,7 +79,8 @@ public abstract class AbstractMessage implements Message, Serializable {
     public boolean hasAck() {
 	boolean hasAnswer = this.answer != null;
 	if (hasAnswer && answer instanceof AckStatusMessage) {
-	    return ((AckStatusMessage) answer).getSuccess() != null ? ((AckStatusMessage) answer).getSuccess() : true;
+//	    return ((AckStatusMessage) answer).getSuccess() != null ? ((AckStatusMessage) answer).getSuccess() : true;
+	    return true;
 	}
 
 	return hasAnswer;

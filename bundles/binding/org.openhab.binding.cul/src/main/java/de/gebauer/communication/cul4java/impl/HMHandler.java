@@ -59,11 +59,12 @@ public class HMHandler extends AbstractCulHandler<HMListener> {
 		return;
 	    }
 
+	    event.getSource().messageSent(event);
+	    
 	    // LOG.debug("Parsed event " + event);
 	    if (event.getDestination() != null) {
 		event.getDestination().messageReceived(event);
 	    }
-	    event.getSource().messageSent(event);
 
 	    for (HMListener listener : this.listeners) {
 		listener.receivedMessage(event);

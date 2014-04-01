@@ -39,14 +39,11 @@ public abstract class AbstractDevice implements Serializable, Channelable {
 
     private transient LinkedList<Message> messagesReceived = new LimitedQueue<Message>(255);
     private transient LinkedList<Message> messagesSent = new LimitedQueue<Message>(255);
-    private transient Queue<Message> messageStack = new ArrayDeque<Message>();
     private transient Queue<Command> commandStack = new ArrayDeque<Command>();
 
     private final Map<Short, Map<String, Holder>> map = new HashMap<Short, Map<String, Holder>>();
 
     private final ResponseWait responseWait;
-
-    private Object peerList;
 
     protected Map<Short, Channelable> channels = new HashMap<Short, Channelable>();
 
@@ -86,7 +83,7 @@ public abstract class AbstractDevice implements Serializable, Channelable {
     }
 
     /**
-     * Retrieves the message sent with the specified count.
+     * Retrieves the last message sent with the specified message count.
      * 
      * @param count
      * @return
@@ -150,7 +147,6 @@ public abstract class AbstractDevice implements Serializable, Channelable {
     public void restore() {
 	this.messagesReceived = new LimitedQueue<Message>(255);
 	this.messagesSent = new LimitedQueue<Message>(255);
-	this.messageStack = new ArrayDeque<Message>();
     }
 
     public Cycle getCycle() {
@@ -167,12 +163,6 @@ public abstract class AbstractDevice implements Serializable, Channelable {
 
     public ResponseWait getResponseWait() {
 	return this.responseWait;
-    }
-
-    @Override
-    public void setPeerList(final Object object) {
-	LOG.debug("setPeerList {}" + object);
-	this.peerList = object;
     }
 
     @Override

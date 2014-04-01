@@ -28,8 +28,6 @@ public class DeviceFactory {
 	
 	return new AbstractDevice(name, src, deviceInfo) {
 
-	    private Object object;
-
 	    @Override
 	    public Method[] getCommands() {
 		return null;
@@ -38,11 +36,6 @@ public class DeviceFactory {
 	    @Override
 	    public DeviceMessageInterpreter getInterpreter() {
 		return null;
-	    }
-
-	    @Override
-	    public void setPeerList(Object object) {
-		this.object = object;
 	    }
 
 	    @Override

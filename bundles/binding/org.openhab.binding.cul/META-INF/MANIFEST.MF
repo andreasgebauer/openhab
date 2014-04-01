@@ -28,13 +28,21 @@ Import-Package: gnu.io,
  org.quartz.impl,
  org.quartz.utils,
  org.slf4j
-Export-Package: de.gebauer.communication.cul4java,
- de.gebauer.communication.cul4java.impl,
- de.gebauer.cul.homematic.in,
- de.gebauer.homematic,
- de.tobiaswegner.communication.cul4java
+Export-Package: de.gebauer.communication.cul4java;uses:="de.gebauer.homematic.msg,de.tobiaswegner.communication.cul4java",
+ de.gebauer.communication.cul4java.impl;
+  uses:="de.gebauer.homematic.device,
+   de.tobiaswegner.communication.cul4java.impl,
+   de.gebauer.cul.homematic.out,
+   de.tobiaswegner.communication.cul4java",
+ de.gebauer.cul.homematic.in;uses:="de.gebauer.homematic.device,de.gebauer.homematic.msg",
+ de.gebauer.homematic;
+  uses:="de.gebauer.homematic.device,
+   org.quartz,
+   de.gebauer.cul.homematic.out,
+   de.gebauer.cul.homematic.in,
+   de.gebauer.homematic.command"
 Bundle-DocURL: http://www.openhab.org
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Service-Component: OSGI-INF/binding.xml, OSGI-INF/genericbindingprovider.xml
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy

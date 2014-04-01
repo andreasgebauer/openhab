@@ -686,7 +686,11 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
      */
     @Override
     public void receivedMessage(final Message message) {
-	logger.debug(MessageFormat.format("Received {0} for {1}", message, message.getDestination()));
+	if (message.isBroadCast()) {
+	    logger.debug(MessageFormat.format("Received {0} broadcast", message));
+	} else {
+	    logger.debug(MessageFormat.format("Received {0} for {1}", message, message.getDestination()));
+	}
 
 	final VirtualCCU ccu = this.homeMaticHandler.getCCU();
 	if (message instanceof DeviceInfoEvent) {
@@ -742,6 +746,11 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 
 	final AbstractDevice source = message.getSource();
 	if (ccu.equals(message.getDestination())) {
+	    if (message.needsAck()) {
+		final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
+		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusMessage(build, ccu, message.getSource(), message.getChannel(), null)));
+	    }
+
 	    final Message request = message.getDestination().getEventSend(message.getCount());
 	    // if we have sent a request the we add the response as answer
 	    // TODO consider time passed by since we sent the message
@@ -822,9 +831,5 @@ public class CULBinding extends AbstractActiveBinding<CULBindingProvider>
 	    // event.getSender().addToSendQueue(new AckStatusMessage(ccu, event.getSender(), (short) 2));
 	}
 
-	if (ccu.equals(message.getDestination()) && message.needsAck()) {
-	    final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
-	    message.getSource().addToSendQueue(new SimpleCommand(new AckStatusMessage(build, ccu, message.getSource(), message.getChannel(), null)));
-	}
     }
 }
