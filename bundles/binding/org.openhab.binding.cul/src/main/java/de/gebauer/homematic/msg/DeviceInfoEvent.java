@@ -21,6 +21,7 @@ public class DeviceInfoEvent extends AbstractEvent {
 	this.needsAck = true;
     }
 
+    @Override
     public MessageType getType() {
 	return MessageType.UNKNOWN;
     }
@@ -43,6 +44,6 @@ public class DeviceInfoEvent extends AbstractEvent {
 
     @Override
     public String toString() {
-	return "DeviceInfoEvent [msg=" + msg + ", deviceInfo=" + this.deviceInfo + ", cmd=" + this.cmd + "]";
+	return "DeviceInfo [msg=" + getRawMessage() + ", deviceInfo=" + this.deviceInfo + ", cmd=" + this.cmd + "]";
     }
 }

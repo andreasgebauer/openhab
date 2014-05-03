@@ -65,7 +65,7 @@ public class ParamResponseMessage extends AbstractMessage implements Message {
 
     @Override
     public String toString() {
-	return "ParamResponseMessage [msg=" + msg + ", format=" + format + ", data=" + data + "]";
+	return "ParamResponseMessage [msg=" + getRawMessage() + ", format=" + format + ", data=" + data + "]";
     }
 
 }

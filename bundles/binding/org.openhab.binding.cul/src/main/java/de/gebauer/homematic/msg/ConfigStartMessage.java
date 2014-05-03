@@ -1,8 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
-
 /**
  * MessageType.CONFIG
  * 
@@ -25,7 +22,7 @@ public class ConfigStartMessage extends AbstractConfigMessage {
     @Override
     public String toString() {
 	return "ConfigStartCommand [paramList=" + paramList + ", peerAddress=" + peerAddress + ", peerChannel=" + peerChannel
-		+ ", msg=" + msg + ", channel=" + channel + "]";
+		+ ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }
 
 }

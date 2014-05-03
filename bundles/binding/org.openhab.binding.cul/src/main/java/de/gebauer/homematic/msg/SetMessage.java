@@ -23,7 +23,7 @@ public class SetMessage extends AbstractMessage {
 
     @Override
     public String getPayload() {
-	return String.format("%02X%02X%02X", 0x02, channel, value);
+	return String.format("%02X%02X%02X", 0x02, getChannel(), value);
     }
 
     @Override
@@ -32,13 +32,13 @@ public class SetMessage extends AbstractMessage {
     }
 
     @Override
-    public String toString() {
-	return "SetMessage [chnl=" + channel + ", value=" + value + ", msg=" + msg + "]";
+    public boolean needsAck() {
+	return true;
     }
 
     @Override
-    public boolean needsAck() {
-	return true;
+    public String toString() {
+	return "SetMessage [chnl=" + getChannel() + ", value=" + value + ", msg=" + getRawMessage() + "]";
     }
 
 }

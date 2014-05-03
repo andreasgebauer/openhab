@@ -72,7 +72,14 @@ public class MilightBindingConfig extends HashMap<String, String> implements Bin
 	 * The binding type of the Mi-Light item.
 	 */
 	private final BindingType commandType;
-	
+	/**
+	 * The number of dimming steps for RGBW item.
+	 */
+	private final int steps;
+	/**
+	 * The number of dimming steps for RGBW item.
+	 */
+	private final int steps;
 	/**
 	 * The number of dimming steps for RGBW item.
 	 */

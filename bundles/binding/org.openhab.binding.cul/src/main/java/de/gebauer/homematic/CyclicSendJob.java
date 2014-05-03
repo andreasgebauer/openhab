@@ -1,11 +1,11 @@
 package de.gebauer.homematic;
 
-import org.openhab.binding.cul.internal.CULBinding;
+import org.openhab.binding.cul.internal.HomematicCULBinding;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.LoggerFactory;
 
-import de.gebauer.communication.cul4java.impl.HMHandler;
 import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
@@ -18,19 +18,21 @@ public final class CyclicSendJob implements Job {
     public void execute(final JobExecutionContext ctxt) throws JobExecutionException {
 
 	try {
-	    final HMHandler hmHandler = CULBinding.INSTANCE.homeMaticHandler;
-	    VirtualCCU ccu = hmHandler.getCCU();
+	    VirtualCCU ccu = HomematicCULBinding.INSTANCE.ccu;
 
-	    AbstractDevice destination = ccu.getCycle().getNextCycleDevice();
+	    AbstractDevice destination = (AbstractDevice) ctxt.getJobDetail().getJobDataMap().get("destination");
+	    AbstractDevice source = (AbstractDevice) ctxt.getJobDetail().getJobDataMap().get("source");
 	    if (destination != null) {
-		Message cycleMessage = destination.getCycleMessage(ccu);
+		LoggerFactory.getLogger(CyclicSendJob.class).debug("Cyclic send job {} for {} executed.", ctxt.getTrigger().getKey().getName(),
+			destination.getName());
+		Message cycleMessage = destination.getCycleMessage(source);
 		if (cycleMessage != null) {
 		    destination.addToSendQueue(new SimpleCommand(new MessageSenderImpl.WrappedMessage(cycleMessage)));
-		    hmHandler.getMessageSender().processCmdStack(destination);
+		    HomematicCULBinding.INSTANCE.messageSender.processCmdStack(destination);
 		}
 	    }
 
-	    ccu.scheduleCycle();
+	    ccu.scheduleCycle(destination, source);
 
 	} catch (final Exception e) {
 	    throw new JobExecutionException(e);

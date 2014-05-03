@@ -16,7 +16,6 @@ public class StatusChangeEvent extends AbstractEvent implements Message {
 	public String toString() {
 	    return "ChannelStatus [channel=" + channel + ", peerId=" + peerId + ":" + peerChannel + "]";
 	}
-
     }
 
     private DeviceState deviceStateData;
@@ -34,13 +33,12 @@ public class StatusChangeEvent extends AbstractEvent implements Message {
     }
 
     @Override
-    public String toString() {
-	return "StatusChangeEvent [msg=" + msg + "chStatus=" + deviceStateData + "]";
-    }
-
-    @Override
     public boolean needsAck() {
 	return true;
     }
 
+    @Override
+    public String toString() {
+	return "StatusChangeEvent [msg=" + getRawMessage() + "chStatus=" + deviceStateData + "]";
+    }
 }

@@ -1,10 +1,12 @@
 package de.gebauer.homematic.hmcctc;
 
+import static de.gebauer.cul.homematic.in.MessageInterpreter.toBigDecimal;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toFloat;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
 import static de.gebauer.homematic.Utils.*;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +23,7 @@ import de.gebauer.homematic.hmcctc.TemperaturePeriodEvent.TemperaturePeriod;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
 import de.gebauer.homematic.hmccvd.ValveData;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
-import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.CommandMessage;
 import de.gebauer.homematic.msg.Config2Message;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
@@ -195,9 +197,9 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
     // 14 A9 A4 10 1EA808 13C86D 04032190C50105050C0000
     // [1EA808->13C86D #A9; len=14, flag=null, type=SWITCH, p=04032190C50105050C0000]
 
-    // DEC Sun 13:00
+    // DECALC Sun 13:00
     // [1EA808->13C86D #E2; len=16, flag=null, type=SWITCH, p=0402000000000501 22 08 68 00 00]
-    // DEC Sat 14:00
+    // DECALC Sat 14:00
     // [1EA808->13C86D #D5; len=16, flag=null, type=SWITCH, p=0402000000000501 02 08 70 00 00]
 
     // FHEM commands
@@ -309,6 +311,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	    // 09 F6 A0 3F 1EA808 13C86E
 	    // 09 E6 A0 3F 1EA808 13C86C
 	    // [1EA808->13C86E #F6; len=09, flag=VAL_A0, type=null, p=]
+	    LOG.warn("Empty message: " + msg);
 	    return null;
 	}
 
@@ -322,19 +325,21 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 
 	case THSENSOR:
 	    // no channel
-	    // 0C .. 86 70 ....... ...... .... ..
-	    // len cnt ty fl src dest temp humi
-	    float temp = toFloat(msg.getPayload(), 0, 4, 0.1f);
+	    // 0C .. 86 70 ....... ...... .... .. ..
+	    // len cnt ty fl src dest temp humi rssi
+	    BigDecimal temp = toBigDecimal(msg.getPayload(), 0, 4, 1f).divide(BigDecimal.TEN);
 	    int hum = toInt(msg.getPayload(), 4, 2);
-	    return new WeatherEvent(msg, src, dst, temp, hum);
+	    // TODO is this really RSSI?
+	    int rssi = toInt(msg.getPayload(), 6, 2);
+	    return new WeatherEvent(msg, src, dst, temp, hum, rssi);
 
 	case THERMOSTAT:
 	    // flag: A1
 	    // payload: 00 00
 
 	    int vp = (int) (toFloat(msg.getPayload(), 2, 2, 100f) / 256f);
-	    LOG.trace("Valve Position " + toFloat(msg.getPayload(), 2, 2, 1f) + " translated to " + vp);
-	    return new ClimateMessage(msg, src, dst, vp);
+	    rssi = toInt(msg.getPayload(), 4, 2);
+	    return new ClimateMessage(msg, src, dst, vp, rssi);
 
 	case SWITCH:
 
@@ -345,12 +350,13 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		Matcher matcher;
 		if ((matcher = matcherFor(msg, "^0403(......)(..)0505(..)0000$")).matches()) {
 		    // set WOT (window open temperature)
-		    // 0403 2190C5 01 0505 0C 0000 6°C
+		    // 0403 2190C5 01 0505 0C 0000 -> 6°C
 		    String tDev = matcher.group(1);
 		    String dontknow = matcher.group(2);
-		    temp = MessageInterpreter.toFloat(matcher.group(3), 0, 2, 1.0f);
+		    temp = MessageInterpreter.toBigDecimal(matcher.group(3), 0, 2, 1.0f).divide(new BigDecimal(2));
 
 		    LOG.warn("'^0403(......)(..)0505(..)0000$' Not yet supported");
+		    return new WindowOpenTemperatureSetMessage(new AbstractMessageParameter(msg, src, dst, channel), tDev, temp);
 		}
 
 		// 1A 0C A4 10 1EA808 13C86C 04020000000005 0B3C0C1E0D900E280000
@@ -448,11 +454,11 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 			DisplayMode dm = (v1 & 0x01) == 1 ? DisplayMode.TEMPERATURE_AND_HUMDITY : DisplayMode.TEMPERATURE;
 			DisplayTemp dt = (v1 & 0x02 >> 1) == 1 ? DisplayTemp.SETPOINT : DisplayTemp.ACTUAL;
 			TemperatureUnit tempUnit = (v1 & 0x04 >> 2) == 1 ? TemperatureUnit.FAHRENHEIT : TemperatureUnit.CELSIUS;
-			// 0X00 00000000 is Manual
-			// 0x08 00001000 is Auto
-			// 0X10 00010000 is Central
-			// 0x18 00011000 is Party
-			ControlMode ctrlMode = ControlMode.valueOf(v1 & 0x08 >> 3);
+			// 0X00 00000000 is Manual 0
+			// 0x08 00001000 is Auto 1
+			// 0X10 00010000 is Central 2
+			// 0x18 00011000 is Party 3
+			ControlMode ctrlMode = ControlMode.valueOf(v1 >> 3);
 			// starts with sunday?
 			// bit mask: 11100000
 			WeekDay weekDay = WeekDay.of((v1 & 0xE0) >> 5);
@@ -468,7 +474,6 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 
 		} else if ((matcher = matcherFor(msg, "^0402000000000501(..)08(..)0000$")).matches()) {
 		    // decalc message
-		    LOG.warn("Unhandled {}" + msg);
 		}
 
 	    } else if (subType == 6) {
@@ -477,7 +482,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		// strip sType and chnl
 		String data = msg.getPayload().substring(4);
 
-		double desiredTemp = (double) toShort(data, 0, 2) / 2.0;
+		BigDecimal desiredTemp = toBigDecimal(data, 0, 2, 1).divide(BigDecimal.valueOf(2));
 		LOG.info("Desired Temp: " + desiredTemp);
 		// 0.0 is OFF
 
@@ -511,7 +516,6 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		AbstractMessageParameter msgParam = new AbstractMessageParameter(msg, src, dst, channel);
 		if (channel == 0x02) {
 
-
 		    // send when tc wants to disconnect from vd
 		    // 22:05:30.849 [1EA808->1C4E7F #19; len=10, flag=VAL_A0, type=CONFIG, p=01021EA8080200]
 		    // 22:05:30.972 [1C4E7F->1EA808 #19; len=0A, flag=VAL_80, type=ACK, p=00]
@@ -538,11 +542,12 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		vdValveData.setErrorPosition(vep);
 		vdValveData.setOffset(offset);
 
-		return new AckStatusMessage(msg, src, dst, (short) 8, vdValveData);
+		return new AckStatusEvent(msg, src, dst, (short) 8, vdValveData);
 	    }
 
 	}
 
+	LOG.warn("Unhandled {}" + msg);
 	// TODO interpret ACK
 	return null;
     }

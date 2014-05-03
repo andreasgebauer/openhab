@@ -28,12 +28,12 @@
  (EPL), the licensors of this Program grant you additional permission
  to convey the resulting work. -->
 
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.openhab.binding.cul.genericbindingprovider">
-   <implementation class="org.openhab.binding.cul.internal.CULGenericBindingProvider"/>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.openhab.binding.cul.homematicgenericbindingprovider">
+   <implementation class="org.openhab.binding.cul.internal.HomematicGenericBindingProvider"/>
    
    <service>
       <provide interface="org.openhab.model.item.binding.BindingConfigReader"/>
-      <provide interface="org.openhab.binding.cul.CULBindingProvider"/>
+      <provide interface="org.openhab.binding.cul.HomematicCULBindingProvider"/>
       <!--<provide interface="org.openhab.binding.homematic.HomematicBindingProvider"/>-->
    </service>
    

@@ -28,7 +28,7 @@ public class MessageInterpreterTest {
 
 	DeviceStore deviceStore = new DeviceStore();
 	AbstractDevice vd = new ValveDevice("1C4E7F", "1C4E7F", new DeviceInfo("10", Model.HMCCVD, "1C4E7F"));
-	AbstractDevice tc = new ThermoControlDevice("1C4E7F", "1C4E7F", new DeviceInfo("10", Model.HMCCVD, "1C4E7F"));
+	AbstractDevice tc = new ThermoControlDevice("1EA808", "1EA808", new DeviceInfo("10", Model.HMCCVD, "1EA808"));
 
 	AbstractMessageParameter msgParam = new AbstractMessageParameter(null, tc, vd, channel);
 	ConfigRegisterReadMessage regReadCmd = new ConfigRegisterReadMessage(msgParam, peerAddress, peerChannel, paramList);
@@ -36,6 +36,7 @@ public class MessageInterpreterTest {
 	tc.messageSent(regReadCmd);
 
 	deviceStore.add("1C4E7F", vd);
+	deviceStore.add("1EA808", tc);
 	Message msg = new MessageInterpreter(deviceStore).parse("A107980101C4E7F1EA8080209000A040000");
 
 	assertNotNull(msg);
@@ -43,4 +44,5 @@ public class MessageInterpreterTest {
 	ParamResponseMessage paramRspMsg = (ParamResponseMessage) msg;
 	assertEquals(" 09:00 0A:04 00:00", paramRspMsg.getData());
     }
+    
 }

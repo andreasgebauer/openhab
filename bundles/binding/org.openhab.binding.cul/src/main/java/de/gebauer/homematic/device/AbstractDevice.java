@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -54,6 +55,12 @@ public abstract class AbstractDevice implements Serializable, Channelable {
 	this.id = id;
 	this.info = info;
 	this.responseWait = new ResponseWait();
+	if (info.mdl != Model.CCU) {
+	    try {
+		this.cycle = new HMCycle(Calendar.getInstance(), this);
+	    } catch (Exception e) {
+	    }
+	}
     }
 
     public DeviceInfo getInfo() {
@@ -157,7 +164,14 @@ public abstract class AbstractDevice implements Serializable, Channelable {
 	this.cycle = cycle;
     }
 
-    public Message getCycleMessage(final VirtualCCU virtualCCU) {
+    /**
+     * Get the cycle message to send to this device.
+     * 
+     * @param sender
+     *            as long as we are not imitating another device this usually should be the CCU itself
+     * @return a message to send to this device
+     */
+    public Message getCycleMessage(final AbstractDevice sender) {
 	return null;
     }
 
@@ -205,7 +219,7 @@ public abstract class AbstractDevice implements Serializable, Channelable {
     }
 
     /**
-     * Returns iterator over messages sent in descending order.
+     * Returns iterator over messages sent in descending order (latest first).
      * 
      * @return
      */

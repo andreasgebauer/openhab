@@ -50,7 +50,7 @@ public class TemperaturePeriodEvent extends AbstractEvent implements Message {
     @Override
     public String toString() {
 	return "TemperaturePeriodEvent [day=" + day + "," + getString(tPeriod) + "," + getString(tPeriod2) + ", msg="
-		+ msg + "]";
+		+ getRawMessage() + "]";
     }
 
     private String getString(TemperaturePeriod period) {

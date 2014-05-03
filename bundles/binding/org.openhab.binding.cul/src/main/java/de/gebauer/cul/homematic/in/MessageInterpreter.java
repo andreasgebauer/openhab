@@ -20,7 +20,7 @@ import de.gebauer.homematic.device.DeviceFactory;
 import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.msg.AbstractMessage;
-import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.ConfigPeerListMessage;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.DeviceInfoEvent;
@@ -41,10 +41,6 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 	this.deviceStore = deviceStore;
     }
 
-    public MessageInterpreter() {
-	this(new DeviceStore());
-    }
-
     @Override
     public Message parse(final String readLine) {
 
@@ -58,6 +54,44 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 
     @Override
     public Message read(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
+	try {
+	    debug(msg, src, dst);
+	} catch (Exception e) {
+	}
+	if (MessageType.UNKNOWN == msg.getMsgType()) {
+	    // add unknown device;
+	    src = this.infoUpdtDevData(msg.getSrc(), msg.getPayload());
+	    // 20003A4A45513033313333373258010100
+	    final String peerChA = msg.getPayload().substring(28, 30);
+	    final String peerChB = msg.getPayload().substring(30, 32);
+	    final String cmd = msg.getPayload().substring(32);
+
+	    return new DeviceInfoEvent(msg, src, dst, src.getInfo(), toShort(peerChA), toShort(peerChB), cmd);
+	}
+
+	if (src == null) {
+	    LOG.info("Unknown device " + msg.getSrc());
+	    return null;
+	}
+
+	final DeviceMessageInterpreter interpreter = src.getInterpreter();
+	if (interpreter != null) {
+	    Message intrprMsg = interpreter.read(msg, src, dst);
+	    if (intrprMsg == null) {
+		// return a commonly parsed message
+		intrprMsg = this.parseCommon(msg, src, dst);
+	    }
+
+	    if (intrprMsg != null) {
+		return intrprMsg;
+	    }
+	}
+	LOG.warn("Could not interpret {}", msg);
+
+	return null;
+    }
+
+    private void debug(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
 	long diff = -1;
 	long delta = -1;
 	if (dst != null) {
@@ -91,38 +125,6 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 	}
 
 	MESSAGES.info("{} {} {}", msg.toString(), diff, delta);
-
-	if (MessageType.UNKNOWN == msg.getMsgType()) {
-	    // add unknown device;
-	    src = this.infoUpdtDevData(msg.getSrc(), msg.getPayload());
-	    // 20003A4A45513033313333373258010100
-	    final String peerChA = msg.getPayload().substring(28, 30);
-	    final String peerChB = msg.getPayload().substring(30, 32);
-	    final String cmd = msg.getPayload().substring(32);
-
-	    return new DeviceInfoEvent(msg, src, dst, src.getInfo(), toShort(peerChA), toShort(peerChB), cmd);
-	}
-
-	if (src == null) {
-	    LOG.info("Unknown device " + msg.getSrc());
-	    return null;
-	}
-
-	final DeviceMessageInterpreter interpreter = src.getInterpreter();
-	if (interpreter != null) {
-	    Message intrprMsg = interpreter.read(msg, src, dst);
-	    if (intrprMsg == null) {
-		// return a commonly parsed message
-		intrprMsg = this.parseCommon(msg, src, dst);
-	    }
-
-	    if (intrprMsg != null) {
-		return intrprMsg;
-	    }
-	}
-	LOG.warn("Could not interpret {}", msg);
-
-	return null;
     }
 
     private int getRxType(final AbstractDevice srcDevice) {
@@ -209,7 +211,7 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 
 	    if (msg.getPayload().equals("00")) {
 		// return simple ACK status message
-		return new AckStatusMessage(msg, src, dst, (short) -1);
+		return new AckStatusEvent(msg, src, dst, (short) -1);
 	    }
 
 	    boolean success;
@@ -231,7 +233,7 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 
 		final short rssi = toShort(matcher.group(5));
 
-		return new AckStatusMessage(msg, src, dst, chnl, rssi, success);
+		return new AckStatusEvent(msg, src, dst, chnl, rssi, success);
 	    }
 
 	case SWITCH:
@@ -383,7 +385,7 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
     public static RawMessage getRawMessage(final String readLine) {
 	final RawMessageBuilder rawMessage = new RawMessageBuilder();
 
-	final Pattern compile = Pattern.compile("A(..)(..)(..)(..)(......)(......)(.*)");
+	final Pattern compile = Pattern.compile(".(..)(..)(..)(..)(......)(......)(.*)");
 	final Matcher matcher = compile.matcher(readLine);
 	if (matcher.matches()) {
 	    rawMessage.setLength(matcher.group(1));
@@ -393,6 +395,8 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 	    rawMessage.setSrc(matcher.group(5));
 	    rawMessage.setDst(matcher.group(6));
 	    rawMessage.setPayload(matcher.group(7));
+	} else {
+	    throw new IllegalArgumentException("No HM message format: '" + readLine + "'");
 	}
 	return rawMessage.build();
     }
@@ -400,6 +404,10 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
     public static float toFloat(final String event, final int begin, final int length, final float multiplicator) {
 	final BigDecimal n = new BigDecimal(toInt(event, begin, length)).multiply(new BigDecimal(multiplicator));
 	return (float) n.doubleValue();
+    }
+
+    public static BigDecimal toBigDecimal(final String event, final int begin, final int length, final float multiplicator) {
+	return new BigDecimal(toInt(event, begin, length)).multiply(new BigDecimal(multiplicator));
     }
 
     public static int toInt(final String rawPayLoad, final int begin, final int length) {

@@ -4,8 +4,12 @@ import java.util.Calendar;
 
 public interface Cycle {
 
-    Calendar getNextCycle(int messageCount);
-
-    AbstractDevice getNextCycleDevice();
+    /**
+     * Calculates the next time we want send a message to the peer.
+     * 
+     * 
+     * @return the next time we should send a message to the peer
+     */
+    Calendar getNextCycle();
 
 }

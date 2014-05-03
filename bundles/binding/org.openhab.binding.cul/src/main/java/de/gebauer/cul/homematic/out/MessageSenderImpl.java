@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.openhab.io.transport.cul.CULCommunicationException;
+import org.openhab.io.transport.cul.CULHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,6 @@ import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageFlag;
 import de.gebauer.homematic.msg.MessageType;
-import de.tobiaswegner.communication.cul4java.CULInterface;
 
 /**
  * Sends commands and manages the command stack.
@@ -108,11 +109,6 @@ public class MessageSenderImpl implements MessageSender {
 	}
 
 	@Override
-	public void setRequest(Message request) {
-	    this.wrapped.setRequest(request);
-	}
-
-	@Override
 	public Message getRequest() {
 	    return this.wrapped.getRequest();
 	}
@@ -122,16 +118,21 @@ public class MessageSenderImpl implements MessageSender {
 	    return wrapped.getTimestamp();
 	}
 
+	@Override
+	public int getRSSI() {
+	    return this.wrapped.getRSSI();
+	}
+
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageSenderImpl.class);
     private static final Logger MESSAGES = LoggerFactory.getLogger("MESSAGES");
 
-    private final CULInterface ioDevice;
+    private final CULHandler ioDevice;
 
     private final ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    public MessageSenderImpl(final CULInterface ioDevice) {
+    public MessageSenderImpl(final CULHandler ioDevice) {
 	this.ioDevice = ioDevice;
     }
 
@@ -152,7 +153,7 @@ public class MessageSenderImpl implements MessageSender {
     }
 
     @Override
-    public void send(final WrappedMessage message) throws IOException {
+    public void send(final WrappedMessage message, int retryCount) throws CULCommunicationException {
 
 	// A 0C 2A A4 41 2190C5 13C86C 01 26 C8
 	// A 0B 2A 80 02 13C86C 2190C5 01 00
@@ -177,6 +178,10 @@ public class MessageSenderImpl implements MessageSender {
 	final AbstractDevice src = message.getSource();
 	final AbstractDevice dst = message.getDestination();
 
+	final Message lastEvent = dst.getLastEventReceived();
+
+	final int msgCount = lastEvent != null ? (retryCount == 0 ? lastEvent.getCount() + 1 : lastEvent.getCount()) : 1;
+
 	// fl ty src dst pl
 	final String command = String.format("%02X%02X%s%s%s",
 		messageFlag.val,
@@ -186,25 +191,24 @@ public class MessageSenderImpl implements MessageSender {
 		payload);
 
 	final int length = command.length() / 2 + 1;
-	final Message lastEvent = dst.getLastEventReceived();
 
-	final int msgCount = lastEvent != null ? lastEvent.getCount() + 1 : 1;
+	final String rawCommand = String.format("As%02X%02X%s", length, msgCount, command);
 
-	message.setRawMessage(new RawMessageBuilder()
+	RawMessage rawMessage = new RawMessageBuilder()
 		.setDst(dst.getId())
 		.setLength(String.format("%02X", length))
 		.setMsgCount(String.format("%02X", msgCount))
 		.setMsgFlag(messageFlag)
 		.setMsgType(messageType)
 		.setPayload(payload)
-		.setSrc(src.getId()).build()
-		);
+		.setSrc(src.getId()).build();
 
-	final String rawCommand = String.format("As%02X%02X%s", length, msgCount, command);
+	MESSAGES.info(rawMessage.toString());
 
-	MESSAGES.info(message.getRawMessage().toString());
+	message.setRawMessage(rawMessage);
+
 	LOG.info("Sending " + message);
-	this.ioDevice.sendRAW(rawCommand);
+	this.ioDevice.send(rawCommand);
 	src.messageSent(message);
 	dst.messageReceived(message);
 

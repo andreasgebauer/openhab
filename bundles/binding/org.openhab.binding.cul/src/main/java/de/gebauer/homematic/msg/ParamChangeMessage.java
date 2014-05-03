@@ -43,7 +43,7 @@ public class ParamChangeMessage extends AbstractMessage implements Message {
 
     @Override
     public String toString() {
-	return "ParamChangeMessage [peerId=" + peerId + ", list=" + list + ", data=" + data + ", msg=" + msg + ", channel=" + channel + "]";
+	return "ParamChangeMessage [peerId=" + peerId + ", list=" + list + ", data=" + data + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }
 
 }

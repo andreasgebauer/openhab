@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import de.gebauer.cul.homematic.out.MessageSender;
 import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
 import de.gebauer.homematic.command.Command;
-import de.gebauer.homematic.command.PairingCommand;
 import de.gebauer.homematic.msg.Message;
 
 public class CommunicationHandler extends Thread {
@@ -37,7 +36,7 @@ public class CommunicationHandler extends Thread {
 	    int resendCount = 0;
 	    try {
 		do {
-		    this.sender.send(wrappedMsg);
+		    this.sender.send(wrappedMsg, resendCount);
 		    resendCount++;
 		    try {
 			Thread.sleep(MILLIS_WAIT_FOR_ACK);

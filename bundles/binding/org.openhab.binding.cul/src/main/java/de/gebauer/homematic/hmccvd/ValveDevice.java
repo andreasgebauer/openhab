@@ -1,7 +1,6 @@
 package de.gebauer.homematic.hmccvd;
 
 import java.lang.reflect.Method;
-import java.util.Calendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +10,8 @@ import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.Cycle;
-import de.gebauer.homematic.device.HMCycle;
 import de.gebauer.homematic.device.VirtualCCU;
+import de.gebauer.homematic.msg.AbstractMessage;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageFlag;
 
@@ -66,19 +65,14 @@ public class ValveDevice extends AbstractDevice implements Valve {
 	// 100 = 39 %
 	// 200 = 78 %
 	// 255= 99 %
-	double d = (valvePos) * 255. / 100.;
+	double d = valvePos * 255. / 100.;
 	this.desiredValvePos = (short) Math.round(d);
 	LOG.debug("Setting desired valve position for {} to {} ({})", src, valvePos, this.desiredValvePos);
 	return false;
     }
 
     @Override
-    public Cycle getCycle() {
-	return super.getCycle();
-    }
-
-    @Override
-    public Message getCycleMessage(VirtualCCU ccu) {
-	return new ClimateMessage(new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A2).build(), ccu, this, this.desiredValvePos);
+    public Message getCycleMessage(AbstractDevice source) {
+	return new ClimateMessage(new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A2).build(), source, this, this.desiredValvePos);
     }
 }

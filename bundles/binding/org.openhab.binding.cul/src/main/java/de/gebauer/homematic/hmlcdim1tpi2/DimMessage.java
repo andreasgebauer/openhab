@@ -116,16 +116,17 @@ public class DimMessage extends AbstractMessage {
 
     @Override
     public RawMessage getRawMessage() {
-	if (this.msg == null) {
+	if (super.getRawMessage() == null) {
 	    if (this.onOffState != null) {
-		this.msg = getMessage(this.onOffState);
+		this.setRawMessage(getMessage(this.onOffState));
 	    } else {
-		this.msg = getMessage(this.dimFactor);
+		this.setRawMessage(getMessage(this.dimFactor));
 	    }
 	}
-	return this.msg;
+	return super.getRawMessage();
     }
 
+    @Override
     public String getPayload() {
 	return this.getRawMessage().getPayload();
     }
@@ -137,7 +138,7 @@ public class DimMessage extends AbstractMessage {
 
     @Override
     public String toString() {
-	return "DimCommand [onOffState=" + onOffState + ", dimFactor=" + dimFactor + ", channel=" + channel + ", getRawMessage()=" + getRawMessage() + "]";
+	return "DimCommand [onOffState=" + onOffState + ", dimFactor=" + dimFactor + ", channel=" + getChannel() + ", getRawMessage()=" + getRawMessage() + "]";
     }
 
 }

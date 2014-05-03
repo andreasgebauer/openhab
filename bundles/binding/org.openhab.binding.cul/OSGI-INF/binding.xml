@@ -29,7 +29,7 @@
  to convey the resulting work. -->
 
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="org.openhab.binding.cul.binding">
-	<implementation class="org.openhab.binding.cul.internal.CULBinding" />
+	<implementation class="org.openhab.binding.cul.internal.HomematicCULBinding" />
 
 	<service>
 		<provide interface="org.osgi.service.event.EventHandler" />
@@ -43,8 +43,7 @@
 		interface="org.openhab.core.events.EventPublisher" name="EventPublisher"
 		policy="dynamic" unbind="unsetEventPublisher" />
 	<reference bind="addBindingProvider" cardinality="1..n"
-		interface="org.openhab.binding.cul.CULBindingProvider" name="CULBindingProvider"
+		interface="org.openhab.binding.cul.HomematicCULBindingProvider" name="HomematicCULBindingProvider"
 		policy="dynamic" unbind="removeBindingProvider" />
- <!--<reference bind="bindCUL" cardinality="1..1" interface="de.tobiaswegner.communication.cul4java.CULInterface" name="CULInterface" policy="dynamic" unbind="unbindCUL"/>-->
 	
 </scr:component>

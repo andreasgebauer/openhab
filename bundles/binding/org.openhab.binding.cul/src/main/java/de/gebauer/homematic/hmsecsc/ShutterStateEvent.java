@@ -29,13 +29,13 @@ public class ShutterStateEvent extends AbstractEvent {
     }
 
     @Override
-    public String toString() {
-	return "WindowStateEvent [#" + msgCount + " closed=" + closed + "; msg=" + msg + "]";
+    public boolean needsAck() {
+	return true;
     }
 
     @Override
-    public boolean needsAck() {
-	return true;
+    public String toString() {
+	return "WindowStateEvent [#" + msgCount + " closed=" + closed + "; msg=" + getRawMessage() + "]";
     }
 
 }

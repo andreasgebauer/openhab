@@ -1,8 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
-
 /**
  * Abstract class for config commands having peer adress, peer channel and parameter list.<br>
  * 
@@ -38,7 +35,7 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
 
     @Override
     public String getPayload() {
-	return String.format("%02X%02X%s%02X%02X", this.channel, this.getSubType(), this.peerAddress, this.peerChannel, this.paramList);
+	return String.format("%02X%02X%s%02X%02X", this.getChannel(), this.getSubType(), this.peerAddress, this.peerChannel, this.paramList);
     }
 
     @Override
@@ -68,7 +65,7 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
     @Override
     public String toString() {
 	return this.getClass().getSimpleName() + " [paramList=" + paramList + ", peerAddress=" + peerAddress + ", peerChannel=" + peerChannel + ", subType="
-		+ getSubType() + ", msg=" + msg + ", channel=" + channel + "]";
+		+ getSubType() + ", msg=" + this.getRawMessage() + ", channel=" + this.getChannel() + "]";
     }
 
 }

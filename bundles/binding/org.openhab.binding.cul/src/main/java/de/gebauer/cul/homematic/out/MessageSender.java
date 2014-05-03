@@ -2,14 +2,15 @@ package de.gebauer.cul.homematic.out;
 
 import java.io.IOException;
 
+import org.openhab.io.transport.cul.CULCommunicationException;
+
 import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.msg.Message;
 
 public interface MessageSender {
 
     /**
-     * Process the command stack for the device given.
+     * Process the command stack of the device given.
      * 
      * @param srcDevice
      *            the device to process the command stack for
@@ -18,7 +19,7 @@ public interface MessageSender {
      */
     void processCmdStack(AbstractDevice srcDevice) throws IOException;
 
-    void send(WrappedMessage event) throws IOException;
+    void send(WrappedMessage event, int retryCount) throws CULCommunicationException;
 
     void tearDown();
 

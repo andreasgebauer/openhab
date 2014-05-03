@@ -1,5 +1,6 @@
 package de.gebauer.homematic.hmccvd;
 
+import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
 
 import java.util.regex.Matcher;
@@ -10,13 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.Utils;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.hmccvd.ValveData.MotorError;
-import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
-import de.gebauer.homematic.msg.ParamResponseMessage;
 
 public class HMCCVDInterpreter implements DeviceMessageInterpreter {
 
@@ -118,23 +117,90 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
     // ?
     // 0D 00 A4 10 1C475A 13C86D 06000000
 
+    // first messages:
+    // 22:42:59.980 [206185->000000 #02; len=1A, flag=VAL_84, type=UNKNOWN, p=2100394B4551303033393635315800FFFF2E] 14153 -28803
+    // 22:43:00.105 [1C475A->000000 #CA; len=1A, flag=VAL_84, type=UNKNOWN, p=20003A4A455130333133333732580101002E] 9885 -37341
+    // 22:43:02.555 [206185->000000 #03; len=10, flag=VAL_A0, type=CONFIG, p=010400000000052D] 2575 -11579
+    // 22:43:25.190 [206185->000000 #02; len=1A, flag=VAL_84, type=UNKNOWN, p=2100394B4551303033393635315800FFFF23] 25209 11055
+    // 22:43:29.539 [1C475A->000000 #CB; len=1A, flag=VAL_84, type=UNKNOWN, p=20003A4A4551303331333337325801010035] 29434 19549
+    // 22:43:29.671 [206185->1C475A #03; len=1A, flag=VAL_A0, type=UNKNOWN, p=2100394B4551303033393635315800020023] -1 -1
+    // 22:43:29.783 [1C475A->206185 #03; len=0A, flag=VAL_80, type=ACK, p=0035] -1 -1
+    // 22:43:29.977 [206185->1C475A #04; len=10, flag=VAL_A0, type=CONFIG, p=0104000000000524] 0 -1
+    // 22:43:30.103 [1C475A->206185 #04; len=10, flag=VAL_80, type=SWITCH, p=0209000A0F000035] -1 -1
+    // 22:45:32.658 [206185->000000 #02; len=0C, flag=VAL_86, type=THSENSOR, p=00CD3B09] 127467 102257
+    // 22:45:52.657 [206185->1C475A #02; len=0B, flag=VAL_A2, type=THERMOSTAT, p=00000C] 142 -1
+    // 22:45:52.788 [1C475A->206185 #02; len=0E, flag=VAL_82, type=ACK, p=01011E002B19] -1 -1
+    // 22:48:10.662 [206185->000000 #03; len=0C, flag=VAL_86, type=THSENSOR, p=00D62F14] 158004 30536
+    // 22:48:30.661 [206185->1C475A #03; len=0B, flag=VAL_A2, type=THERMOSTAT, p=000008] 158 -1
+    // 22:48:30.793 [1C475A->206185 #03; len=0E, flag=VAL_82, type=ACK, p=010100002B12] 158 -1
+
+    // 22:43:30.108 [1C475A->206185 #04; len=10, flag=VAL_80, type=SWITCH, p=0209000A0F000035]
+    // 22:45:52.658 (Bedroom_Temperature->Bedroom_Heating #02) [command=0, valvePos=0]
+    // ..:02:22:500 142550 143500
+    // 22:48:30.662 (Bedroom_Temperature->Bedroom_Heating #03) [command=0, valvePos=0]
+    // ..:02:38.004 158000
+
+    // waren schon gepairt (kein reset)
+    // 01:17:34.311 [206185->1C475A #3E; len=0B, flag=VAL_A2, type=THERMOSTAT, p=00000D] 139 -1
+    // 01:17:34.442 [1C475A->206185 #3E; len=0E, flag=VAL_82, type=ACK, p=010100002B1B] 139 -1
+    // 01:18:30.923 [206185->000000 #3F; len=1A, flag=VAL_84, type=UNKNOWN, p=2100394B4551303033393635315800FFFFFC] 76611 -62391
+    // 01:18:35.249 [1C475A->000000 #3F; len=1A, flag=VAL_84, type=UNKNOWN, p=20003A4A4551303331333337325801010016] 9305710 9276276
+    // 01:18:35.379 [206185->1C475A #40; len=1A, flag=VAL_A0, type=UNKNOWN, p=2100394B4551303033393635315800020002] 61 -1
+    // 01:18:35.492 [1C475A->206185 #40; len=0A, flag=VAL_80, type=ACK, p=0016] 61 -1
+    // 01:18:35.663 [206185->1C475A #41; len=10, flag=VAL_A0, type=CONFIG, p=0104000000000502] 0 -1
+    // 01:18:35.789 [1C475A->206185 #41; len=10, flag=VAL_80, type=SWITCH, p=0209000A0F000016] 61 -1
+    // 01:19:18.815 [206185->000000 #3F; len=0C, flag=VAL_86, type=THSENSOR, p=00B92B1A] 47891 -28721
+    // 01:19:38.814 [206185->1C475A #3F; len=0B, flag=VAL_A2, type=THERMOSTAT, p=00001B] 63 -1
+    // 01:19:38.945 [1C475A->206185 #3F; len=0E, flag=VAL_82, type=ACK, p=010100002E19] 124 -1
+    // 01:22:13.072 [206185->000000 #40; len=0C, flag=VAL_86, type=THSENSOR, p=00BA2B1A] 174257 126366
+    // 01:22:33.068 [206185->1C475A #40; len=0B, flag=VAL_A2, type=THERMOSTAT, p=00001B] 174 -1
+    // 01:22:33.201 [1C475A->206185 #40; len=0E, flag=VAL_82, type=ACK, p=010100002E18] 174 -1
+
+    // waren schon gepairt (mit reset)
+    // 01:52:29.868 [206185->1C475A #4C; len=0B, flag=VAL_A2, type=THERMOSTAT, p=00001D] 129 -1
+    // 01:52:29.999 [1C475A->206185 #4C; len=0E, flag=VAL_82, type=ACK, p=010100002D26] 129 -1
+    // 01:55:08.623 [206185->000000 #4D; len=0C, flag=VAL_86, type=THSENSOR, p=00B82A20] 178754 49750
+    // 01:55:28.623 [206185->1C475A #4D; len=0B, flag=VAL_A2, type=THERMOSTAT, p=000020] 178 -1
+    // 01:57:52.878 [206185->000000 #4E; len=0C, flag=VAL_86, type=THSENSOR, p=00B82A1D] 164253 -14502
+    // 01:58:38.261 [206185->000000 #00; len=0D, flag=VAL_84, type=SWITCH, p=0600000002] 45383 -118871
+    // 01:58:54.350 [206185->000000 #02; len=1A, flag=VAL_84, type=UNKNOWN, p=2100394B4551303033393635315800FFFF0B] 16088 -29295
+    // 01:58:59.474 [1C475A->000000 #4E; len=1A, flag=VAL_84, type=UNKNOWN, p=20003A4A4551303331333337325801010021] 2424225 -6881485
+    // 01:58:59.606 [206185->1C475A #03; len=1A, flag=VAL_A0, type=UNKNOWN, p=2100394B455130303339363531580002000B] 210 -1
+    // 01:58:59.718 [1C475A->206185 #03; len=0A, flag=VAL_80, type=ACK, p=0021] 389 -1
+    // 01:58:59.912 [206185->1C475A #04; len=10, flag=VAL_A0, type=CONFIG, p=010400000000050A] 0 -1
+    // 01:59:00.037 [1C475A->206185 #04; len=10, flag=VAL_80, type=SWITCH, p=0209000A0F000021] 390 -1
+
     private static final Logger LOG = LoggerFactory.getLogger(HMCCVDInterpreter.class);
 
     @Override
     public Message read(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
+	int subType = toInt(msg.getPayload(), 0, 2);
 	if (MessageType.ACK == msg.getMsgType()) {
 	    // ACK_STATUS CHANNEL:0x01 STATUS:0x00 UP:0x00 DOWN:0x00 LOWBAT:0x00
 	    // RSSI:0x31) (,WAKEMEUP,RPTEN)
 
-	    Pattern ptrn = Pattern.compile("^(..)(..)(..)(..)(..)$");
+	    // 01 01 00 00 3332
+	    // 01 01 00 00 2B29
+	    // 01 01 00 00 3335
+
+	    Pattern ptrn = Pattern.compile("^(..)(..)(..)(..)(..)(..)*$");
 	    Matcher matcher = ptrn.matcher(msg.getPayload());
 	    if (matcher.matches()) {
 		// sub type is always 01???
-		String sType = matcher.group(1);
 		short chnl = toShort(matcher.group(2));
 		short vp = (short) (toShort(matcher.group(3)) / 2);
 		short err = toShort(matcher.group(4));
-		short rssi = toShort(matcher.group(5));
+
+		short rssi;
+		if (matcher.groupCount() == 5) {
+		    rssi = toShort(matcher.group(5));
+		} else if (matcher.groupCount() == 6) {
+		    LOG.trace("Uninterpreted: " + matcher.group(5));
+		    rssi = toShort(matcher.group(6));
+		} else {
+		    LOG.error("Could not interpret ACK message from Valve Device " + msg);
+		    return null;
+		}
 
 		int cmpVal = 0xFF;
 		cmpVal = (cmpVal ^ err) | err;
@@ -171,7 +237,7 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
 		    valveData.setMotorState(ValveData.MotorState.CLOSING);
 		}
 
-		return new AckStatusMessage(msg, src, dst, chnl, rssi, valveData);
+		return new AckStatusEvent(msg, src, dst, chnl, rssi, valveData);
 	    }
 	} else if (MessageType.SWITCH == msg.getMsgType()) {
 	    // CMD:A010 SRC:13F251 DST:5D24C9 0401 00000000 05 09:00
@@ -192,15 +258,14 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
 		valveData.setOffset(off);
 		valveData.setErrorPosition(vep);
 
-		new AckStatusMessage(msg, src, dst, (short) -1, (short) -1, valveData);
+		new AckStatusEvent(msg, src, dst, (short) -1, (short) -1, valveData);
 	    }
 
-	    // when device is started we got the following message:
+	    // when device is started we get the following message:
 	    // RawMessage [1C475A->13C86C#00; len=0D, flag=A4, type=10, p=06000000]
 
 	    // param response is parsed by MessageInterpreter
 	    // [1C475A->1EA808 #49; len=10, flag=VAL_80, type=SWITCH, p=0209000A0F0000]
-
 
 	}
 	return null;

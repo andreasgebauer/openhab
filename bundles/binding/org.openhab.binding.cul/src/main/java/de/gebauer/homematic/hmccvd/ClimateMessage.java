@@ -2,6 +2,7 @@ package de.gebauer.homematic.hmccvd;
 
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.device.VirtualCCU;
 import de.gebauer.homematic.msg.AbstractMessageWithoutChannel;
 import de.gebauer.homematic.msg.MessageType;
 
@@ -23,8 +24,14 @@ public class ClimateMessage extends AbstractMessageWithoutChannel {
     private final int command;
     private final int valvePos;
 
+    public ClimateMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice receiver, final int valvePosition, int rssi) {
+	super(msg, srcDevice, receiver, rssi);
+	this.command = 0;
+	this.valvePos = valvePosition;
+    }
+
     public ClimateMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice receiver, final int valvePosition) {
-	super(msg, srcDevice, receiver);
+	super(msg, srcDevice, receiver, -1);
 	this.command = 0;
 	this.valvePos = valvePosition;
     }
@@ -49,7 +56,7 @@ public class ClimateMessage extends AbstractMessageWithoutChannel {
 
     @Override
     public String toString() {
-	return "ClimateEvent [command=" + this.command + ", valvePos=" + this.valvePos + ", raw=" + super.msg + "]";
+	return "Climate " + super.sendString() + " [command=" + this.command + ", valvePos=" + this.valvePos + "]";
     }
 
 }

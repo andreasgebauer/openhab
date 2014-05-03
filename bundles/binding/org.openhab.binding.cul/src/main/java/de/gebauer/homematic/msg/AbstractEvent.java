@@ -5,8 +5,12 @@ import de.gebauer.homematic.device.AbstractDevice;
 
 public abstract class AbstractEvent extends AbstractMessage {
 
-    public AbstractEvent(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel) {
-	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, channel));
+    public AbstractEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel) {
+	this(new AbstractMessageParameter(msg, src, dst, channel, -1));
+    }
+
+    public AbstractEvent(AbstractMessageParameter abstractMessageParameter) {
+	super(abstractMessageParameter);
     }
 
     @Override

@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
-import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.ConfigEndMessage;
@@ -35,18 +34,17 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
      */
     @Override
     public boolean controlMode(final AbstractDevice src, final ControlMode ctrlMode) {
+	final short channel = (short) 02;
+
 	final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A1);
 
 	SetControlModeCommand command = new SetControlModeCommand();
-
 	command.add(new HaveDataMessage(msgBuilder.build(), src, this));
 
 	// central 0110 0001 0000
 	// manual 0100 0000 0000
 	// auto 0108 0000 1000
 	// party 0118 0001 1000
-
-	final short channel = (short) 02;
 	msgBuilder.setMsgFlag(MessageFlag.VAL_A0);
 
 	AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), src, this, channel);

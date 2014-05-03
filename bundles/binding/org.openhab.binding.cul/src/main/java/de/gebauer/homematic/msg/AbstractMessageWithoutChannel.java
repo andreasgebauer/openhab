@@ -11,16 +11,17 @@ import de.gebauer.homematic.device.AbstractDevice;
  */
 public abstract class AbstractMessageWithoutChannel extends AbstractMessage {
 
-    public AbstractMessageWithoutChannel(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice) {
-	this(msg, srcDevice, dstDevice, (short) -1);
+    public AbstractMessageWithoutChannel(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, int rssi) {
+	this(msg, srcDevice, dstDevice, (short) -1, rssi);
     }
 
-    public AbstractMessageWithoutChannel(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short chnl) {
-	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, chnl));
+    public AbstractMessageWithoutChannel(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short chnl, int rssi) {
+	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, chnl, rssi));
     }
 
     @Override
     public boolean needsAck() {
 	return true;
     }
+
 }

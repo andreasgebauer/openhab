@@ -10,64 +10,61 @@ public abstract class AbstractMessage implements Message, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    protected RawMessage msg;
-    private final AbstractDevice src;
-    private final AbstractDevice dst;
-    protected Short channel;
     private Message answer;
     private Message request;
     private Calendar timestamp;
 
+    private AbstractMessageParameter parameterObject;
+
     public AbstractMessage(AbstractMessageParameter parameterObject) {
-	this.msg = parameterObject.msg;
-	this.src = parameterObject.src;
-	this.dst = parameterObject.dst;
-	this.channel = parameterObject.channel;
+	this.parameterObject = parameterObject;
 	this.timestamp = Calendar.getInstance();
     }
 
     @Override
     public boolean isBroadCast() {
-	return this.msg.getDst().equals(BROAD_CAST_ADDRESS);
+	return BROAD_CAST_ADDRESS.equals(this.parameterObject.msg.getDst());
     }
 
     @Override
     public int getCount() {
-	return Integer.valueOf(this.msg.getMsgCount(), 16);
+	return Integer.valueOf(this.parameterObject.msg.getMsgCount(), 16);
     }
 
     @Override
     public RawMessage getRawMessage() {
-	return this.msg;
+	return this.parameterObject.msg;
     }
 
     @Override
     public AbstractDevice getSource() {
-	return this.src;
+	return this.parameterObject.src;
     }
 
     @Override
     public AbstractDevice getDestination() {
-	return this.dst;
+	return this.parameterObject.dst;
     }
 
     @Override
     public void setRawMessage(final RawMessage msg) {
-	this.msg = msg;
+	this.parameterObject.msg = msg;
     }
 
     @Override
     public String toString() {
-	return this.getClass().getSimpleName() + " [msg=" + this.msg + "]";
+	return this.getClass().getSimpleName() + " [msg=" + this.parameterObject.msg + "]";
     }
 
     @Override
     public short getChannel() {
-	return this.channel;
+	return this.parameterObject.channel;
     }
 
+    @Override
     public void setResponse(Message answer) {
 	this.answer = answer;
+	((AbstractMessage) answer).request = this;
     }
 
     @Override
@@ -78,8 +75,8 @@ public abstract class AbstractMessage implements Message, Serializable {
     @Override
     public boolean hasAck() {
 	boolean hasAnswer = this.answer != null;
-	if (hasAnswer && answer instanceof AckStatusMessage) {
-//	    return ((AckStatusMessage) answer).getSuccess() != null ? ((AckStatusMessage) answer).getSuccess() : true;
+	if (hasAnswer && answer instanceof AckStatusEvent) {
+	    // return ((AckStatusMessage) answer).getSuccess() != null ? ((AckStatusMessage) answer).getSuccess() : true;
 	    return true;
 	}
 
@@ -87,13 +84,17 @@ public abstract class AbstractMessage implements Message, Serializable {
     }
 
     @Override
-    public void setRequest(Message request) {
-	this.request = request;
-    }
-
-    @Override
     public Calendar getTimestamp() {
 	return this.timestamp;
     }
 
+    @Override
+    public int getRSSI() {
+	return this.parameterObject.rssi;
+    }
+
+    public String sendString() {
+	String dest = isBroadCast() ? "BROADCAST" : this.getDestination().getName();
+	return "(" + this.getSource().getName() + "->" + dest + " #" + String.format("%02X", this.getCount()) + ")";
+    }
 }

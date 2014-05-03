@@ -38,8 +38,8 @@ public class VirtualCCU extends AbstractDevice {
     public VirtualCCU(final String hmId) {
 	super(hmId, hmId, new DeviceInfo("21", Model.CCU, "12345678901234567890"));
 
-	Cycle cycle = new HMCycle(Calendar.getInstance(), this);
-	this.setCycle(cycle);
+	// Cycle cycle = new HMCycle(Calendar.getInstance(), this, 11);
+	// this.setCycle(cycle);
     }
 
     public void setPairingEnabled(final boolean enabled) {
@@ -72,29 +72,24 @@ public class VirtualCCU extends AbstractDevice {
 	this.id = houseCode;
     }
 
-    public void scheduleCycle() {
-	AbstractDevice nextCycleDevice = this.getCycle().getNextCycleDevice();
-	Iterator<Message> eventsSent = this.getEventsSent();
-	int messageCount = 0;
-	while (eventsSent.hasNext()) {
-	    Message next = eventsSent.next();
-	    if (next.getDestination().equals(nextCycleDevice)) {
-		messageCount = next.getCount() + 1;
-	    }
-	}
-	final Calendar nextCycle = this.getCycle().getNextCycle(messageCount);
+    public void scheduleCycle(AbstractDevice cycleDevice, AbstractDevice source) {
+	final Calendar nextCycle = cycleDevice.getCycle().getNextCycle();
 	try {
 	    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
-	    TriggerKey triggerKey = new TriggerKey(this.getName() + " Cycle");
+	    int msgCount = cycleDevice.getLastEventReceived().getCount() + 1;
+	    TriggerKey triggerKey = new TriggerKey(cycleDevice.getName());// + String.format("%02X", msgCount));
 	    JobDetail jobdet = JobBuilder.newJob(CyclicSendJob.class)
 		    .withIdentity(triggerKey.getName())
 		    .build();
+	    jobdet.getJobDataMap().put("destination", cycleDevice);
+	    jobdet.getJobDataMap().put("source", source);
 	    Trigger trigger = newTrigger()
 		    .withIdentity(triggerKey)
 		    .startAt(nextCycle.getTime())
 		    .build();
 
-	    LOG.debug("Scheduling {} in {} at {}", this, (nextCycle.getTimeInMillis() - Calendar.getInstance().getTimeInMillis()) / 1000, nextCycle.getTime());
+	    long mSeconds = nextCycle.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
+	    LOG.debug("Scheduling {} ({}) in {}", triggerKey.getName(), String.format("%02X", msgCount), mSeconds);
 	    if (sched.checkExists(triggerKey)) {
 		sched.rescheduleJob(triggerKey, trigger);
 	    } else {

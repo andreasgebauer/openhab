@@ -38,7 +38,7 @@ public class BasicTCInfoMessage extends AbstractEvent implements Message {
 
     @Override
     public String getPayload() {
-	return String.format("04%02X0000000005%02X%02X", channel);
+	return String.format("04%02X0000000005%02X%02X", getChannel());
     }
 
     @Override
@@ -52,8 +52,8 @@ public class BasicTCInfoMessage extends AbstractEvent implements Message {
 
     @Override
     public String toString() {
-	return "BasicTCInfo [dm=" + dm + ", dt=" + dt + ", tempUnit=" + tempUnit + ", ctrlMode=" + controlMode + ", decalcDay=" + decalcDay + ", msg=" + msg
-		+ ", channel=" + channel + "]";
+	return "BasicTCInfo [dm=" + dm + ", dt=" + dt + ", tempUnit=" + tempUnit + ", ctrlMode=" + controlMode + ", decalcDay=" + decalcDay + ", msg="
+		+ getRawMessage() + ", channel=" + getChannel() + "]";
     }
 
 }

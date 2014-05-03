@@ -5,11 +5,9 @@ import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
 import de.gebauer.homematic.msg.StatusChangeEvent;
-import de.gebauer.homematic.msg.StatusChangeEvent.ChannelStatus;
 
 public class HMSECSCInterpreter implements DeviceMessageInterpreter {
 

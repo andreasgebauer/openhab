@@ -95,6 +95,10 @@ public class MqttService implements ManagedService {
 				conn.setAsync(Boolean.parseBoolean(value));
 			} else if (property.equals("clientId")) {
 				conn.setClientId(value);
+			} else if (property.equals("lwt")) {
+				MqttWillAndTestament will = MqttWillAndTestament.fromString(value);
+				logger.debug("Setting last will: {}", will);
+				conn.setLastWill(will);
 			} else {
 				logger.warn("Unrecognized property: {}", key);
 			}
@@ -105,8 +109,7 @@ public class MqttService implements ManagedService {
 			try {
 				con.start();
 			} catch (Exception e) {
-				logger.error("Error starting broker connection {} : {}",
-						con.getName(), e.getMessage());
+				logger.error("Error starting broker connection", e);
 			}
 		}
 	}
@@ -127,7 +130,7 @@ public class MqttService implements ManagedService {
 		Enumeration<String> e = brokerConnections.keys();
 		while (e.hasMoreElements()) {
 			MqttBrokerConnection conn = brokerConnections.get(e.nextElement());
-			logger.info("Stopping connection {}", conn.getName());
+			logger.info("Stopping broker connection '{}'", conn.getName());
 			conn.close();
 		}
 

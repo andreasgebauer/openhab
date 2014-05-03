@@ -6,7 +6,7 @@ import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.Model;
-import de.gebauer.homematic.msg.AckStatusMessage;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
 
 public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
@@ -176,7 +176,7 @@ public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
 	    short success = toShort(msg.getPayload(), 6, 2);
 	    short rssi = toShort(msg.getPayload(), 8, 2);
 
-	    return new AckStatusMessage(msg, src, dst, channel, rssi, success != 0);
+	    return new AckStatusEvent(msg, src, dst, channel, rssi, success != 0);
 	    // flag: 80
 
 	    // failed: bit 5 nor 6 is set (0)

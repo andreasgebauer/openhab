@@ -5,8 +5,8 @@ Bundle-License: http://www.gnu.org/licenses/gpl.html
 Bundle-Name: openHAB CUL Binding
 Bundle-SymbolicName: org.openhab.binding.cul
 Bundle-Vendor: openHAB.org
-Bundle-Version: 1.4.0.qualifier
-Bundle-Activator: org.openhab.binding.cul.internal.CULBindingActivator
+Bundle-Version: 1.5.0.qualifier
+Bundle-Activator: org.openhab.binding.cul.internal.HomematicCULBindingActivator
 Bundle-ManifestVersion: 2
 Bundle-Description: This is the CULBinding binding of the open Home Aut
  omation Bus (openHAB)
@@ -19,6 +19,7 @@ Import-Package: gnu.io,
  org.openhab.core.library.items,
  org.openhab.core.library.types,
  org.openhab.core.types,
+ org.openhab.io.transport.cul,
  org.openhab.model.item.binding,
  org.osgi.framework,
  org.osgi.service.cm,
@@ -28,14 +29,7 @@ Import-Package: gnu.io,
  org.quartz.impl,
  org.quartz.utils,
  org.slf4j
-Export-Package: de.gebauer.communication.cul4java;uses:="de.gebauer.homematic.msg,de.tobiaswegner.communication.cul4java",
- de.gebauer.communication.cul4java.impl;
-  uses:="de.gebauer.homematic.device,
-   de.tobiaswegner.communication.cul4java.impl,
-   de.gebauer.cul.homematic.out,
-   de.tobiaswegner.communication.cul4java",
- de.gebauer.cul.homematic.in;uses:="de.gebauer.homematic.device,de.gebauer.homematic.msg",
- de.gebauer.homematic;
+Export-Package: de.gebauer.homematic;
   uses:="de.gebauer.homematic.device,
    org.quartz,
    de.gebauer.cul.homematic.out,

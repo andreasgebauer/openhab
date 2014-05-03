@@ -47,8 +47,8 @@ public class DimmerStateChangeEvent extends AbstractEvent implements Message {
 
     @Override
     public String toString() {
-	return "DimmerStateChangeEvent [msg=" + msg + ", state=" + state + ", subType=" + subType + ", chnl="
-		+ channel + "]";
+	return "DimmerStateChangeEvent [msg=" + getRawMessage() + ", state=" + state + ", subType=" + subType + ", chnl="
+		+ getChannel() + "]";
     }
 
 }

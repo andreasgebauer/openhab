@@ -115,6 +115,7 @@ public class FHTBinding extends AbstractActiveBinding<FHTBindingProvider> implem
 	public FHTBinding() {
 	}
 
+	@Override
 	public void activate() {
 		bindCULHandler();
 	}

@@ -53,6 +53,10 @@ public class ValveData implements DeviceState {
 	this.position = vp;
     }
 
+    public short getPosition() {
+	return this.position;
+    }
+
     public void setOffset(short off) {
 	this.offset = off;
     }
@@ -71,7 +75,7 @@ public class ValveData implements DeviceState {
 
     @Override
     public String toString() {
-	return "VDValveData [motor: " + motorError + " " + motorState + " " + position + "% errPos:"
+	return "ValveData [motor: " + motorError + " " + motorState + " " + position + "% errPos:"
 		+ (int) errorPosition + "% off:" + offset + "% bat:" + batteryStatus + "]";
     }
 }

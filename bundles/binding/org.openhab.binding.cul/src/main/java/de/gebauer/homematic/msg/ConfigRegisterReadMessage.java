@@ -1,7 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
 
 /**
  * 0x04<br>

@@ -1,8 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
-
 /**
  * Simple message having two bytes payload.<br>
  * Subtype: 06 <br>
@@ -33,7 +30,7 @@ public class ConfigEndMessage extends AbstractMessage implements Message {
 
     @Override
     public String getPayload() {
-	return String.format("%02X%02X", channel, subType);
+	return String.format("%02X%02X", getChannel(), subType);
     }
 
     @Override
@@ -43,7 +40,7 @@ public class ConfigEndMessage extends AbstractMessage implements Message {
 
     @Override
     public String toString() {
-	return "ConfigEndCommand [subType=" + subType + ", msg=" + msg + ", channel=" + channel + "]";
+	return "ConfigEndCommand [subType=" + subType + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }
 
 }

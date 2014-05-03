@@ -29,14 +29,19 @@ public interface Message {
 
     boolean needsAck();
 
+    /**
+     * Returns whether this message did already receive an answer or not. The answer must be set before calling this method by invoking
+     * {@link #setResponse(Message)}.
+     * 
+     * @return true if answer was received, false otherwise
+     */
     boolean hasAck();
 
     void setResponse(Message answer);
 
-    void setRequest(Message eventSend);
-
     Message getRequest();
-    
+
     Calendar getTimestamp();
 
+    int getRSSI();
 }
