@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.homematic.msg.Message;
 
-public class AbstractCommand implements Command {
+public abstract class AbstractCommand implements Command {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractCommand.class);
 
@@ -33,6 +33,11 @@ public class AbstractCommand implements Command {
     @Override
     public void success() {
 	LOG.warn("Command was successful.");
+    }
+
+    @Override
+    public Integer getCountForce() {
+	return null;
     }
 
 }

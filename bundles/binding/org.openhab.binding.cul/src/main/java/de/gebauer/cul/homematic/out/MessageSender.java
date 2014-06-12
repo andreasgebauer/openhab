@@ -21,6 +21,8 @@ public interface MessageSender {
 
     void send(WrappedMessage event, int retryCount) throws CULCommunicationException;
 
+    void send(WrappedMessage wrappedMsg, int resendCount, Integer countForce) throws CULCommunicationException;
+
     void tearDown();
 
 }

@@ -22,12 +22,13 @@ public final class CyclicSendJob implements Job {
 
 	    AbstractDevice destination = (AbstractDevice) ctxt.getJobDetail().getJobDataMap().get("destination");
 	    AbstractDevice source = (AbstractDevice) ctxt.getJobDetail().getJobDataMap().get("source");
+	    Integer msgCnt = (Integer) ctxt.getJobDetail().getJobDataMap().get("count");
 	    if (destination != null) {
 		LoggerFactory.getLogger(CyclicSendJob.class).debug("Cyclic send job {} for {} executed.", ctxt.getTrigger().getKey().getName(),
 			destination.getName());
 		Message cycleMessage = destination.getCycleMessage(source);
 		if (cycleMessage != null) {
-		    destination.addToSendQueue(new SimpleCommand(new MessageSenderImpl.WrappedMessage(cycleMessage)));
+		    destination.addToSendQueue(new SimpleCommand(new MessageSenderImpl.WrappedMessage(cycleMessage), msgCnt));
 		    HomematicCULBinding.INSTANCE.messageSender.processCmdStack(destination);
 		}
 	    }

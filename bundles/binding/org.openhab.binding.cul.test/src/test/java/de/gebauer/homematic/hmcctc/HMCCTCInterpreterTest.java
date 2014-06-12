@@ -26,7 +26,7 @@ public class HMCCTCInterpreterTest {
     public void testSetModeManual1() throws Exception {
 	AbstractDevice src = null;
 	AbstractDevice dst = null;
-	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA8080402000000000501010000"), src, dst);
+	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA808040200000000050101000022"), src, dst);
 
 	assertNotNull(read);
 	assertTrue(read instanceof BasicTCInfoMessage);
@@ -50,7 +50,7 @@ public class HMCCTCInterpreterTest {
     public void testReadModeAuto() throws Exception {
 	AbstractDevice src = null;
 	AbstractDevice dst = null;
-	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA8080402000000000501090000"), src, dst);
+	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA808040200000000050109000022"), src, dst);
 
 	assertNotNull(read);
 	assertTrue(read instanceof BasicTCInfoMessage);

@@ -315,10 +315,19 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	    return null;
 	}
 
-	int subType = toInt(msg.getPayload(), 0, 2);
-	short channel = -1;
-	if (msg.getPayload().length() >= 4) {
-	    channel = toShort(msg.getPayload(), 2, 2);
+	Matcher matcher = matcherFor(msg, "^(..)(..)(.*)$");
+	if (!matcher.matches()) {
+	    LOG.warn("Unknown message: " + msg);
+	}
+
+	int subType = toInt(matcher.group(1));
+	short channel = toShort(matcher.group(2));
+
+	String data = matcher.group(3);
+
+	int rssi = -1;
+	if ((matcher = matcherFor(data, "^.*(..)$")).matches()) {
+	    rssi = toInt(matcher.group(1));
 	}
 
 	switch (msg.getMsgType()) {
@@ -330,15 +339,13 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	    BigDecimal temp = toBigDecimal(msg.getPayload(), 0, 4, 1f).divide(BigDecimal.TEN);
 	    int hum = toInt(msg.getPayload(), 4, 2);
 	    // TODO is this really RSSI?
-	    int rssi = toInt(msg.getPayload(), 6, 2);
 	    return new WeatherEvent(msg, src, dst, temp, hum, rssi);
 
 	case THERMOSTAT:
 	    // flag: A1
 	    // payload: 00 00
 
-	    int vp = (int) (toFloat(msg.getPayload(), 2, 2, 100f) / 256f);
-	    rssi = toInt(msg.getPayload(), 4, 2);
+	    int vp = (int) (channel * 100. / 256f);
 	    return new ClimateMessage(msg, src, dst, vp, rssi);
 
 	case SWITCH:
@@ -347,8 +354,9 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		// 0403 167DE9 01 05 05 16 0000 windowopen-temp chan 03, dev
 		// 167DE9
 		// on slot 01
-		Matcher matcher;
-		if ((matcher = matcherFor(msg, "^0403(......)(..)0505(..)0000$")).matches()) {
+
+		if (channel == 03 && (matcher = matcherFor(data, "^(......)(..)0505(..)0000(..)*$")).matches()) {
+		    // payload: 04 03 2190C5 01 0505 0C 0000
 		    // set WOT (window open temperature)
 		    // 0403 2190C5 01 0505 0C 0000 -> 6°C
 		    String tDev = matcher.group(1);
@@ -362,7 +370,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		// 1A 0C A4 10 1EA808 13C86C 04020000000005 0B3C0C1E0D900E280000
 		// payload: 04 02 00 00 00 00 05 0B 3C 0C 1E 0D 90 0E 28 00 00
 		// relevant: 5 0B 3C 0C 1E 0D 90 0E 28 00 00
-		if ((matcher = matcherFor(msg, "^0402000000000(.)(..)(..)(..)(..)(..)(..)(..)(..)(.*)$")).matches()) {
+		if (channel == 2 && (matcher = matcherFor(data, "^000000000(.)(..)(..)(..)(..)(..)(..)(..)(..)(.*)$")).matches()) {
 		    int pList = toInt(matcher.group(1));
 		    int o1 = toInt(matcher.group(2));
 		    int v1 = toInt(matcher.group(3));
@@ -444,7 +452,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 			}
 
 		    }
-		} else if ((matcher = matcherFor(msg, "^04020000000005(..)(..)(....)$")).matches()) {
+		} else if ((matcher = matcherFor(data, "^0000000005(..)(..)(....)(..)*$")).matches()) {
 		    // when mode is set on device:
 		    // 0402000000000501090000
 		    int o1 = toInt(matcher.group(1));
@@ -480,7 +488,6 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		// channel 2
 		// 06 02 2C 000000 00
 		// strip sType and chnl
-		String data = msg.getPayload().substring(4);
 
 		BigDecimal desiredTemp = toBigDecimal(data, 0, 2, 1).divide(BigDecimal.valueOf(2));
 		LOG.info("Desired Temp: " + desiredTemp);
@@ -506,18 +513,17 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		LOG.warn("Could not interpret whole message {}", msg.getPayload());
 	    }
 	    return new CommandMessage(msg, src, dst, channel, msg.getPayload());
-
 	case CONFIG:
-	    Matcher matcher = Pattern.compile("^01(..)(......)(..)(..)$").matcher(msg.getPayload());
+	    // 01 04 000000 00 05 23
+	    matcher = Pattern.compile("^01(..)(......)(..)(..)(..)*$").matcher(msg.getPayload());
 	    if (matcher.matches()) {
+		String peerAddr = matcher.group(2);
 		short peerChannel = toShort(matcher.group(3));
 		short list = toShort(matcher.group(4));
-		String peerAddr = matcher.group(2);
-		AbstractMessageParameter msgParam = new AbstractMessageParameter(msg, src, dst, channel);
+		AbstractMessageParameter msgParam = new AbstractMessageParameter(msg, src, dst, channel, rssi);
 		if (channel == 0x02) {
-
 		    // send when tc wants to disconnect from vd
-		    // 22:05:30.849 [1EA808->1C4E7F #19; len=10, flag=VAL_A0, type=CONFIG, p=01021EA8080200]
+		    // 22:05:30.849 [1EA808->1C4E7F #19; len=10, flag=VAL_A0, type=CONFIG, p=01 02 1EA808 02 00]
 		    // 22:05:30.972 [1C4E7F->1EA808 #19; len=0A, flag=VAL_80, type=ACK, p=00]
 		    return new Config2Message(msgParam, peerAddr, peerChannel, list);
 		} else if (channel == 0x04) {
@@ -551,7 +557,6 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	// TODO interpret ACK
 	return null;
     }
-
     // time between climate commands:
     // 1.
     // 111 initial

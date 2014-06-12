@@ -10,4 +10,6 @@ public interface Command {
 
     void success();
 
+    Integer getCountForce();
+
 }

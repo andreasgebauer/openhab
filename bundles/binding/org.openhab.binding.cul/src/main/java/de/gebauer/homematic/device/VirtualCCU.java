@@ -83,6 +83,7 @@ public class VirtualCCU extends AbstractDevice {
 		    .build();
 	    jobdet.getJobDataMap().put("destination", cycleDevice);
 	    jobdet.getJobDataMap().put("source", source);
+	    jobdet.getJobDataMap().put("count", msgCount);
 	    Trigger trigger = newTrigger()
 		    .withIdentity(triggerKey)
 		    .startAt(nextCycle.getTime())

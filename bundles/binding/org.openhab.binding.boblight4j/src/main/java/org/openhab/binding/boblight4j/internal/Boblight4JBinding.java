@@ -29,9 +29,9 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 
     @Override
     protected void execute() {
-	
+
 	// TODO Auto-generated method stub
-	
+
     }
 
     @Override
@@ -44,6 +44,7 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 	return "Boblight4JBinding Refresh Service";
     }
 
+    @Override
     public void addBindingProvider(Boblight4JGenericBindingProvider provider) {
 	super.addBindingProvider(provider);
 	this.provider = provider;
@@ -69,16 +70,15 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 	}
 
 	this.remoteClient = new SocketClientImpl(new LightsHolderImpl());
-	final CommandLineArgs argsBean = new CommandLineArgs() {
-	    @Override
-	    public Server getServer() {
-		return new Server(host);
-	    }
-	};
 	this.remoteClient.setup(new AbstractFlagManager<CommandLineArgs>() {
 	    @Override
 	    protected CommandLineArgs getArgBean() {
-		return argsBean;
+		return new CommandLineArgs() {
+		    @Override
+		    public Server getServer() {
+			return new Server(host);
+		    }
+		};
 	    }
 	});
     }
@@ -91,7 +91,7 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 	    this.setup(this.host);
 	}
 
-	Boblight4JBindingConfig config = this.providers.iterator().next().getConfig(itemName);
+	Boblight4JBindingConfig config = this.provider.getConfig(itemName);
 	if (this.remoteClient == null) {
 	    logger.warn("Could not setup client. Unable to execute command");
 	} else {
@@ -112,8 +112,6 @@ public class Boblight4JBinding extends AbstractActiveBinding<Boblight4JGenericBi
 			}
 		    }
 
-		    // some error happened, probably connection
-		    // broken, so bitch and try again
 		    this.remoteClient.sendRgb(true, null);
 		}
 

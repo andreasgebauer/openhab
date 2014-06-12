@@ -78,4 +78,8 @@ public class ValveData implements DeviceState {
 	return "ValveData [motor: " + motorError + " " + motorState + " " + position + "% errPos:"
 		+ (int) errorPosition + "% off:" + offset + "% bat:" + batteryStatus + "]";
     }
+
+    public BatteryStatus getBatteryStatus() {
+	return this.batteryStatus;
+    }
 }

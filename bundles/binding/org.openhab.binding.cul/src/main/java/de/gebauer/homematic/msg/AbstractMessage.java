@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 
 import de.gebauer.cul.homematic.in.RawMessage;
+import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.device.AbstractDevice;
 
 public abstract class AbstractMessage implements Message, Serializable {
@@ -28,7 +29,10 @@ public abstract class AbstractMessage implements Message, Serializable {
 
     @Override
     public int getCount() {
-	return Integer.valueOf(this.parameterObject.msg.getMsgCount(), 16);
+	if (this.parameterObject.msg.getMsgCount() != null) {
+	    return Integer.valueOf(this.parameterObject.msg.getMsgCount(), 16);
+	}
+	return -1;
     }
 
     @Override
@@ -94,7 +98,7 @@ public abstract class AbstractMessage implements Message, Serializable {
     }
 
     public String sendString() {
-	String dest = isBroadCast() ? "BROADCAST" : this.getDestination().getName();
+	String dest = isBroadCast() ? "BROADCAST" : this.getDestination() != null ? this.getDestination().getName() : this.getRawMessage().getDst();
 	return "(" + this.getSource().getName() + "->" + dest + " #" + String.format("%02X", this.getCount()) + ")";
     }
 }

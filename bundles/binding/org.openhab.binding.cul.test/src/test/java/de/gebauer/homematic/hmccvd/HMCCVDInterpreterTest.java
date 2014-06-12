@@ -18,7 +18,7 @@ public class HMCCVDInterpreterTest {
 
 	AbstractDevice src = null;
 	AbstractDevice dst = null;
-	Message read = interpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA8080209000A040000"), src, dst);
+	Message read = interpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA8080209000A04000022"), src, dst);
 
 	assertNotNull(read);
     }

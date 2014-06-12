@@ -60,8 +60,10 @@ public class XMPPConsole implements ChatManagerListener, MessageListener {
 		logger.debug("Received XMPP message: {} of type {}", msg.getBody(), msg.getType());
 		if (msg.getType() != Message.Type.error) {
 			String cmd = msg.getBody();
-			String[] args = cmd.split(" ");
-			ConsoleInterpreter.handleRequest(args, new ChatConsole(chat));
+			if(cmd != null){
+			    String[] args = cmd.split(" ");
+			    ConsoleInterpreter.handleRequest(args, new ChatConsole(chat));
+			}
 		}
 	}
 	

@@ -154,7 +154,14 @@ public class MessageSenderImpl implements MessageSender {
 
     @Override
     public void send(final WrappedMessage message, int retryCount) throws CULCommunicationException {
+	this.send(message, retryCount, getMessageCount(message, retryCount));
+    }
 
+    public void send(final WrappedMessage message, int retryCount, Integer msgCount) throws CULCommunicationException {
+
+	if (msgCount == null) {
+	    msgCount = getMessageCount(message, retryCount);
+	}
 	// A 0C 2A A4 41 2190C5 13C86C 01 26 C8
 	// A 0B 2A 80 02 13C86C 2190C5 01 00
 
@@ -177,10 +184,6 @@ public class MessageSenderImpl implements MessageSender {
 
 	final AbstractDevice src = message.getSource();
 	final AbstractDevice dst = message.getDestination();
-
-	final Message lastEvent = dst.getLastEventReceived();
-
-	final int msgCount = lastEvent != null ? (retryCount == 0 ? lastEvent.getCount() + 1 : lastEvent.getCount()) : 1;
 
 	// fl ty src dst pl
 	final String command = String.format("%02X%02X%s%s%s",
@@ -213,6 +216,20 @@ public class MessageSenderImpl implements MessageSender {
 	dst.messageReceived(message);
 
 	responseSetup(dst, message.getWrapped());
+    }
+
+    private int getMessageCount(final WrappedMessage message, int retryCount) {
+	final Message lastEventReceived = message.getDestination().getLastEventReceived();
+
+	final int msgCount;
+	if (lastEventReceived != null) {
+	    msgCount = (retryCount == 0 ? lastEventReceived.getCount() + 1 : lastEventReceived.getCount());
+	} else {
+	    msgCount = 1;
+	}
+
+	int count = message.getCount();
+	return msgCount;
     }
 
     private void responseSetup(AbstractDevice dvc, Message cmd)

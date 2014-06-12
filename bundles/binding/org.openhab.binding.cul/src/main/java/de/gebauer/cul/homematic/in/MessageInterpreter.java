@@ -209,7 +209,11 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 	    // respPendRm(srcDev);
 	    // }
 
-	    if (msg.getPayload().equals("00")) {
+	    if (msg.getPayload().substring(0, 2).equals("00")) {
+		if (msg.getPayload().length() == 4) {
+		    int rssi = toInt(msg.getPayload(), 2, 2);
+		    return new AckStatusEvent(msg, src, dst, (short) -1, rssi);
+		}
 		// return simple ACK status message
 		return new AckStatusEvent(msg, src, dst, (short) -1);
 	    }
@@ -276,6 +280,10 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
 		    if (matcher.matches()) {
 			format = matcher.group(1);
 			data = matcher.group(2);
+			int bytes = data.length() / 2;
+			if (bytes % 2 == 1) {
+			    data = data.substring(0, data.length() - 2);
+			}
 		    }
 
 		    if ("02".equals(format)) {

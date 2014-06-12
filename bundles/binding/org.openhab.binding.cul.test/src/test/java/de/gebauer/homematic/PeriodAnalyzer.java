@@ -24,7 +24,7 @@ public class PeriodAnalyzer {
 	CsvPreference preferences = new CsvPreference.Builder('\'', '\t', "\n").build();
 	PeriodAnalyzer periodAnalyzer = new PeriodAnalyzer();
 
-	periodAnalyzer.read(preferences, "/messages.log", "[206185->1C475A");
+	periodAnalyzer.read(preferences, "/messages.log", "[1EA808->000000");
 	// periodAnalyzer.read(preferences, "/openhab.log", "[206185->1C475A");
 	// periodAnalyzer.read(preferences, intList, "/messages-2014-04-28.log");
 	// periodAnalyzer.read(preferences, intList, "/206185_diff.properties");

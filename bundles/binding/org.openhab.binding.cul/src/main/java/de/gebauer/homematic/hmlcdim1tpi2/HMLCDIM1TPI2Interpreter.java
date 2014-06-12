@@ -6,6 +6,7 @@ import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.Model;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
 
@@ -166,16 +167,16 @@ public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
 	    // 200 is on?
 	    // 0 is off
 	    int state = toInt(msg.getPayload(), 4, 2);
+	    int rssi = toInt(msg.getPayload(), 8, 2);
 
-	    return new DimmerStateChangeEvent(msg, src, dst, state, subType, channel);
+	    return new DimmerStateChangeEvent(new AbstractMessageParameter(msg, src, dst, channel, rssi), state, subType);
 
 	case ACK:
 
 	    channel = toShort(msg.getPayload(), 2, 2);
 
 	    short success = toShort(msg.getPayload(), 6, 2);
-	    short rssi = toShort(msg.getPayload(), 8, 2);
-
+	    rssi = toInt(msg.getPayload(), 8, 2);
 	    return new AckStatusEvent(msg, src, dst, channel, rssi, success != 0);
 	    // flag: 80
 

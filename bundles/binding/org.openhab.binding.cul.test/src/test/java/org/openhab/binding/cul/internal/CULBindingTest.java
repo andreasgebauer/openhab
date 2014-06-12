@@ -8,8 +8,10 @@ import org.junit.Test;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
+import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.DeviceStore;
+import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.device.VirtualCCU;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
@@ -24,7 +26,7 @@ public class CULBindingTest {
 	binding = new HomematicCULBinding();
 	binding.activate();
 
-//	binding.getClass().getDeclaredField("messageParser").set(binding, value);;
+	// binding.getClass().getDeclaredField("messageParser").set(binding, value);;
 	DeviceStore dvcStore = new DeviceStore();
 	binding.dvcStore = dvcStore;
     }
@@ -34,7 +36,7 @@ public class CULBindingTest {
 	AbstractDevice ccu = null;
 
 	Short channel = 1;
-	AbstractDevice src = new AbstractDevice("", null, null) {
+	AbstractDevice src = new AbstractDevice("", null, new DeviceInfo(null, Model.HMCCTC, null)) {
 
 	    @Override
 	    public DeviceMessageInterpreter getInterpreter() {
@@ -51,7 +53,7 @@ public class CULBindingTest {
 	src.messageSent(new ConfigRegisterReadMessage(msgParam, null, (short) -1, (short) -1));
 
 	ParamResponseMessage paramResponseMessage = new ParamResponseMessage(msg, src, ccu, null, " 00:00");
-	
+
 	binding.dataReceived("");
 
     }

@@ -31,6 +31,7 @@ package org.openhab.binding.cul.internal;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.cul.HomematicCULBindingProvider;
@@ -55,9 +56,13 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.MessageParser;
+import de.gebauer.cul.homematic.in.RawMessage;
+import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.cul.homematic.out.MessageSender;
 import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.homematic.DeviceInfo;
+import de.gebauer.homematic.Utils;
+import de.gebauer.homematic.command.PairingCommand;
 import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.DeviceFactory;
@@ -65,10 +70,18 @@ import de.gebauer.homematic.device.DeviceStore;
 import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.device.VirtualCCU;
 import de.gebauer.homematic.hmcctc.ControlMode;
+import de.gebauer.homematic.hmcctc.ThermoControl;
 import de.gebauer.homematic.hmcctc.ThermoControlDevice;
 import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
 import de.gebauer.homematic.hmlcdim1tpi2.Dimmer;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
+import de.gebauer.homematic.msg.AckStatusEvent;
+import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
+import de.gebauer.homematic.msg.DeviceInfoEvent;
 import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageFlag;
+import de.gebauer.homematic.msg.MessageType;
+import de.gebauer.homematic.msg.ParamResponseMessage;
 
 /**
  * This class implements a binding to a CUL device in FS20 (slow RF) mode.
@@ -135,7 +148,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     public void activate() {
 	this.dvcStore = new DeviceStore();
 	this.messageParser = new MessageInterpreter(this.dvcStore);
-	this.hmHandler = new HMHandler(ccu, this);
+	this.hmHandler = new HMHandler(this);
 	this.bindCULHandler();
     }
 
@@ -253,11 +266,11 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		destination.addToSendQueue(new SimpleCommand(message));
 	    }
 	    return true;
-	} else if (destination instanceof ThermoControlDevice) {
+	} else if (destination instanceof ThermoControl) {
 	    if (command instanceof DecimalType) {
 		final int intValue = ((DecimalType) command).intValue();
 		final ControlMode valueOf = ControlMode.valueOf(intValue);
-		((ThermoControlDevice) destination).controlMode(this.ccu, valueOf);
+		((ThermoControl) destination).controlMode(this.ccu, valueOf);
 		return false;
 	    }
 	}
@@ -401,29 +414,140 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     @Override
     public void dataReceived(final String data) {
 	try {
-	    final Message event = this.messageParser.parse(data);
+	    final Message message = this.messageParser.parse(data);
 
-	    if (event == null) {
+	    if (message == null) {
 		LOG.debug("Could not interpret " + data);
 		return;
 	    }
 
-	    event.getSource().messageSent(event);
+	    LOG.debug("Received {} {}", message, message.getRSSI());
+
+	    message.getSource().messageSent(message);
 
 	    // LOG.debug("Parsed event " + event);
-	    if (event.getDestination() != null) {
-		event.getDestination().messageReceived(event);
+	    if (message.getDestination() != null) {
+		message.getDestination().messageReceived(message);
 	    }
 
-	    this.hmHandler.receivedMessage(event);
+	    communication(message);
+
+	    this.hmHandler.receivedMessage(message);
 
 	    // just process if the message received is for us or if we received a broadcast
-	    if (event.isBroadCast() || this.ccu.equals(event.getDestination())) {
-		this.messageSender.processCmdStack(event.getSource());
+	    if (message.isBroadCast() || this.ccu.equals(message.getDestination())) {
+		this.messageSender.processCmdStack(message.getSource());
 	    }
 
 	} catch (final IOException e) {
 	    LOG.error("Error while writing to ");
+	}
+    }
+
+    private void communication(final Message message) {
+	if (message instanceof DeviceInfoEvent) {
+	    // pairing
+	    if (!this.ccu.isPairingEnabled()) {
+		LOG.info("Pairing not enabled.");
+		return;
+	    }
+
+	    final RawMessage msg = message.getRawMessage();
+	    if (msg.getSrc().equals(this.ccu.getId())) {
+		// repeater?
+		return;
+	    } else if (msg.getMsgType() == MessageType.UNKNOWN2 && msg.getMsgFlag() == MessageFlag.VAL_00) {
+		// TODO why?
+		return;
+	    }
+	    final AbstractDevice destination = message.getDestination();
+	    if (destination != null && destination.getId() != this.ccu.getId()) {
+		LOG.info("Not our pairing request.");
+		return;
+	    }
+
+	    LOG.info("Initiating Pairing. clearing commands.");
+	    message.getSource().getCommandStack().clear();
+	    
+	    final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A0);
+
+	    // 02010A130BC80C6D
+	    if (message.getSource().getInfo().mdl == Model.HMCCVD) {
+		// ACT as TC
+		final PairingCommand pairingCommand = new PairingCommand();
+		// 21 0039 4B455130303339363531 58 00 02 00
+		String serNo = "4B455130303339363531";
+//		String serNo = "00000000000000000000";
+		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, serNo);
+		final String pAddr = "000000";
+		final short chnl = (short) 01;
+		final short pList = (short) 5;
+		final short pChnl = (short) 0;
+
+		// [1EA808->1C475A #48; len=1A, flag=VAL_A0, type=UNKNOWN, p=21 0039 4A455130373039393232 58 00 02 00]
+		pairingCommand.add(new DeviceInfoEvent(msgBuilder.build(), this.ccu, message.getSource(), info, (short) 0x00, (short) 0x02, "00"));
+
+		// [1EA808->1C475A #49; len=10, flag=VAL_A0, type=CONFIG, p=0104 000000 00 05] ConfigRegisterReadCommand
+		final AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), this.ccu, message.getSource(), chnl);
+		pairingCommand.add(new ConfigRegisterReadMessage(msgParam, pAddr, pChnl, pList));
+		message.getSource().addToSendQueue(pairingCommand);
+	    } else {
+		message.getSource().addToSendQueue(new PairingCommand(this.ccu, message.getSource()));
+	    }
+
+	    this.ccu.setHmPairSerial(message.getSource().getInfo().serNo);
+	}
+
+	final AbstractDevice destination = message.getDestination();
+	final Message request;
+	if (destination != null) {
+	    request = destination.getEventSend(message.getCount());
+	} else {
+	    request = null;
+	}
+
+	if (!message.isBroadCast()) {
+	    // if we have sent a request the we add the response as answer
+	    // TODO consider time passed by since we sent the message
+	    if (request != null && request.getSource().equals(this.ccu)) {
+		// add that as answer no matter if successful or not
+		request.setResponse(message);
+
+		if (message instanceof ParamResponseMessage) {
+		    final ParamResponseMessage paramResponseMessage = (ParamResponseMessage) message;
+		    final ConfigRegisterReadMessage configReadRequest = (ConfigRegisterReadMessage) request;
+		    final Matcher matcher = Utils.matcherFor(paramResponseMessage.getData(), ".* 00:00$");
+		    if (matcher.matches()) {
+			if (configReadRequest.getPeerList() == 0) {
+			    LOG.info("Successfully paired {} with {} ", message.getSource(), message.getDestination());
+			}
+		    }
+		}
+	    }
+	}
+
+	if (this.ccu.equals(message.getDestination())) {
+	    if (message.needsAck()) {
+		final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
+		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusEvent(build, this.ccu, message.getSource(), message.getChannel())));
+	    }
+
+	    if (request != null && request.getSource().equals(this.ccu)) {
+		if (message instanceof AckStatusEvent || message instanceof ParamResponseMessage) {
+		    // if pairing is in progress
+		    if (this.ccu.getHmPairSerial() != null
+			    && this.ccu.getHmPairSerial().equals(message.getSource().getInfo().serNo)
+			    && message.getSource().getCommandStack().isEmpty()) {
+			if (request.hasAck()) {
+			    LOG.info("Successfully paired CCU with " + message.getSource());
+			    this.ccu.pairedWith(message.getSource());
+			    
+			    this.ccu.scheduleCycle(message.getSource(), this.ccu);
+			    this.ccu.setHmPairSerial(null);
+			}
+		    }
+		}
+	    }
 	}
     }
 

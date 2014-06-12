@@ -1,6 +1,5 @@
 package de.gebauer.homematic.msg;
 
-
 /**
  * SubType: 0x02
  * 

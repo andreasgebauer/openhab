@@ -10,8 +10,9 @@ import de.gebauer.homematic.device.HomeMaticDeviceType;
 import de.gebauer.homematic.device.Model;
 
 /**
+ * 28 chars = 14 bytes.<br>
  * vvmmmmsssssssssssssssssssstt <br>
- * version model serial
+ * version (1 byte) model (2 bytes) serial (10 bytes) type (1 byte)
  * 
  * @author andi
  * 
@@ -55,7 +56,13 @@ public class DeviceInfo implements Serializable {
 	}
 	final String serNo = pl.substring(6, 26);
 	// TODO is this the same as the MessageType?
-	final String subTypeStr = pl.substring(26, 28);
+	// 21 00 39 00 00 00 00 00 58 00 02 00 24
+	final String subTypeStr;
+	if (pl.length() >= 28) {
+	    subTypeStr = pl.substring(26, 28);
+	} else {
+	    subTypeStr = pl.substring(16, 18);
+	}
 	final HomeMaticDeviceType subtype = HomeMaticDeviceType.valueOfID(subTypeStr);
 	if (subtype == null) {
 	    LOG.error("No device type defined for " + subTypeStr);

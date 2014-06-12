@@ -25,16 +25,16 @@ public class AckStatusEvent extends AbstractEvent {
     private DeviceState deviceData;
     private Boolean success;
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, short rssi) {
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, int rssi) {
 	this(msg, src, dst, channel);
     }
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, short rssi, DeviceState deviceData) {
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, int rssi, DeviceState deviceData) {
 	super(new AbstractMessageParameter(msg, src, dst, chnl, rssi));
 	this.deviceData = deviceData;
     }
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, short rssi, boolean success) {
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, int rssi, boolean success) {
 	this(msg, src, dst, chnl, rssi, null);
 	this.success = success;
     }

@@ -44,4 +44,5 @@ public interface Message {
     Calendar getTimestamp();
 
     int getRSSI();
+
 }

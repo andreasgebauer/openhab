@@ -49,4 +49,9 @@ public class PairingCommand extends AbstractCommand {
 
     }
 
+    @Override
+    public Integer getCountForce() {
+	return null;
+    }
+
 }

@@ -10,8 +10,20 @@ import de.gebauer.homematic.msg.Message;
  */
 public class SimpleCommand extends AbstractCommand {
 
+    private Integer msgCount;
+
+    public SimpleCommand(Message message, Integer msgCnt) {
+	this(message);
+	msgCount = msgCnt;
+    }
+
     public SimpleCommand(Message message) {
 	this.add(message);
+    }
+
+    @Override
+    public Integer getCountForce() {
+	return msgCount;
     }
 
 }
