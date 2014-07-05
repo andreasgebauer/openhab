@@ -1,0 +1,10 @@
+<b class="iToggle {{widget.value ? '__sel' : ''}}"
+	title="{{widget.item}}" ng-click="changeState(widget.item, 'TOGGLE')">&nbsp;<b
+	style="{{widget.value ? 'right' : 'left'; }}: -1px;"></b><i
+	style="{{widget.value ? 'left' : 'right'}}: 0px;">{{widget.value ? 'I' : 'O'}}</></b>
+
+<input type="checkbox" id="{{widget.item}}" class="iToggle" title="I|O"
+	{{widget.checked}} ng-click="changeState(widget.item, 'TOGGLE')" />
+<img ng-src="/images/{{widget.icon}}.png" width=29 height=29
+	class="iFull" />
+<label style="{{widget.labelStyle}}">{{widget.label}}</label>

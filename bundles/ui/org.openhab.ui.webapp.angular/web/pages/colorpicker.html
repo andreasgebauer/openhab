@@ -1,0 +1,13 @@
+<img ng-src="/images/{{widget.icon}}.png" width=29 height=29
+	class="iFull" />
+<span class="options"><img src="/images/_down.png"
+	ng-touchstart="repeatedRequest(widget.item, 'DECREASE', widget.frequency, 1)"
+	ng-mousedown="repeatedRequest(widget.item, 'DECREASE', widget.frequency, 1)"
+	ng-mouseup="stopRepeatedRequest(widget.item, 'OFF')" /> <img
+	src="/images/colorwheel.png" width=29 height=29 border=0
+	ng-click="colorItem='{{widget.item}}';$('waColorpicker').title='{{widget.purelabel}}';document.getElementById('colorPickerInput').value='{{widget.state}}';$.minicolors.refresh();document.location.href='#_Colorpicker'" />
+	<img src="/images/_up.png"
+	ng-touchstart="repeatedRequest(widget.item, 'INCREASE', widget.frequency, 1)"
+	ng-mousedown="repeatedRequest(widget.item, 'INCREASE', widget.frequency, 1)"
+	ng-mouseup="stopRepeatedRequest(widget.item, 'ON')" /></span>
+<label style="{{widget.labelStyle}}">{{widget.label}}</label>
