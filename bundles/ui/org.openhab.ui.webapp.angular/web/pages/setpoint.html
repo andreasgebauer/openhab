@@ -1,0 +1,9 @@
+<img ng-src="/images/{{widget.icon}}.png" width=29 height=29
+	class="iFull" />
+<span class="options"><img src="/images/_down.png"
+	ng-touchstart="changeState(widget.item, widget.newLowerState)"
+	ng-mousedown="changeState(widget.item, widget.newLowerState)" /><img
+	src="/images/_up.png"
+	ng-touchstart="changeState(widget.item, widget.newHigherState)"
+	ng-mousedown="changeState(widget.item, widget.newHigherState)" /></span>
+<label>{{widget.label}}</label><span style="{{widget.valueStyle}}">{{widget.value}}</span>
