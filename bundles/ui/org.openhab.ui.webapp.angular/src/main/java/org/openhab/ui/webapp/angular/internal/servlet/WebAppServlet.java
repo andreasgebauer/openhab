@@ -13,7 +13,6 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonWriter;
-import javax.json.JsonValue.ValueType;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -141,9 +140,9 @@ public class WebAppServlet extends BaseServlet {
 	    }
 	} catch (Exception e) {
 	    throw new ServletException(e.getMessage(), e);
-	} finally {
-	    writer.close();
 	}
+
+	writer.close();
 	res.setContentType("application/xml;charset=UTF-8");
     }
 
