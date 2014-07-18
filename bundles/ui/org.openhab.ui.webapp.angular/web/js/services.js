@@ -61,10 +61,14 @@ appModule.factory('sitemap', function($http, $log, webSocket) {
 							}
 
 							if(!angular.isUndefined(widget.value)) {
-								if(typeof widget.value === "string") {
-									widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
-								} else if(typeof value === "string") {
-									widget.icon = iconPrefix + "-" + value.toLowerCase();
+								if(iconPrefix.indexOf("-") == -1) {
+									if(typeof widget.value === "string") {
+										widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
+									} else if(typeof value === "string") {
+										widget.icon = iconPrefix + "-" + value.toLowerCase();
+									}
+								}else{
+									widget.icon = iconPrefix;
 								}
 							}
 							
