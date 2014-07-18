@@ -69,6 +69,12 @@ public class ChartDataServlet extends WebSocketServlet {
 
 	@Override
 	public void onClose(final int closeCode, final String message) {
+	    for (final Item item : ChartDataServlet.this.itemRegistry.getItems()) {
+		if (item instanceof GenericItem) {
+		    ((GenericItem) item).removeStateChangeListener(this.listener);
+		}
+	    }
+
 	    this.listener.remove(this);
 	    this.connection.close();
 	}
@@ -198,8 +204,6 @@ public class ChartDataServlet extends WebSocketServlet {
 
     private final List<WebSocketImpl> sockets = new ArrayList<WebSocketImpl>();
 
-    private StateChangeListener listener;
-
     public void setHttpService(final HttpService httpService) {
 	this.httpService = httpService;
     }
@@ -241,14 +245,6 @@ public class ChartDataServlet extends WebSocketServlet {
 	    final Hashtable<String, String> props = new Hashtable<String, String>();
 	    this.httpService.registerServlet(mapping, this, props, this.createHttpContext());
 
-	    this.listener = new StateChangeListener();
-
-	    for (final Item item : this.itemRegistry.getItems()) {
-		if (item instanceof GenericItem) {
-		    ((GenericItem) item).addStateChangeListener(this.listener);
-		}
-	    }
-
 	} catch (final NamespaceException e) {
 	    logger.error("Error during servlet startup", e);
 	} catch (final ServletException e) {
@@ -266,18 +262,11 @@ public class ChartDataServlet extends WebSocketServlet {
 
 	this.httpService.unregister(BaseServlet.WEBAPP_ALIAS + "/" + "websocket");
 
-	for (final Item item : this.itemRegistry.getItems()) {
-	    if (item instanceof GenericItem) {
-		((GenericItem) item).removeStateChangeListener(this.listener);
-	    }
-	}
     }
 
     @Override
     public void init() throws ServletException {
 	super.init();
-
-	this.listener = new StateChangeListener();
 
 	// for testing purposes
 	try {
@@ -305,7 +294,15 @@ public class ChartDataServlet extends WebSocketServlet {
     @Override
     public WebSocket doWebSocketConnect(final HttpServletRequest arg0, final String arg1) {
 	logger.debug("Client connected");
-	return new WebSocketImpl(this.listener, this.persistenceServices);
+
+	StateChangeListener listener = new StateChangeListener();
+	for (final Item item : this.itemRegistry.getItems()) {
+	    if (item instanceof GenericItem) {
+		((GenericItem) item).addStateChangeListener(listener);
+	    }
+	}
+
+	return new WebSocketImpl(listener, this.persistenceServices);
     }
 
     private Widget fakeWidget(final String name) {
