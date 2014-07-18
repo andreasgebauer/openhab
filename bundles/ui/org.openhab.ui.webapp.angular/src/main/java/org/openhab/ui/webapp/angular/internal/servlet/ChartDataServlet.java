@@ -52,30 +52,31 @@ public class ChartDataServlet extends WebSocketServlet {
 
     private final class WebSocketImpl implements OnTextMessage {
 	private Connection connection;
-	private final StateChangeListener listener;
+	private StateChangeListener listener;
 	private Map<String, QueryablePersistenceService> persistenceServices;
 
-	public WebSocketImpl(final StateChangeListener listener, Map<String, QueryablePersistenceService> persistenceServices) {
-	    this.listener = listener;
+	public WebSocketImpl(Map<String, QueryablePersistenceService> persistenceServices) {
 	    this.persistenceServices = persistenceServices;
 	}
 
 	@Override
 	public void onOpen(final Connection connection) {
-	    this.listener.add(this);
 	    this.connection = connection;
 	    // this.connection.setMaxIdleTime(10000);
 	}
 
 	@Override
 	public void onClose(final int closeCode, final String message) {
+	    close();
+	}
+
+	private void close() {
 	    for (final Item item : ChartDataServlet.this.itemRegistry.getItems()) {
 		if (item instanceof GenericItem) {
-		    ((GenericItem) item).removeStateChangeListener(this.listener);
+		    ((GenericItem) item).removeStateChangeListener(this.getListener());
 		}
 	    }
 
-	    this.listener.remove(this);
 	    this.connection.close();
 	}
 
@@ -149,9 +150,23 @@ public class ChartDataServlet extends WebSocketServlet {
 	    wr.writeObject(obj);
 	    this.connection.sendMessage(baos.toString());
 	}
+
+	public StateChangeListener getListener() {
+	    return listener;
+	}
+
+	public void setListener(StateChangeListener listener) {
+	    this.listener = listener;
+	}
     }
 
     private final class StateChangeListener implements org.openhab.core.items.StateChangeListener {
+
+	private WebSocketImpl socket;
+
+	StateChangeListener(WebSocketImpl socket) {
+	    this.socket = socket;
+	}
 
 	@Override
 	public void stateUpdated(final Item item, final State state) {
@@ -173,22 +188,15 @@ public class ChartDataServlet extends WebSocketServlet {
 	private void sendStateMessage(String name, String label, String icon, State state) {
 	    logger.debug("Sending name:{} label:{} icon:{} state:{}", new String[] { name, label, icon, state.toString() });
 	    final JsonObject msg = createStateMessage(name, label, icon, state, null);
-	    for (final WebSocketImpl socket : ChartDataServlet.this.sockets) {
-		try {
-		    socket.sendMessage(msg);
-		} catch (final IOException e) {
-		    e.printStackTrace();
-		}
+	    try {
+		socket.sendMessage(msg);
+	    } catch (final IOException e) {
+		logger.error("Unable to send. Closing connection", e);
+		this.socket.close();
+		
 	    }
 	}
 
-	public void add(final WebSocketImpl webSocket) {
-	    ChartDataServlet.this.sockets.add(webSocket);
-	}
-
-	public void remove(final WebSocketImpl webSocket) {
-	    ChartDataServlet.this.sockets.remove(webSocket);
-	}
     }
 
     /**
@@ -255,7 +263,7 @@ public class ChartDataServlet extends WebSocketServlet {
     protected void deactivate() {
 	for (WebSocketImpl socket : this.sockets) {
 	    try {
-		socket.connection.close();
+		socket.close();
 	    } catch (Exception e) {
 	    }
 	}
@@ -295,14 +303,16 @@ public class ChartDataServlet extends WebSocketServlet {
     public WebSocket doWebSocketConnect(final HttpServletRequest arg0, final String arg1) {
 	logger.debug("Client connected");
 
-	StateChangeListener listener = new StateChangeListener();
+	WebSocketImpl socket = new WebSocketImpl(this.persistenceServices);
+	StateChangeListener listener = new StateChangeListener(socket);
+	socket.setListener(listener);
 	for (final Item item : this.itemRegistry.getItems()) {
 	    if (item instanceof GenericItem) {
 		((GenericItem) item).addStateChangeListener(listener);
 	    }
 	}
 
-	return new WebSocketImpl(listener, this.persistenceServices);
+	return socket;
     }
 
     private Widget fakeWidget(final String name) {
