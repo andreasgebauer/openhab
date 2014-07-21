@@ -77,6 +77,8 @@ public class HomematicGenericBindingProvider extends AbstractGenericBindingProvi
     public void validateItemType(Item item, String bindingConfig)
 	    throws BindingConfigParseException {
 	HomeMaticBindingConfig.getBindingConfigFromString(item, bindingConfig);
+	
+	
     }
 
     /**

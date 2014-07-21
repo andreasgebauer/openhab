@@ -34,7 +34,6 @@
    <service>
       <provide interface="org.openhab.model.item.binding.BindingConfigReader"/>
       <provide interface="org.openhab.binding.cul.HomematicCULBindingProvider"/>
-      <!--<provide interface="org.openhab.binding.homematic.HomematicBindingProvider"/>-->
    </service>
    
 </scr:component>

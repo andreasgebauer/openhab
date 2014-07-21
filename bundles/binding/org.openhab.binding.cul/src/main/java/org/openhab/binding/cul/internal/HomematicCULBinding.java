@@ -71,7 +71,6 @@ import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.device.VirtualCCU;
 import de.gebauer.homematic.hmcctc.ControlMode;
 import de.gebauer.homematic.hmcctc.ThermoControl;
-import de.gebauer.homematic.hmcctc.ThermoControlDevice;
 import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
 import de.gebauer.homematic.hmlcdim1tpi2.Dimmer;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
@@ -112,12 +111,6 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     private final static String PROPERTY_HOUSECODE = "housecode";
 
     private static final String PAIRING = "pairing";
-
-    /**
-     * Indicates whether this binding is properly configured which means all necessary configurations are set. Only Bindings which are properly configured get's
-     * started and will call the execute method though.
-     */
-    private boolean isProperlyConfigured = false;
 
     /**
      * the refresh interval which is used to poll values from the CULBinding server (optional, defaults to 30000ms)
@@ -196,9 +189,9 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
      */
     @Override
     public boolean isProperlyConfigured() {
-	LOG.debug(this.isProperlyConfigured ? "We are properly configured"
+	LOG.debug(this.isProperlyConfigured() ? "We are properly configured"
 		: "We are not properly configured");
-	return this.isProperlyConfigured;
+	return this.isProperlyConfigured();
     }
 
     /**
@@ -366,14 +359,14 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 			CULManager.close(this.cul);
 			this.bindCULHandler();
 		    } catch (final Exception e) {
-			this.isProperlyConfigured = false;
+			setProperlyConfigured(false);
 			LOG.error("Can't open CUL device after configuration change", e);
 			throw new ConfigurationException(PROPERTY_DEVICE, "Can't open/close CUL device", e);
 		    }
-		    this.isProperlyConfigured = true;
+		    setProperlyConfigured(true);
 		}
 	    } else {
-		this.isProperlyConfigured = false;
+		setProperlyConfigured(false);
 		LOG.warn("The serial device is not properly configured");
 		throw new ConfigurationException("device", "The serial device to use is not configured");
 	    }
@@ -468,7 +461,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
 	    LOG.info("Initiating Pairing. clearing commands.");
 	    message.getSource().getCommandStack().clear();
-	    
+
 	    final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A0);
 
 	    // 02010A130BC80C6D
@@ -477,7 +470,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		final PairingCommand pairingCommand = new PairingCommand();
 		// 21 0039 4B455130303339363531 58 00 02 00
 		String serNo = "4B455130303339363531";
-//		String serNo = "00000000000000000000";
+		// String serNo = "00000000000000000000";
 		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, serNo);
 		final String pAddr = "000000";
 		final short chnl = (short) 01;
@@ -541,7 +534,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 			if (request.hasAck()) {
 			    LOG.info("Successfully paired CCU with " + message.getSource());
 			    this.ccu.pairedWith(message.getSource());
-			    
+
 			    this.ccu.scheduleCycle(message.getSource(), this.ccu);
 			    this.ccu.setHmPairSerial(null);
 			}

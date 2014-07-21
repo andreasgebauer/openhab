@@ -34,7 +34,9 @@ public enum CULMode {
 	 * Fast RF mode for the Moritz protocol of the Max! heating control system.
 	 * Intertechno should also work in this mode.
 	 */
-	MAX("X10","Zr");
+	MAX("X10","Zr"), 
+	
+	ASK_SIN2("X21", "Ar");
 
 	private List<String> commands;
 
