@@ -24,10 +24,10 @@ import org.openhab.core.items.GenericItem;
 import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
-import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.items.RollershutterItem;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.types.State;
+import org.openhab.model.sitemap.AbstractChart;
 import org.openhab.model.sitemap.Chart;
 import org.openhab.model.sitemap.Frame;
 import org.openhab.model.sitemap.LinkableWidget;
@@ -35,6 +35,7 @@ import org.openhab.model.sitemap.Mapping;
 import org.openhab.model.sitemap.Setpoint;
 import org.openhab.model.sitemap.Sitemap;
 import org.openhab.model.sitemap.SitemapProvider;
+import org.openhab.model.sitemap.SmartChart;
 import org.openhab.model.sitemap.Switch;
 import org.openhab.model.sitemap.Text;
 import org.openhab.model.sitemap.Widget;
@@ -257,30 +258,49 @@ public class WebAppServlet extends BaseServlet {
 	    widgetBuilder.add("item", itemName);
 	}
 
-	if (widget instanceof LinkableWidget && !(widget instanceof Text)) {
+	if (widget instanceof LinkableWidget) {
 	    LinkableWidget link = (LinkableWidget) widget;
-	    if (!link.getChildren().isEmpty()) {
+	    if (!(link instanceof Text) && !link.getChildren().isEmpty()) {
 		widgetBuilder.add("children", render(link.getChildren()));
 	    }
 	}
 
 	//
-	if (widget instanceof Chart) {
+	if (widget instanceof AbstractChart) {
 	    try {
-		Item item = this.itemRegistry.getItem(itemName);
-
-		String period = ((Chart) widget).getPeriod();
+		String period = ((AbstractChart) widget).getPeriod();
 		widgetBuilder.add("period", periodToTimespan(period));
 
 		JsonArrayBuilder arrBldr = Json.createArrayBuilder();
-		if (item instanceof GroupItem) {
-		    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-			GenericItem genItem = (GenericItem) chartItem;
-			arrBldr.add(genItem.getName());
+
+		if (widget instanceof Chart || widget instanceof SmartChart) {
+		    Item item = this.itemRegistry.getItem(itemName);
+
+		    if (item instanceof GroupItem) {
+			for (Item chartItem : ((GroupItem) item).getAllMembers()) {
+			    GenericItem genItem = (GenericItem) chartItem;
+			    arrBldr.add(genItem.getName());
+			}
+		    } else {
+			arrBldr.add(item.getName());
 		    }
-		} else {
-		    arrBldr.add(item.getName());
+		}  
+		if (widget instanceof SmartChart) {
+		    EList<String> items = ((SmartChart) widget).getItems();
+		    for (String string : items) {
+			Item item = itemRegistry.getItem(string);
+
+			if (item instanceof GroupItem) {
+			    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
+				GenericItem genItem = (GenericItem) chartItem;
+				arrBldr.add(genItem.getName());
+			    }
+			} else {
+			    arrBldr.add(item.getName());
+			}
+		    }
 		}
+
 		widgetBuilder.add("items", arrBldr);
 
 	    } catch (ItemNotFoundException e) {
@@ -371,24 +391,8 @@ public class WebAppServlet extends BaseServlet {
 	    ctor.setAccessible(true);
 	    Object newInstance = ctor.newInstance(config);
 	    new WebAppActivator().start((BundleContext) newInstance);
-
-	    forName = Class.forName("org.openhab.mock.MockItemUIRegistry");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemUIRegistry = (ItemUIRegistry) ctor.newInstance();
-
-	    forName = Class.forName("org.openhab.mock.model.sitemap.SitemapProviderImpl");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.sitemapProvider = (SitemapProvider) ctor.newInstance();
-
-	    forName = Class.forName("org.openhab.mock.MockItemRegistryImpl");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemRegistry = (ItemRegistry) ctor.newInstance();
-
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    // nothing to do
 	}
     }
 

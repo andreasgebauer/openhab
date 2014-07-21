@@ -92,21 +92,24 @@ public class ChartDataServlet extends WebSocketServlet {
 	    JsonReader reader = Json.createReader(new StringReader(data));
 	    JsonObject readObject = reader.readObject();
 	    /**
-	     * Comes in the form of { Living: 640000, Sleeping: 320000 }
+	     * Comes in the form of { Living: [{begin:640000,end:1433212122}], Sleeping: [320000] }
+	     * where [begin, end]
 	     */
 	    for (String itemName : readObject.keySet()) {
 		JsonValue periodVal = readObject.get(itemName);
 		if (periodVal.getValueType() == ValueType.ARRAY) {
 
 		    for (JsonValue jsonValue : ((JsonArray) periodVal)) {
-			if (jsonValue.getValueType() == ValueType.NUMBER) {
-			    long period = ((JsonNumber) jsonValue).longValue();
+			if (jsonValue.getValueType() == ValueType.OBJECT) {
+			    long beginMillis = ((JsonObject) jsonValue).getJsonNumber("begin").longValue();
+			    long endMillis = ((JsonObject) jsonValue).getJsonNumber("end").longValue();
 
 			    FilterCriteria filter = new FilterCriteria();
 
 			    Date end = new Date();
+			    end.setTime(endMillis);
 			    Calendar begin = Calendar.getInstance();
-			    begin.add(Calendar.SECOND, (int) (period / 1000) * -1);
+			    begin.setTimeInMillis(beginMillis);
 
 			    filter.setBeginDate(begin.getTime());
 			    filter.setEndDate(end);
@@ -126,10 +129,12 @@ public class ChartDataServlet extends WebSocketServlet {
 				}
 
 				String label = ChartDataServlet.this.itemUIRegistry.getLabel(fakeWidget(itemName));
+				String icon = ChartDataServlet.this.itemUIRegistry.getIcon(fakeWidget(itemName));
 
 				objBuilder.add("id", itemName);
 				objBuilder.add("label", label);
-				objBuilder.add("period", period);
+				objBuilder.add("icon", icon);
+				objBuilder.add("begin", begin.getTimeInMillis());
 				objBuilder.add("values", valuesBuilder.build());
 
 				this.sendMessage(objBuilder.build());
@@ -269,28 +274,6 @@ public class ChartDataServlet extends WebSocketServlet {
 	}
 
 	this.httpService.unregister(BaseServlet.WEBAPP_ALIAS + "/" + "websocket");
-
-    }
-
-    @Override
-    public void init() throws ServletException {
-	super.init();
-
-	// for testing purposes
-	try {
-	    Class<?> forName = Class.forName("org.openhab.mock.MockItemUIRegistry");
-	    Constructor<?> ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemUIRegistry = (ItemUIRegistry) ctor.newInstance();
-
-	    forName = Class.forName("org.openhab.mock.MockItemRegistryImpl");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemRegistry = (ItemRegistry) ctor.newInstance();
-
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
 
     }
 

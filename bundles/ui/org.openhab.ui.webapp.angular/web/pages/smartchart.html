@@ -1,0 +1,24 @@
+<div ng-controller="ChartCtrl">
+ 	<div class="row">
+        <div class="col-md-6" style="z-index: 500;">
+            <p class="input-group">
+              <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="dt" is-open="opened" min-date="minDate" max-date="'2015-06-22'" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" close-text="Close" />
+              <span class="input-group-btn" style="float:none; clear:both">
+                <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </p>
+        </div>
+         <div class="col-md-6">
+         	<button ng-click="expand(100)">---</button>
+         	<button ng-click="expand(10)">--</button>
+         	<button ng-click="expand(1)">-</button>
+
+         	<button ng-click="narrow(1)">+</button>
+         	<button ng-click="narrow(10)">++</button>
+         	<button ng-click="narrow(90)">+++</button>
+
+         </div>
+    </div>
+	<smartchart id="{{widget.id}}" item="{{widget.item}}">
+	</smartchart>
+</div>

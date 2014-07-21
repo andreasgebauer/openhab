@@ -35,9 +35,9 @@ a[rel=action],a[rel=back]{display:none}
 .iMenu ul,.iPanel fieldset ul,.iBlock div,.iBlock p{padding:0;margin:10px 0 20px;font-weight:bold;border-color:#a9acaf;background-color:#fff;-webkit-border-radius:8px}
 .iBlock p + h1{margin-top:20px}
 .iMenu li{white-space:nowrap}
-.iMenu li,.iPanel fieldset li{font-size:17px;list-style-type: none;border-color:inherit;line-height:20px;padding:11px 8px 12px;border-style:solid;border-width: 1px 1px 0px 1px}
-.iMenu a:not(.iPush),.iPanel a:not(.iPush){margin:-11px -8px -12px;padding:inherit;color:inherit;text-decoration:none;display:block;overflow:hidden}
-.iMenu li img{float:left;border:none;margin:-4px 11px -5px 0}
+.iMenu li,.iPanel fieldset li{font-size: 18px;list-style-type: none;border-color:inherit;line-height: 20px;padding:11px 8px 12px;border-style:solid;border-width: 1px 1px 0px 1px}
+.iMenu a:not(.iPush),.iPanel a:not(.iPush){margin: -11px -10px -13px;padding:inherit;color:inherit;text-decoration:none;display:block;overflow:hidden}
+.iMenu li img{float:left;border:none;margin: -4px 8px -5px 0;}
 .iMenu li.__lod:not(.iMore) span{padding-right:8px}
 .iMenu li:not(.iMore) span,.iPanel li span{float:right;color:#324f85;font-weight:normal}
 .iPanel textarea,.iPanel input[type=text],.iPanel input[type=password],.iPanel input[type=search],.iPanel input[type=tel],.iPanel input[type=number],.iPanel input[type=email]{width:100%;display:block;margin:-4px 0 -5px;padding:4px 0 5px;border:0;font-size:inherit;line-height:inherit;font-weight:normal;background:none;-webkit-border-radius:0;-webkit-appearance:none;-webkit-box-sizing:border-box}
@@ -117,8 +117,8 @@ input.iToggle{display:none}
 b.iToggle.__dis{opacity:0.5}
 b.iToggle{border:solid 1px #979797;-webkit-border-radius:4px;line-height:25px;position:relative;width:92px;font-size:16px;font-weight:bold;background:#fff url(../Img/bg-switch.png) top repeat-x;color:#7e7e7e}
 b.iToggle.__sel{border-color:#2c5ba2;background-color:#4085ec;color:#fff}
-b.iToggle b{position:absolute;top:-1px;height:100%;width:37px;border:solid 1px #979797;-webkit-border-radius:4px;background:#fbfbfb url(../Img/bg-switch-thumb.png) top repeat-x}
-b.iToggle i{position:absolute;width:47px;line-height:21px;padding:4px 4px 0;text-align:center;font-style:normal;overflow:hidden;background:url(../Img/form-check-text.png) left repeat-y;text-shadow:#fff 0 1px 0}
+b.iToggle b{position:absolute;top: -1px;/* height:100%; */width:37px;border:solid 1px #979797;-webkit-border-radius:4px;background:#fbfbfb url(../Img/bg-switch-thumb.png) top repeat-x;bottom: 0px;}
+b.iToggle i{position:absolute;width: 55px;line-height:21px;padding:4px 4px 0;text-align:center;font-style:normal;overflow:hidden;background:url(../Img/form-check-text.png) left repeat-y;text-shadow:#fff 0 1px 0}
 b.iToggle.__sel i{background:url(../Img/form-check-texton.png) right repeat-y;text-shadow:rgba(0,0,0,0.5) 0 -1px 0}
 b.iToggle{float:right}
 .iPanel b.iToggle{float:right;margin:-2px 0 0}
