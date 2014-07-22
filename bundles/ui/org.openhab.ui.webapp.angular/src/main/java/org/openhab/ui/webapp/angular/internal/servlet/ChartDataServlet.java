@@ -3,7 +3,6 @@ package org.openhab.ui.webapp.angular.internal.servlet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,7 +15,6 @@ import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
@@ -61,12 +59,16 @@ public class ChartDataServlet extends WebSocketServlet {
 
 	@Override
 	public void onOpen(final Connection connection) {
+	    logger.debug("Client connected");
+
 	    this.connection = connection;
 	    // this.connection.setMaxIdleTime(10000);
 	}
 
 	@Override
 	public void onClose(final int closeCode, final String message) {
+	    logger.debug("Client disconnected");
+
 	    close();
 	}
 
@@ -92,8 +94,7 @@ public class ChartDataServlet extends WebSocketServlet {
 	    JsonReader reader = Json.createReader(new StringReader(data));
 	    JsonObject readObject = reader.readObject();
 	    /**
-	     * Comes in the form of { Living: [{begin:640000,end:1433212122}], Sleeping: [320000] }
-	     * where [begin, end]
+	     * Comes in the form of { Living: [{begin:640000,end:1433212122}], Sleeping: [320000] } where [begin, end]
 	     */
 	    for (String itemName : readObject.keySet()) {
 		JsonValue periodVal = readObject.get(itemName);
@@ -198,7 +199,7 @@ public class ChartDataServlet extends WebSocketServlet {
 	    } catch (final IOException e) {
 		logger.error("Unable to send. Closing connection", e);
 		this.socket.close();
-		
+
 	    }
 	}
 
@@ -284,8 +285,6 @@ public class ChartDataServlet extends WebSocketServlet {
 
     @Override
     public WebSocket doWebSocketConnect(final HttpServletRequest arg0, final String arg1) {
-	logger.debug("Client connected");
-
 	WebSocketImpl socket = new WebSocketImpl(this.persistenceServices);
 	StateChangeListener listener = new StateChangeListener(socket);
 	socket.setListener(listener);
