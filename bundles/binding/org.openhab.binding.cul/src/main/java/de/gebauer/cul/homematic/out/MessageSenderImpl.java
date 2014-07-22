@@ -228,7 +228,7 @@ public class MessageSenderImpl implements MessageSender {
 	    msgCount = 1;
 	}
 
-	int count = message.getCount();
+	//int count = message.getCount();
 	return msgCount;
     }
 
