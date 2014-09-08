@@ -137,6 +137,9 @@ var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 
 						var timestamp = (value.timestamp ? new Date(value.timestamp) : new Date());
 						var val = parseFloat(value.value);
 
+						if(timestamp > widget.data.viewData.end){
+							widget.data.viewData.end = timestamp;
+						}
 
 						var existingRowIndex = widget.data.timestampToRowIndex[timestamp.getTime()];
 
@@ -196,7 +199,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			data.id = widgetId;
 
 			var oldSitemap = $scope.sitemap;
-			if(!angular.isUndefined(oldSitemap)) {
+			if(angular.isDefined(oldSitemap)) {
 				// merge the two sitemap partials if possible
 				
 				var getWidget = function(root, id) {
@@ -270,13 +273,16 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			$scope.viewItem.selected = false;
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
-			if(!angular.isUndefined($scope.nav)) {
+			if(angular.isDefined($scope.nav)) {
 				$scope.nav.back.visible = sitemap.location !== "";
-				//$scope.nav.back.hef = data.parentId ? "#" + data.parentId : "#/";
+				$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
 
 				$scope.nav.home.visible = sitemap.location !== "";
-				if(!angular.isUndefined($scope.viewItem)) {
+				if(angular.isDefined($scope.viewItem)) {
 					$scope.nav.title.text = $scope.viewItem.label;
+					if(angular.isDefined($scope.viewItem.value)){
+						$scope.nav.title.text += " " + $scope.viewItem.value
+					}
 				}
 			}
 			
@@ -369,7 +375,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 	// event handling
 	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent)  {
-		console.log("onFocus");
+		// works when entering window
 		reconnect();
 	});
 
@@ -380,7 +386,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	});
 
 	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent)  {
-		console.log("onBlur");
+		// works when leaving window
 		disconnect();			
 	});
 
@@ -463,6 +469,7 @@ appControllers.controller('ChartCtrl', function($scope, $log, $http, webSocket, 
 	};
 	
 	var updateWidget = function(newBegin){
+		$scope.widget.data.viewData.end = new Date();
 		var pendingChartData = {};
 		if(newBegin < $scope.widget.data.viewData.begin) {
 			angular.forEach($scope.widget.items, function(key){

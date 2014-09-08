@@ -52,14 +52,16 @@ public class ChartDataServlet extends WebSocketServlet {
 	private Connection connection;
 	private StateChangeListener listener;
 	private Map<String, QueryablePersistenceService> persistenceServices;
+	private HttpServletRequest initiatingRequest;
 
-	public WebSocketImpl(Map<String, QueryablePersistenceService> persistenceServices) {
+	public WebSocketImpl(HttpServletRequest req, Map<String, QueryablePersistenceService> persistenceServices) {
+	    this.initiatingRequest = req;
 	    this.persistenceServices = persistenceServices;
 	}
 
 	@Override
 	public void onOpen(final Connection connection) {
-	    logger.debug("Client connected");
+	    logger.debug("Client {}:{} connected", this.initiatingRequest.getRemoteAddr(), this.initiatingRequest.getRemotePort());
 
 	    this.connection = connection;
 	    // this.connection.setMaxIdleTime(10000);
@@ -67,7 +69,7 @@ public class ChartDataServlet extends WebSocketServlet {
 
 	@Override
 	public void onClose(final int closeCode, final String message) {
-	    logger.debug("Client disconnected");
+	    logger.debug("Client {}:{} disconnected", this.initiatingRequest.getRemoteAddr(), this.initiatingRequest.getRemotePort());
 
 	    close();
 	}
@@ -120,7 +122,6 @@ public class ChartDataServlet extends WebSocketServlet {
 			    Iterable<HistoricItem> query = queryablePersistenceService.query(filter);
 			    Iterator<HistoricItem> it = query.iterator();
 
-			    JsonObjectBuilder objBuilder = Json.createObjectBuilder();
 			    JsonArrayBuilder valuesBuilder = Json.createArrayBuilder();
 
 			    try {
@@ -129,19 +130,22 @@ public class ChartDataServlet extends WebSocketServlet {
 				    addValue(historic.getTimestamp(), historic.getState(), valuesBuilder);
 				}
 
+				JsonArray values = valuesBuilder.build();
+				if (values.isEmpty()) {
+				    return;
+				}
+
 				String label = ChartDataServlet.this.itemUIRegistry.getLabel(fakeWidget(itemName));
 				String icon = ChartDataServlet.this.itemUIRegistry.getIcon(fakeWidget(itemName));
 
-				objBuilder.add("id", itemName);
-				objBuilder.add("label", label);
-				objBuilder.add("icon", icon);
-				objBuilder.add("begin", begin.getTimeInMillis());
-				objBuilder.add("values", valuesBuilder.build());
+				JsonObjectBuilder createStateMessage = createStateMessage(itemName, label, icon);
+				createStateMessage.add("values", values);
+				createStateMessage.add("begin", begin.getTimeInMillis());
+				createStateMessage.add("end", end.getTime());
 
-				this.sendMessage(objBuilder.build());
+				this.sendMessage(createStateMessage.build());
 			    } catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Error during send state.", e);
 			    }
 			}
 		    }
@@ -193,9 +197,11 @@ public class ChartDataServlet extends WebSocketServlet {
 
 	private void sendStateMessage(String name, String label, String icon, State state) {
 	    logger.debug("Sending name:{} label:{} icon:{} state:{}", new String[] { name, label, icon, state.toString() });
-	    final JsonObject msg = createStateMessage(name, label, icon, state, null);
+	    final JsonObjectBuilder msg = createStateMessage(name, label, icon);
+	    msg.add("values", addValue(new Date(), state, Json.createArrayBuilder()));
+
 	    try {
-		socket.sendMessage(msg);
+		socket.sendMessage(msg.build());
 	    } catch (final IOException e) {
 		logger.error("Unable to send. Closing connection", e);
 		this.socket.close();
@@ -285,7 +291,7 @@ public class ChartDataServlet extends WebSocketServlet {
 
     @Override
     public WebSocket doWebSocketConnect(final HttpServletRequest arg0, final String arg1) {
-	WebSocketImpl socket = new WebSocketImpl(this.persistenceServices);
+	WebSocketImpl socket = new WebSocketImpl(arg0, this.persistenceServices);
 	StateChangeListener listener = new StateChangeListener(socket);
 	socket.setListener(listener);
 	for (final Item item : this.itemRegistry.getItems()) {
@@ -307,7 +313,7 @@ public class ChartDataServlet extends WebSocketServlet {
 	return w;
     }
 
-    private static JsonObject createStateMessage(String name, String label, String icon, State state, Date timestamp) {
+    private static JsonObjectBuilder createStateMessage(String name, String label, String icon) {
 	final JsonObjectBuilder objBuilder = Json.createObjectBuilder();
 	objBuilder.add("id", name);
 	if (label != null) {
@@ -316,23 +322,17 @@ public class ChartDataServlet extends WebSocketServlet {
 	if (icon != null) {
 	    objBuilder.add("icon", icon);
 	}
-	objBuilder.add("values", createValues(state, timestamp));
-	return objBuilder.build();
+	return objBuilder;
     }
 
-    private static JsonArray createValues(State state, Date timestamp) {
-	JsonArrayBuilder valuesBuilder = Json.createArrayBuilder();
-	addValue(timestamp, state, valuesBuilder);
-	return valuesBuilder.build();
-    }
-
-    private static void addValue(Date timestamp, State state, JsonArrayBuilder valuesBuilder) {
+    private static JsonArrayBuilder addValue(Date timestamp, State state, JsonArrayBuilder valuesBuilder) {
 	JsonObjectBuilder valueBuilder = Json.createObjectBuilder();
 	if (timestamp != null) {
 	    valueBuilder.add("timestamp", timestamp.getTime());
 	}
 	valueBuilder.add("value", state.toString());
 	valuesBuilder.add(valueBuilder.build());
+	return valuesBuilder;
     }
 
 }

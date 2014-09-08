@@ -25,7 +25,7 @@ app.directive('chart', function($interval, $log) {
 				}
 
 				var max = new Date(viewData.end);
-				var min = new Date(viewData.end);
+				var min = new Date(viewData.begin);
 
 				var height = 300;
 				var chartOptions = {
@@ -149,10 +149,10 @@ app.directive('smartchart', function($interval, dateFilter, $log) {
 		replace : true,
 		link : function postLink($scope, element, attrs) {
 			
-						var lineChart = new google.visualization.LineChart(element[0]);
+			var lineChart = new google.visualization.LineChart(element[0]);
 			var view = null;
 
-			var widgetScope = $scope.$parent.$parent;
+			var widgetScope = $scope.$parent.$parent.$parent;
 			$scope.widget = widgetScope.widget;
 			
 			function draw(table, viewData) {
@@ -196,6 +196,7 @@ app.directive('smartchart', function($interval, dateFilter, $log) {
 			
 			var update = function(newValue, oldValue) {
 				if (newValue !== oldValue) {
+					$log.debug("redraw")
 					if ($scope.widget.data) {
 						var data = $scope.widget.data.table;
 						var viewData = $scope.widget.data.viewData;
