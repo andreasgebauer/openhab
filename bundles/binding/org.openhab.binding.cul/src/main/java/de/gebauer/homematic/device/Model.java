@@ -11,6 +11,11 @@ public enum Model {
      * Light control. Switch.
      */
     HMLCSW1PLOM54(null, "HM-LC-SW1-PL-OM54", 0x0001, ""),
+    
+    /**
+     * Light control. Switch.
+     */
+    HMLCSW1PBUFM(HomeMaticDeviceType.SWITCH, "HM-LC-Sw1PBU-FM", 0x0069, ""),
     /**
      * Heating Valve Device.
      */

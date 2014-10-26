@@ -30,13 +30,13 @@ public enum CULMode {
 	 * Fast RF mode for Homematic. Intertechno should also work in this mode.
 	 */
 	ASK_SIN("X10", "Ar"),
+	ASK_SIN2("X21", "Ar"),
+
 	/**
 	 * Fast RF mode for the Moritz protocol of the Max! heating control system.
 	 * Intertechno should also work in this mode.
 	 */
-	MAX("X10","Zr"), 
-	
-	ASK_SIN2("X21", "Ar");
+	MAX("X10","Zr");
 
 	private List<String> commands;
 

@@ -1,6 +1,8 @@
 package de.gebauer.homematic.hmcctc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 
@@ -8,9 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.gebauer.cul.homematic.in.MessageInterpreter;
-import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.hmcctc.HMCCTCInterpreter;
 import de.gebauer.homematic.msg.Message;
 
 public class HMCCTCInterpreterTest {

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.hmlcsw1pbufm.Switch;
 
 public class ShutterContactDevice extends AbstractDevice {
 

@@ -73,6 +73,7 @@ import de.gebauer.homematic.hmcctc.ControlMode;
 import de.gebauer.homematic.hmcctc.ThermoControl;
 import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
 import de.gebauer.homematic.hmlcdim1tpi2.Dimmer;
+import de.gebauer.homematic.hmlcsw1pbufm.Switch;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
@@ -266,6 +267,24 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		((ThermoControl) destination).controlMode(this.ccu, valueOf);
 		return false;
 	    }
+	} else if (destination instanceof Switch) {
+	    DimMessage message = null;
+	    if (command instanceof OnOffType) {
+		switch ((OnOffType) command) {
+		case ON:
+		    message = new DimMessage(this.ccu, destination, true);
+		    break;
+		case OFF:
+		    message = new DimMessage(this.ccu, destination, false);
+		    break;
+		default:
+		    break;
+		}
+	    }
+	    if (message != null) {
+		destination.addToSendQueue(new SimpleCommand(message));
+	    }
+	    return true;
 	}
 	return false;
     }

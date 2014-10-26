@@ -7,6 +7,7 @@ import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.hmcctc.ThermoControlDevice;
 import de.gebauer.homematic.hmccvd.ValveDevice;
 import de.gebauer.homematic.hmlcdim1tpi2.DimmerDevice;
+import de.gebauer.homematic.hmlcsw1pbufm.SwitchDevice;
 import de.gebauer.homematic.hmsecsc.ShutterContactDevice;
 
 public class DeviceFactory {
@@ -24,8 +25,9 @@ public class DeviceFactory {
 	    return new ShutterContactDevice(name, src, deviceInfo);
 	} else if (deviceInfo.mdl == Model.HMCCVD) {
 	    return new ValveDevice(name, src, deviceInfo);
-	}
-	
+	} else if (deviceInfo.mdl == Model.HMLCSW1PBUFM) {
+	    return new SwitchDevice(name, src, deviceInfo);
+	}	
 	return new AbstractDevice(name, src, deviceInfo) {
 
 	    @Override

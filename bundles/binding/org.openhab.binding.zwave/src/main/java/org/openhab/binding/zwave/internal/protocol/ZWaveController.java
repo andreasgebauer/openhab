@@ -33,12 +33,17 @@ import org.openhab.binding.zwave.internal.protocol.SerialMessage.SerialMessagePr
 import org.openhab.binding.zwave.internal.protocol.SerialMessage.SerialMessageType;
 import org.openhab.binding.zwave.internal.protocol.NodeStage;
 import org.openhab.binding.zwave.internal.protocol.commandclass.ZWaveCommandClass.CommandClass;
+import org.openhab.binding.zwave.internal.protocol.commandclass.ZWaveCommandClass;
+import org.openhab.binding.zwave.internal.protocol.commandclass.ZWaveCommandClassDynamicState;
+import org.openhab.binding.zwave.internal.protocol.commandclass.ZWaveMultiInstanceCommandClass;
 import org.openhab.binding.zwave.internal.protocol.commandclass.ZWaveWakeUpCommandClass;
 import org.openhab.binding.zwave.internal.protocol.event.ZWaveEvent;
 import org.openhab.binding.zwave.internal.protocol.event.ZWaveInclusionEvent;
 import org.openhab.binding.zwave.internal.protocol.event.ZWaveInitializationCompletedEvent;
+import org.openhab.binding.zwave.internal.protocol.event.ZWaveNetworkEvent;
 import org.openhab.binding.zwave.internal.protocol.event.ZWaveNodeStatusEvent;
 import org.openhab.binding.zwave.internal.protocol.event.ZWaveTransactionCompletedEvent;
+import org.openhab.binding.zwave.internal.protocol.event.ZWaveNetworkEvent.State;
 import org.openhab.binding.zwave.internal.protocol.initialization.ZWaveNodeSerializer;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.AddNodeMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.AssignReturnRouteMessageClass;
@@ -48,6 +53,7 @@ import org.openhab.binding.zwave.internal.protocol.serialmessage.EnableSucMessag
 import org.openhab.binding.zwave.internal.protocol.serialmessage.GetControllerCapabilitiesMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.GetSucNodeIdMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.IdentifyNodeMessageClass;
+import org.openhab.binding.zwave.internal.protocol.serialmessage.IsFailedNodeMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.RemoveNodeMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.RequestNodeNeighborUpdateMessageClass;
 import org.openhab.binding.zwave.internal.protocol.serialmessage.RemoveFailedNodeMessageClass;
@@ -334,7 +340,8 @@ public class ZWaveController {
 		disconnect();
 		
 		// clear nodes collection and send queue
-		for (Object listener : this.zwaveEventListeners.toArray()) {
+		ArrayList<ZWaveEventListener> copy = new ArrayList<ZWaveEventListener>(this.zwaveEventListeners);
+		for (Object listener : copy.toArray()) {
 			if (!(listener instanceof ZWaveNode))
 				continue;
 			
@@ -402,7 +409,8 @@ public class ZWaveController {
 	 */
 	public void notifyEventListeners(ZWaveEvent event) {
 		logger.debug("Notifying event listeners");
-		for (ZWaveEventListener listener : this.zwaveEventListeners) {
+		ArrayList<ZWaveEventListener> copy = new ArrayList<ZWaveEventListener>(this.zwaveEventListeners);
+		for (ZWaveEventListener listener : copy) {
 			logger.trace("Notifying {}", listener.toString());
 			listener.ZWaveIncomingEvent(event);
 		}
@@ -440,6 +448,37 @@ public class ZWaveController {
 				break;
 			default:
 				break;
+			}
+		}
+		if(event instanceof ZWaveNetworkEvent) {
+			ZWaveNetworkEvent networkEvent = (ZWaveNetworkEvent)event;
+			switch(networkEvent.getEvent()) {
+				case FailedNode:
+					if(getNode(networkEvent.getNodeId()) == null) {
+						logger.debug("NODE {}: Deleting a node that doesn't exist.", networkEvent.getNodeId());
+						break;
+					}
+					if (networkEvent.getState() == State.Success) {
+						logger.debug("NODE {}: Marking node as failed because its on the controllers failed node list.", networkEvent.getNodeId());
+						getNode(networkEvent.getNodeId()).setNodeStage(NodeStage.FAILED);
+						
+						ZWaveEvent zEvent = new ZWaveNodeStatusEvent(networkEvent.getNodeId(), ZWaveNodeStatusEvent.State.Failed);
+						this.notifyEventListeners(zEvent);
+						break;
+					}
+				case DeleteNode:
+					if(getNode(networkEvent.getNodeId()) == null) {
+						logger.debug("NODE {}: Deleting a node that doesn't exist.", networkEvent.getNodeId());
+						break;
+					}
+					this.zwaveNodes.remove(networkEvent.getNodeId());
+					
+					//Remove the XML file
+					ZWaveNodeSerializer nodeSerializer = new ZWaveNodeSerializer();
+					nodeSerializer.DeleteNode(event.getNodeId());
+					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -533,6 +572,53 @@ public class ZWaveController {
 			}
 		}
 	}
+	
+	/**
+	 * Polls a node for any dynamic information
+	 * @param node
+	 */
+	public void pollNode(ZWaveNode node) {
+		for (ZWaveCommandClass zwaveCommandClass : node.getCommandClasses()) {
+			logger.trace("NODE {}: Inspecting command class {}", node.getNodeId(), zwaveCommandClass.getCommandClass().getLabel());
+			if (zwaveCommandClass instanceof ZWaveCommandClassDynamicState) {
+				logger.debug("NODE {}: Found dynamic state command class {}", node.getNodeId(), zwaveCommandClass.getCommandClass()
+						.getLabel());
+				ZWaveCommandClassDynamicState zdds = (ZWaveCommandClassDynamicState) zwaveCommandClass;
+				int instances = zwaveCommandClass.getInstances();
+				if (instances == 0) {
+					Collection<SerialMessage> dynamicQueries = zdds.getDynamicValues();
+					for (SerialMessage serialMessage : dynamicQueries) {
+						sendData(serialMessage);
+					}
+				} else {
+					for (int i = 1; i <= instances; i++) {
+						Collection<SerialMessage> dynamicQueries = zdds.getDynamicValues();
+						for (SerialMessage serialMessage : dynamicQueries) {
+							sendData(node.encapsulate(serialMessage, zwaveCommandClass, i));
+						}
+					}
+				}
+			} else if (zwaveCommandClass instanceof ZWaveMultiInstanceCommandClass) {
+				ZWaveMultiInstanceCommandClass multiInstanceCommandClass = (ZWaveMultiInstanceCommandClass) zwaveCommandClass;
+				for (ZWaveEndpoint endpoint : multiInstanceCommandClass.getEndpoints()) {
+					for (ZWaveCommandClass endpointCommandClass : endpoint.getCommandClasses()) {
+						logger.trace(String.format("NODE %d: Inspecting command class %s for endpoint %d", node.getNodeId(), endpointCommandClass
+								.getCommandClass().getLabel(), endpoint.getEndpointId()));
+						if (endpointCommandClass instanceof ZWaveCommandClassDynamicState) {
+							logger.debug("NODE {}: Found dynamic state command class {}", node.getNodeId(), endpointCommandClass
+									.getCommandClass().getLabel());
+							ZWaveCommandClassDynamicState zdds2 = (ZWaveCommandClassDynamicState) endpointCommandClass;
+							Collection<SerialMessage> dynamicQueries = zdds2.getDynamicValues();
+							for (SerialMessage serialMessage : dynamicQueries) {
+								sendData(node.encapsulate(serialMessage,
+										endpointCommandClass, endpoint.getEndpointId()));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Request the node routing information.
@@ -588,6 +674,31 @@ public class ZWaveController {
 		this.enqueue(new RemoveNodeMessageClass().doRequestStop());
 	}
 
+	/**
+	 * Sends a request to perform a soft reset on the controller.
+	 * This will just reset the controller - probably similar to a power cycle.
+	 * It doesn't reinitialise the network, or change the network configuration.
+	 * 
+	 * NOTE: At least for some (most!) sticks, this doesn't return a response.
+	 * Therefore, the number of retries is set to 1.
+	 * NOTE: On some (most!) ZWave-Plus sticks, this can cause the stick to hang.
+	 */
+	public void requestSoftReset()
+	{
+		SerialMessage msg = new SerialApiSoftResetMessageClass().doRequest();
+		msg.attempts = 1;
+		this.enqueue(msg);
+	}
+
+	/**
+	* Request if the node is currently marked as failed by the controller.
+	* @param nodeId The address of the node to check
+	*/
+ 	public void requestIsFailedNode(int nodeId)
+ 	{
+ 		this.enqueue(new IsFailedNodeMessageClass().doRequest(nodeId));
+ 	}
+ 	
 	/**
 	 * Removes a failed node from the network.
 	 * Note that this won't remove nodes that have not failed.
@@ -853,91 +964,95 @@ public class ZWaveController {
 		@Override
 		public void run() {
 			logger.debug("Starting Z-Wave send thread");
-			while (!interrupted()) {
-				
-				try {
-					lastSentMessage = sendQueue.take();
-					logger.debug("Took message from queue for sending. Queue length = {}", sendQueue.size());
-				} catch (InterruptedException e1) {
-					break;
-				}
-				
-				if (lastSentMessage == null)
-					continue;
-				
-				// If this message is a data packet to a node
-				// then make sure the node is not a battery device.
-				// If it's a battery device, it needs to be awake, or we queue the frame until it is.
-				if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData) {
-					ZWaveNode node = getNode(lastSentMessage.getMessageNode());
+			try {
+				while (!interrupted()) {
 					
-					if (node != null && !node.isListening() && !node.isFrequentlyListening() && lastSentMessage.getPriority() != SerialMessagePriority.Low) {
-						ZWaveWakeUpCommandClass wakeUpCommandClass = (ZWaveWakeUpCommandClass)node.getCommandClass(CommandClass.WAKE_UP);
-
-						// If it's a battery operated device, check if it's awake or place in wake-up queue.
-						if (wakeUpCommandClass != null && !wakeUpCommandClass.processOutgoingWakeupMessage(lastSentMessage)) {
-							continue;
-						}
+					try {
+						lastSentMessage = sendQueue.take();
+						logger.debug("Took message from queue for sending. Queue length = {}", sendQueue.size());
+					} catch (InterruptedException e1) {
+						break;
 					}
-				}
-				
-				// Clear the semaphore used to acknowledge the response.
-				transactionCompleted.drainPermits();
-				
-				// Send the message to the controller
-				byte[] buffer = lastSentMessage.getMessageBuffer();
-				logger.debug("Sending Message = " + SerialMessage.bb2hex(buffer));
-				lastMessageStartTime = System.currentTimeMillis();
-				try {
-					synchronized (serialPort.getOutputStream()) {
-						serialPort.getOutputStream().write(buffer);
-						serialPort.getOutputStream().flush();
-					}
-				} catch (IOException e) {
-					logger.error("Got I/O exception {} during sending. exiting thread.", e.getLocalizedMessage());
-					break;
-				}
-				
-				// Now wait for the response...
-				try {
-					if (!transactionCompleted.tryAcquire(1, zWaveResponseTimeout, TimeUnit.MILLISECONDS)) {
-						timeOutCount.incrementAndGet();
-						if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData) {
-							
-							buffer = new SerialMessage(SerialMessageClass.SendDataAbort, SerialMessageType.Request, SerialMessageClass.SendData, SerialMessagePriority.High).getMessageBuffer();
-							logger.debug("Sending Message = " + SerialMessage.bb2hex(buffer));
-							try {
-								synchronized (serialPort.getOutputStream()) {
-									serialPort.getOutputStream().write(buffer);
-									serialPort.getOutputStream().flush();
-								}
-							} catch (IOException e) {
-								logger.error("Got I/O exception {} during sending. exiting thread.", e.getLocalizedMessage());
-								break;
+					
+					if (lastSentMessage == null)
+						continue;
+					
+					// If this message is a data packet to a node
+					// then make sure the node is not a battery device.
+					// If it's a battery device, it needs to be awake, or we queue the frame until it is.
+					if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData) {
+						ZWaveNode node = getNode(lastSentMessage.getMessageNode());
+						
+						if (node != null && !node.isListening() && !node.isFrequentlyListening() && lastSentMessage.getPriority() != SerialMessagePriority.Low) {
+							ZWaveWakeUpCommandClass wakeUpCommandClass = (ZWaveWakeUpCommandClass)node.getCommandClass(CommandClass.WAKE_UP);
+	
+							// If it's a battery operated device, check if it's awake or place in wake-up queue.
+							if (wakeUpCommandClass != null && !wakeUpCommandClass.processOutgoingWakeupMessage(lastSentMessage)) {
+								continue;
 							}
 						}
-
-						if (--lastSentMessage.attempts >= 0) {
-							logger.error("NODE {}: Timeout while sending message. Requeueing", lastSentMessage.getMessageNode());
-							if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData)
-								handleFailedSendDataRequest(lastSentMessage);
-							else
-								enqueue(lastSentMessage);
-						} else
-						{
-							logger.warn("NODE {}: Discarding message: {}", lastSentMessage.getMessageNode(), lastSentMessage.toString());
-						}
-						continue;
 					}
-					long responseTime = System.currentTimeMillis() - lastMessageStartTime;
-					if(responseTime > longestResponseTime)
-						longestResponseTime = responseTime;
-					logger.debug("Response processed after {}ms/{}ms.", responseTime, longestResponseTime);
-					logger.trace("Acquired. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
-				} catch (InterruptedException e) {
-					break;
+					
+					// Clear the semaphore used to acknowledge the response.
+					transactionCompleted.drainPermits();
+					
+					// Send the message to the controller
+					byte[] buffer = lastSentMessage.getMessageBuffer();
+					logger.debug("Sending Message = " + SerialMessage.bb2hex(buffer));
+					lastMessageStartTime = System.currentTimeMillis();
+					try {
+						synchronized (serialPort.getOutputStream()) {
+							serialPort.getOutputStream().write(buffer);
+							serialPort.getOutputStream().flush();
+						}
+					} catch (IOException e) {
+						logger.error("Got I/O exception {} during sending. exiting thread.", e.getLocalizedMessage());
+						break;
+					}
+					
+					// Now wait for the response...
+					try {
+						if (!transactionCompleted.tryAcquire(1, zWaveResponseTimeout, TimeUnit.MILLISECONDS)) {
+							timeOutCount.incrementAndGet();
+							if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData) {
+								
+								buffer = new SerialMessage(SerialMessageClass.SendDataAbort, SerialMessageType.Request, SerialMessageClass.SendData, SerialMessagePriority.High).getMessageBuffer();
+								logger.debug("Sending Message = " + SerialMessage.bb2hex(buffer));
+								try {
+									synchronized (serialPort.getOutputStream()) {
+										serialPort.getOutputStream().write(buffer);
+										serialPort.getOutputStream().flush();
+									}
+								} catch (IOException e) {
+									logger.error("Got I/O exception {} during sending. exiting thread.", e.getLocalizedMessage());
+									break;
+								}
+							}
+	
+							if (--lastSentMessage.attempts >= 0) {
+								logger.error("NODE {}: Timeout while sending message. Requeueing", lastSentMessage.getMessageNode());
+								if (lastSentMessage.getMessageClass() == SerialMessageClass.SendData)
+									handleFailedSendDataRequest(lastSentMessage);
+								else
+									enqueue(lastSentMessage);
+							} else
+							{
+								logger.warn("NODE {}: Discarding message: {}", lastSentMessage.getMessageNode(), lastSentMessage.toString());
+							}
+							continue;
+						}
+						long responseTime = System.currentTimeMillis() - lastMessageStartTime;
+						if(responseTime > longestResponseTime)
+							longestResponseTime = responseTime;
+						logger.debug("Response processed after {}ms/{}ms.", responseTime, longestResponseTime);
+						logger.trace("Acquired. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
+					} catch (InterruptedException e) {
+						break;
+					}
+					
 				}
-				
+			} catch (Exception e) {
+				logger.error("Got an exception during sending. exiting thread.", e);
 			}
 			logger.debug("Stopped Z-Wave send thread");
 		}
@@ -996,84 +1111,88 @@ public class ZWaveController {
 		@Override
 		public void run() {
 			logger.debug("Starting Z-Wave receive thread");
-
-			// Send a NAK to resynchronise communications
-			sendResponse(NAK);
-
-			while (!interrupted()) {
-				int nextByte;
-				
-				try {
-					nextByte = serialPort.getInputStream().read();
+			try {
+	
+				// Send a NAK to resynchronise communications
+				sendResponse(NAK);
+	
+				while (!interrupted()) {
+					int nextByte;
 					
-					if (nextByte == -1)
-						continue;
-					
-				} catch (IOException e) {
-					logger.error("Got I/O exception {} during receiving. exiting thread.", e.getLocalizedMessage());
-					break;
-				}
-				
-				switch (nextByte) {
-					case SOF:
-						int messageLength;
+					try {
+						nextByte = serialPort.getInputStream().read();
 						
-						try {
-							messageLength = serialPort.getInputStream().read();
+						if (nextByte == -1)
+							continue;
+						
+					} catch (IOException e) {
+						logger.error("Got I/O exception {} during receiving. exiting thread.", e.getLocalizedMessage());
+						break;
+					}
+					
+					switch (nextByte) {
+						case SOF:
+							int messageLength;
 							
-						} catch (IOException e) {
-							logger.error("Got I/O exception {} during receiving. exiting thread.", e.getLocalizedMessage());
-							break;
-						}
-						
-						byte[] buffer = new byte[messageLength + 2];
-						buffer[0] = SOF;
-						buffer[1] = (byte)messageLength;
-						int total = 0;
-						
-						while (total < messageLength) {
 							try {
-								int read = serialPort.getInputStream().read(buffer, total + 2, messageLength - total); 
-								total += (read > 0 ? read : 0);
+								messageLength = serialPort.getInputStream().read();
+								
 							} catch (IOException e) {
 								logger.error("Got I/O exception {} during receiving. exiting thread.", e.getLocalizedMessage());
-								return;
+								break;
 							}
-						}
-						
-						logger.trace("Reading message finished" );
-						logger.debug("Receive Message = {}", SerialMessage.bb2hex(buffer));
-						processIncomingMessage(buffer);
-						SOFCount++;
-						break;
-					case ACK:
-    					logger.trace("Received ACK");
-						ACKCount++;
-						break;
-					case NAK:
-    					logger.error("Message not acklowledged by controller (NAK), discarding");
-    					transactionCompleted.release();
-    					logger.trace("Released. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
-						NAKCount++;
-						break;
-					case CAN:
-    					logger.error("Message cancelled by controller (CAN), resending");
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {
+							
+							byte[] buffer = new byte[messageLength + 2];
+							buffer[0] = SOF;
+							buffer[1] = (byte)messageLength;
+							int total = 0;
+							
+							while (total < messageLength) {
+								try {
+									int read = serialPort.getInputStream().read(buffer, total + 2, messageLength - total); 
+									total += (read > 0 ? read : 0);
+								} catch (IOException e) {
+									logger.error("Got I/O exception {} during receiving. exiting thread.", e.getLocalizedMessage());
+									return;
+								}
+							}
+							
+							logger.trace("Reading message finished" );
+							logger.debug("Receive Message = {}", SerialMessage.bb2hex(buffer));
+							processIncomingMessage(buffer);
+							SOFCount++;
 							break;
-						}
-    					enqueue(lastSentMessage);
-    					transactionCompleted.release();
-    					logger.trace("Released. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
-						CANCount++;
-						break;
-					default:
-						logger.warn(String.format("Out of Frame flow. Got 0x%02X. Sending NAK.", nextByte));
-    					sendResponse(NAK);
-    					OOFCount++;
-    					break;
+						case ACK:
+	    					logger.trace("Received ACK");
+							ACKCount++;
+							break;
+						case NAK:
+	    					logger.error("Message not acklowledged by controller (NAK), discarding");
+	    					transactionCompleted.release();
+	    					logger.trace("Released. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
+							NAKCount++;
+							break;
+						case CAN:
+	    					logger.error("Message cancelled by controller (CAN), resending");
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								break;
+							}
+	    					enqueue(lastSentMessage);
+	    					transactionCompleted.release();
+	    					logger.trace("Released. Transaction completed permit count -> {}", transactionCompleted.availablePermits());
+							CANCount++;
+							break;
+						default:
+							logger.warn(String.format("Out of Frame flow. Got 0x%02X. Sending NAK.", nextByte));
+	    					sendResponse(NAK);
+	    					OOFCount++;
+	    					break;
+					}
 				}
+			} catch (Exception e) {
+				logger.error("Got an exception during receiving. exiting thread.", e);
 			}
 			logger.debug("Stopped Z-Wave receive thread");
 		}
