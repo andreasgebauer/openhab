@@ -28,9 +28,12 @@
  */
 package org.openhab.binding.cul.internal;
 
+import gnu.io.SerialPort;
+
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringUtils;
@@ -150,7 +153,11 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     private void bindCULHandler() {
 	if (!StringUtils.isEmpty(this.deviceName)) {
 	    try {
-		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_COMM_DETAIL);
+		HashMap<String, Object> parameters = new HashMap<String, Object>();
+		// this is for COC to work
+		parameters.put("baudrate", 38400);
+		parameters.put("parity", SerialPort.PARITY_NONE);
+		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_NORMAL, parameters);
 		this.messageSender = new MessageSenderImpl(this.cul);
 		this.cul.registerListener(this);
 	    } catch (final CULDeviceException e) {

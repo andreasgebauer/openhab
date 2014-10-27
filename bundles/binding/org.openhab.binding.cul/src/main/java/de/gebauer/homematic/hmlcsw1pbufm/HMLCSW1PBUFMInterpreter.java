@@ -16,6 +16,19 @@ import de.gebauer.homematic.msg.MessageType;
 
 public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 
+    public static final class SwitchState implements DeviceState {
+
+	private boolean on;
+
+	public SwitchState(boolean on) {
+	    this.on = on;
+	}
+
+	public boolean isOn() {
+	    return on;
+	}
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(HMLCSW1PBUFMInterpreter.class);
 
     @Override
@@ -43,7 +56,7 @@ public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 
 		final AbstractMessageParameter msgParam = new AbstractMessageParameter(m, src, dst, (short) 1, rssi);
 
-		return new SwitchStateMessage(msgParam, state == 0xC8);
+		return new SwitchStateMessage(msgParam, new SwitchState(state == 0xC8));
 	    }
 	} else if (m.getMsgType() == MessageType.ACK) {
 	    if (m.getMsgFlag() == MessageFlag.VAL_80) {
@@ -53,9 +66,7 @@ public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 		final int state = MessageInterpreter.toInt(payload, 4, 2);
 		final int rssi = MessageInterpreter.toInt(payload, 8, 2);
 
-		return new AckStatusEvent(m, src, dst, chnl, rssi, new DeviceState() {
-
-		});
+		return new AckStatusEvent(m, src, dst, chnl, rssi, new SwitchState(state == 0xC8));
 	    }
 	}
 

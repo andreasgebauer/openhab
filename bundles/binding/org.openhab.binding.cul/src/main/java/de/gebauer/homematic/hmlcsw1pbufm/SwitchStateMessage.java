@@ -1,15 +1,16 @@
 package de.gebauer.homematic.hmlcsw1pbufm;
 
+import de.gebauer.homematic.hmlcsw1pbufm.HMLCSW1PBUFMInterpreter.SwitchState;
 import de.gebauer.homematic.msg.AbstractMessage;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.MessageType;
 
 public class SwitchStateMessage extends AbstractMessage {
 
-    private boolean state;
+    private SwitchState state;
 
-    public SwitchStateMessage(AbstractMessageParameter parameterObject, boolean state) {
-	super(parameterObject);
+    public SwitchStateMessage(AbstractMessageParameter msgParam, SwitchState state) {
+	super(msgParam);
 	this.state = state;
     }
 
@@ -28,7 +29,7 @@ public class SwitchStateMessage extends AbstractMessage {
 	return true;
     }
 
-    public boolean isOn() {
+    public SwitchState getState() {
 	return state;
     }
 
@@ -36,6 +37,5 @@ public class SwitchStateMessage extends AbstractMessage {
     public String toString() {
 	return "SwitchStateMessage [state=" + state + ", msg=" + getRawMessage() + "]";
     }
-
 
 }
