@@ -20,6 +20,7 @@ import de.gebauer.homematic.hmccvd.BatteryStatus;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
 import de.gebauer.homematic.hmccvd.ValveData;
 import de.gebauer.homematic.hmlcdim1tpi2.DimmerStateChangeEvent;
+import de.gebauer.homematic.hmlcsw1pbufm.SwitchStateMessage;
 import de.gebauer.homematic.hmsecsc.ShutterStateEvent;
 import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
@@ -100,12 +101,17 @@ public class HMHandler {
 		    this.homematicCULBinding.postUpdate(config.getItem().getName(), batStatus == BatteryStatus.OK ? OnOffType.ON : OnOffType.OFF);
 		}
 	    }
-	}
-	else if (message instanceof ShutterStateEvent) {
+	} else if (message instanceof ShutterStateEvent) {
 	    config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "STATE");
 	    if (config != null) {
 		this.homematicCULBinding.postUpdate(config.getItem().getName(), ((ShutterStateEvent) message).isClosed() ? OpenClosedType.CLOSED
 			: OpenClosedType.OPEN);
+	    }
+	} else if (message instanceof SwitchStateMessage) {
+	    config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "STATE");
+	    if (config != null) {
+		boolean on = ((SwitchStateMessage) message).isOn();
+		this.homematicCULBinding.postUpdate(config.getItem().getName(), on ? OnOffType.ON : OnOffType.OFF);
 	    }
 	} else if (message instanceof DimmerStateChangeEvent) {
 	    config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "DIM");

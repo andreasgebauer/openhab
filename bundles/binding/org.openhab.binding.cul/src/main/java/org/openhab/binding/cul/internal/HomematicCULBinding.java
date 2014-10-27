@@ -76,6 +76,7 @@ import de.gebauer.homematic.hmlcdim1tpi2.Dimmer;
 import de.gebauer.homematic.hmlcsw1pbufm.Switch;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusEvent;
+import de.gebauer.homematic.msg.ConfigEndMessage;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.DeviceInfoEvent;
 import de.gebauer.homematic.msg.Message;
@@ -149,7 +150,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     private void bindCULHandler() {
 	if (!StringUtils.isEmpty(this.deviceName)) {
 	    try {
-		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN2);
+		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_COMM_DETAIL);
 		this.messageSender = new MessageSenderImpl(this.cul);
 		this.cul.registerListener(this);
 	    } catch (final CULDeviceException e) {
@@ -232,10 +233,10 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	    } else if (command instanceof OnOffType) {
 		switch ((OnOffType) command) {
 		case ON:
-		    message = new DimMessage(this.ccu, destination, true);
+		    ((Dimmer) destination).on(ccu);
 		    break;
 		case OFF:
-		    message = new DimMessage(this.ccu, destination, false);
+		    ((Dimmer) destination).off(ccu);
 		    break;
 		default:
 		    break;
@@ -268,21 +269,17 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		return false;
 	    }
 	} else if (destination instanceof Switch) {
-	    DimMessage message = null;
 	    if (command instanceof OnOffType) {
 		switch ((OnOffType) command) {
 		case ON:
-		    message = new DimMessage(this.ccu, destination, true);
+		    ((Switch) destination).on(ccu);
 		    break;
 		case OFF:
-		    message = new DimMessage(this.ccu, destination, false);
+		    ((Switch) destination).off(ccu);
 		    break;
 		default:
 		    break;
 		}
-	    }
-	    if (message != null) {
-		destination.addToSendQueue(new SimpleCommand(message));
 	    }
 	    return true;
 	}
@@ -485,10 +482,14 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
 	    // 02010A130BC80C6D
 	    if (message.getSource().getInfo().mdl == Model.HMCCVD) {
-		// ACT as TC
+		// try to simulate a TC
 		final PairingCommand pairingCommand = new PairingCommand();
 		// 21 0039 4B455130303339363531 58 00 02 00
-		String serNo = "4B455130303339363531";
+
+		String serNo = message.getSource().getInfo().serNo;
+		if (serNo == null) {
+		    serNo = "4B455130303339363531";
+		}
 		// String serNo = "00000000000000000000";
 		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, serNo);
 		final String pAddr = "000000";
@@ -550,7 +551,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		    if (this.ccu.getHmPairSerial() != null
 			    && this.ccu.getHmPairSerial().equals(message.getSource().getInfo().serNo)
 			    && message.getSource().getCommandStack().isEmpty()) {
-			if (request.hasAck()) {
+			if (request.hasAck() && request instanceof ConfigEndMessage) {
 			    LOG.info("Successfully paired CCU with " + message.getSource());
 			    this.ccu.pairedWith(message.getSource());
 

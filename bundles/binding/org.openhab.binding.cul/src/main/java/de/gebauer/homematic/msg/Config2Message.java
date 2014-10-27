@@ -6,7 +6,7 @@ package de.gebauer.homematic.msg;
  * 
  * <br>
  * <br>
- * send from TC to VD when going to unpair.
+ * sent from TC to VD when going to unpair.
  * 
  * @author andi
  * 

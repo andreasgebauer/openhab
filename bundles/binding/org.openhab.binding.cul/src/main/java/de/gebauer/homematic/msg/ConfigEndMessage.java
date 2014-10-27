@@ -10,37 +10,25 @@ package de.gebauer.homematic.msg;
  * 
  * 
  */
-public class ConfigEndMessage extends AbstractMessage implements Message {
+public class ConfigEndMessage extends AbstractConfigMessage implements Message {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
-    private final short subType;
 
     public ConfigEndMessage(AbstractMessageParameter msgParam) {
 	super(msgParam);
-	this.subType = 0x06;
     }
 
     @Override
-    public MessageType getType() {
-	return MessageType.CONFIG;
-    }
-
-    @Override
-    public String getPayload() {
-	return String.format("%02X%02X", getChannel(), subType);
-    }
-
-    @Override
-    public boolean needsAck() {
-	return true;
+    public short getSubType() {
+	return 0x06;
     }
 
     @Override
     public String toString() {
-	return "ConfigEndCommand [subType=" + subType + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
+	return "ConfigEndCommand [subType=" + getSubType() + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }
 
 }

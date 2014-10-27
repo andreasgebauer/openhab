@@ -8,12 +8,12 @@ import de.gebauer.homematic.msg.InfoActuatorStatusMessage;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.StatusChangeEvent.ChannelStatus;
 
-public class TemperaturSetMessage extends InfoActuatorStatusMessage implements Message {
+public class TemperatureSetMessage extends InfoActuatorStatusMessage implements Message {
 
     private final BigDecimal desiredTemp;
 
-    public TemperaturSetMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, BigDecimal desiredTemp, ChannelStatus chStatus) {
-	super(msg, src, dst, (short) 0x02, chStatus);
+    public TemperatureSetMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, BigDecimal desiredTemp, ChannelStatus chStatus) {
+	super(msg, src, dst, chStatus);
 	this.desiredTemp = desiredTemp;
     }
 

@@ -24,12 +24,12 @@ public class CommandMessage extends AbstractMessage implements Message {
 
     @Override
     public String getPayload() {
-	throw new UnsupportedOperationException("Not yet implemented.");
+	return this.payload;
     }
 
     @Override
     public boolean needsAck() {
-	return false;
+	return true;
     }
 
 }

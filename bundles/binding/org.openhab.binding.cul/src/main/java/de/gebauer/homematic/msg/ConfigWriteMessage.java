@@ -1,41 +1,35 @@
 package de.gebauer.homematic.msg;
 
 /**
- * 
+ * ConfigMessage with subtyp 0x08 <br>
+ * <br>
  * ..08.... ccttdddd
  * 
  * @author andi
  * 
  */
-public class ConfigWriteMessage extends AbstractMessage implements Message {
+public class ConfigWriteMessage extends AbstractConfigMessage implements Message {
 
     private String data;
-    private short subType;
 
     public ConfigWriteMessage(AbstractMessageParameter msgParam, String data) {
 	super(msgParam);
 	this.data = data;
-	this.subType = 0x08;
-    }
-
-    @Override
-    public MessageType getType() {
-	return MessageType.CONFIG;
     }
 
     @Override
     public String getPayload() {
-	return String.format("%02X%02X%s", getChannel(), subType, data);
-    }
-
-    @Override
-    public boolean needsAck() {
-	return true;
+	return String.format("%02X%02X%s", getChannel(), getSubType(), data);
     }
 
     @Override
     public String toString() {
-	return "ConfigWriteCommand [data=" + data + ", subType=" + subType + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
+	return "ConfigWriteCommand [data=" + data + ", subType=" + getSubType() + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
+    }
+
+    @Override
+    public short getSubType() {
+	return 0x08;
     }
 
 }

@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.gebauer.cul.homematic.out.MessageSender;
-import de.gebauer.cul.homematic.out.MessageSenderImpl;
 import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
 import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.msg.Message;

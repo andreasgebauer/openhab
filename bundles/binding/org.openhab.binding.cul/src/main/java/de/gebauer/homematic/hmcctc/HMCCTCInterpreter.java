@@ -499,7 +499,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		chStatus.peerId = data.substring(2, 6);
 		chStatus.peerChannel = toShort(data.substring(2, 6));
 
-		return new TemperaturSetMessage(msg, src, dst, desiredTemp, chStatus);
+		return new TemperatureSetMessage(msg, src, dst, desiredTemp, chStatus);
 	    }
 	    break;
 	case COMMAND:

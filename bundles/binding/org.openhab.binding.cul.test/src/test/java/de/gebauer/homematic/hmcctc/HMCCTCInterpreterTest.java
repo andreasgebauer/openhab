@@ -1,8 +1,9 @@
 package de.gebauer.homematic.hmcctc;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 
@@ -41,8 +42,8 @@ public class HMCCTCInterpreterTest {
 	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA80806021D00000000"), src, dst);
 
 	assertNotNull(read);
-	assertTrue(read instanceof TemperaturSetMessage);
-	TemperaturSetMessage message = (TemperaturSetMessage) read;
+	assertTrue(read instanceof TemperatureSetMessage);
+	TemperatureSetMessage message = (TemperatureSetMessage) read;
 	assertEquals(new BigDecimal("14.5"), message.getDesiredTemp());
     }
 
@@ -86,7 +87,18 @@ public class HMCCTCInterpreterTest {
 	BasicTCInfoMessage basicTcInfo = (BasicTCInfoMessage) read;
 
 	assertEquals(ControlMode.CENTRAL, basicTcInfo.getControlMode());
-
     }
 
+    @Test
+    public void testSetTemperatureTo23() {
+	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A10B5A4101EA80813C86D06022E0000000044"), null, null);
+
+	assertNotNull(read);
+	assertTrue(read instanceof TemperatureSetMessage);
+	TemperatureSetMessage tsm = (TemperatureSetMessage) read;
+
+	BigDecimal desiredTemp = tsm.getDesiredTemp();
+	assertEquals(23, desiredTemp.doubleValue(), 0);
+
+    }
 }

@@ -14,8 +14,8 @@ public class InfoActuatorStatusMessage extends AbstractMessage implements Messag
 
     protected ChannelStatus chStatus;
 
-    public InfoActuatorStatusMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, ChannelStatus chStatus) {
-	super(new AbstractMessageParameter(msg, src, dst, channel));
+    public InfoActuatorStatusMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, ChannelStatus chStatus) {
+	super(new AbstractMessageParameter(msg, src, dst, chStatus.channel));
 	this.chStatus = chStatus;
     }
 
@@ -32,6 +32,10 @@ public class InfoActuatorStatusMessage extends AbstractMessage implements Messag
     @Override
     public boolean needsAck() {
 	return true;
+    }
+
+    public ChannelStatus getChannelStatus() {
+	return chStatus;
     }
 
 }

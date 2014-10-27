@@ -21,7 +21,7 @@ public class ConfigStartMessage extends AbstractConfigMessage {
 
     @Override
     public String toString() {
-	return "ConfigStartCommand [paramList=" + paramList + ", peerAddress=" + peerAddress + ", peerChannel=" + peerChannel
+	return "ConfigStartCommand [paramList=" + paramList + ", peerAddress=" + peerData.peerAddress + ", peerChannel=" + peerData.peerChannel
 		+ ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }
 

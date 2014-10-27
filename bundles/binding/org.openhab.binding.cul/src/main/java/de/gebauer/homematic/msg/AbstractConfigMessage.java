@@ -16,16 +16,19 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
      * 
      */
     private static final long serialVersionUID = 1L;
-    protected final String peerAddress;
-    protected final short peerChannel;
-    protected final short paramList;
+    protected PeerData peerData = new PeerData();
+    protected Short paramList;
 
     public AbstractConfigMessage(final AbstractMessageParameter msgParam, final String peerAddress, final short peerChannel, final short paramList) {
 	super(msgParam);
 	// byte 2 from payload
-	this.peerAddress = peerAddress;
-	this.peerChannel = peerChannel;
+	this.peerData.peerAddress = peerAddress;
+	this.peerData.peerChannel = peerChannel;
 	this.paramList = paramList;
+    }
+
+    public AbstractConfigMessage(final AbstractMessageParameter msgParam) {
+	super(msgParam);
     }
 
     @Override
@@ -35,7 +38,12 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
 
     @Override
     public String getPayload() {
-	return String.format("%02X%02X%s%02X%02X", this.getChannel(), this.getSubType(), this.peerAddress, this.peerChannel, this.paramList);
+	if (peerData != null) {
+	    return String.format("%02X%02X%s%02X%02X", this.getChannel(), this.getSubType(), this.peerData.peerAddress, this.peerData.peerChannel,
+		    this.paramList);
+	}
+
+	return String.format("%02X%02X", this.getChannel(), this.getSubType());
     }
 
     @Override
@@ -44,7 +52,7 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
     }
 
     public String getPeerId() {
-	return this.peerAddress + String.format("%02X", peerChannel);
+	return this.peerData.peerAddress + String.format("%02X", peerData.peerChannel);
     }
 
     public short getPeerList() {
@@ -52,7 +60,7 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
     }
 
     public short getPeerChannel() {
-	return this.peerChannel;
+	return this.peerData.peerChannel;
     }
 
     /**
@@ -64,7 +72,8 @@ public abstract class AbstractConfigMessage extends AbstractMessage {
 
     @Override
     public String toString() {
-	return this.getClass().getSimpleName() + " [paramList=" + paramList + ", peerAddress=" + peerAddress + ", peerChannel=" + peerChannel + ", subType="
+	return this.getClass().getSimpleName() + " [paramList=" + paramList + ", peerAddress=" + peerData.peerAddress + ", peerChannel=" + peerData.peerChannel
+		+ ", subType="
 		+ getSubType() + ", msg=" + this.getRawMessage() + ", channel=" + this.getChannel() + "]";
     }
 

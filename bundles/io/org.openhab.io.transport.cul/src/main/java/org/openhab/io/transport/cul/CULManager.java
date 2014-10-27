@@ -140,7 +140,7 @@ public class CULManager {
 		logger.debug("Searching class for device type " + deviceType);
 		Class<? extends CULHandler> culHandlerclass = deviceTypeClasses.get(deviceType);
 		if (culHandlerclass == null) {
-			throw new CULDeviceException("No class for the device type " + deviceType + " is registred");
+			throw new CULDeviceException("No class for the device type " + deviceType + " is registered");
 		}
 		
 		Class<?>[] constructorParametersTypes = { String.class, CULMode.class };
