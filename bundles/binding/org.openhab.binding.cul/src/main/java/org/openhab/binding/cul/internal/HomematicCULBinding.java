@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringUtils;
@@ -134,6 +135,8 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
     protected HMHandler hmHandler;
 
+    private Map<String, Integer> deviceParams;
+
     public HomematicCULBinding() {
 	INSTANCE = this;
     }
@@ -153,11 +156,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     private void bindCULHandler() {
 	if (!StringUtils.isEmpty(this.deviceName)) {
 	    try {
-		HashMap<String, Object> parameters = new HashMap<String, Object>();
-		// this is for COC to work
-		parameters.put("baudrate", 38400);
-		parameters.put("parity", SerialPort.PARITY_NONE);
-		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_NORMAL, parameters);
+		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_NORMAL, this.deviceParams);
 		this.messageSender = new MessageSenderImpl(this.cul);
 		this.cul.registerListener(this);
 	    } catch (final CULDeviceException e) {
@@ -376,17 +375,27 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	    final String deviceName = (String) config.get(PROPERTY_DEVICE);
 	    LOG.debug("Received new device name: " + deviceName);
 	    if (!StringUtils.isEmpty(deviceName)) {
-		if (!deviceName.equals(this.deviceName)) {
-		    this.deviceName = deviceName;
-		    try {
-			CULManager.close(this.cul);
-			this.bindCULHandler();
-		    } catch (final Exception e) {
-			setProperlyConfigured(false);
-			LOG.error("Can't open CUL device after configuration change", e);
-			throw new ConfigurationException(PROPERTY_DEVICE, "Can't open/close CUL device", e);
+
+		Map<String, Integer> params = new HashMap<String, Integer>();
+		String[] split = deviceName.split(";");
+		if (split.length > 1) {
+		    for (int i = 1; i < split.length; i++) {
+			String string = split[i];
+			String[] kv = string.split(":");
+			params.put(kv[0], Integer.valueOf(kv[1]));
 		    }
+		}
+
+		this.deviceName = split[0];
+		this.deviceParams = params;
+		try {
+		    CULManager.close(this.cul);
+		    this.bindCULHandler();
 		    setProperlyConfigured(true);
+		} catch (final Exception e) {
+		    setProperlyConfigured(false);
+		    LOG.error("Can't open CUL device after configuration change", e);
+		    throw new ConfigurationException(PROPERTY_DEVICE, "Can't open/close CUL device", e);
 		}
 	    } else {
 		setProperlyConfigured(false);
