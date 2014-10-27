@@ -393,7 +393,7 @@ public class MessageInterpreter implements MessageParser, DeviceMessageInterpret
     public static RawMessage getRawMessage(final String readLine) {
 	final RawMessageBuilder rawMessage = new RawMessageBuilder();
 
-	final Pattern compile = Pattern.compile(".(..)(..)(..)(..)(......)(......)(.*)");
+	final Pattern compile = Pattern.compile("A(..)(..)(..)(..)(......)(......)(.*)");
 	final Matcher matcher = compile.matcher(readLine);
 	if (matcher.matches()) {
 	    rawMessage.setLength(matcher.group(1));

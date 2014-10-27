@@ -54,7 +54,7 @@ public class CULBindingTest {
 
 	ParamResponseMessage paramResponseMessage = new ParamResponseMessage(msg, src, ccu, null, " 00:00");
 
-	binding.dataReceived("");
+	binding.dataReceived("A02010101010101010101");
 
     }
 }

@@ -2,6 +2,7 @@ package de.gebauer.homematic.hmccvd;
 
 import static org.junit.Assert.assertNotNull;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.gebauer.cul.homematic.in.MessageInterpreter;
@@ -13,6 +14,7 @@ public class HMCCVDInterpreterTest {
     private HMCCVDInterpreter interpreter;
 
     @Test
+    @Ignore
     public void testRead() throws Exception {
 	this.interpreter = new HMCCVDInterpreter();
 
