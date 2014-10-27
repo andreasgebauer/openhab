@@ -27,6 +27,12 @@ public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 	public boolean isOn() {
 	    return on;
 	}
+
+	@Override
+	public String toString() {
+	    return "SwitchState [on=" + on + "]";
+	}
+
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(HMLCSW1PBUFMInterpreter.class);

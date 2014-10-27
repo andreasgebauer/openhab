@@ -61,11 +61,7 @@ public class HMHandler {
 
 	config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "RSSI");
 	if (config != null) {
-	    int rssi = message.getRSSI() + 32;
-	    if (rssi > 255) {
-		rssi -= 256;
-	    }
-	    this.homematicCULBinding.postUpdate(config.getItem().getName(), new PercentType(rssi));
+	    this.homematicCULBinding.postUpdate(config.getItem().getName(), new PercentType(message.getRSSI()));
 	}
 
 	if (message instanceof WeatherEvent) {
@@ -82,7 +78,6 @@ public class HMHandler {
 	    }
 	} else if (message instanceof ClimateMessage) {
 	    final int command = ((ClimateMessage) message).getValvePos();
-
 	    config = this.homematicCULBinding.getWritableBindingForAddress(message.getDestination().getName() + ":" + "DESIRED");
 	    if (config != null) {
 		this.homematicCULBinding.postUpdate(config.getItem().getName(), new PercentType(command));
@@ -104,7 +99,7 @@ public class HMHandler {
 	    } else if (deviceState instanceof HMLCSW1PBUFMInterpreter.SwitchState) {
 		config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "STATE");
 		if (config != null) {
-		    boolean on = ((SwitchStateMessage) message).getState().isOn();
+		    boolean on = ((HMLCSW1PBUFMInterpreter.SwitchState) deviceState).isOn();
 		    this.homematicCULBinding.postUpdate(config.getItem().getName(), on ? OnOffType.ON : OnOffType.OFF);
 		}
 	    }
@@ -124,11 +119,9 @@ public class HMHandler {
 	    config = this.homematicCULBinding.getWritableBindingForAddress(message.getSource().getName() + ":" + "DIM");
 	    if (config != null) {
 		final int state = ((DimmerStateChangeEvent) message).getState() / 2;
-		((DimmerItem) config.getItem()).setState(new PercentType(state));
 		this.homematicCULBinding.postUpdate(config.getItem().getName(), new PercentType(state));
 	    }
 	} else if (message instanceof TemperaturePeriodEvent) {
-	    // TODO need to send special ACK!?!
 	    // event.getSender().addToSendQueue(new AckStatusMessage(ccu, event.getSender(), (short) 2));
 	}
 
