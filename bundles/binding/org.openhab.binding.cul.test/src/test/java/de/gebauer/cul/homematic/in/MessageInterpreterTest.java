@@ -4,6 +4,8 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigDecimal;
+
 import org.junit.Test;
 
 import de.gebauer.homematic.DeviceInfo;
@@ -44,5 +46,21 @@ public class MessageInterpreterTest {
 	ParamResponseMessage paramRspMsg = (ParamResponseMessage) msg;
 	assertEquals(" 09:00 0A:04 00:00", paramRspMsg.getData());
     }
-    
+
+    @Test
+    public void testParseRssi() {
+
+	BigDecimal rssi = MessageInterpreter.getRSSI("A0F98861029D7C60000000A24D20F00F2");
+
+	assertEquals(new BigDecimal("-81.0"), rssi);
+
+	rssi = MessageInterpreter.getRSSI("A0B3FA2581EA8081C4E7F00000B");
+
+	assertEquals(new BigDecimal("-68.5"), rssi);
+
+	rssi = MessageInterpreter.getRSSI("A0B3FA2581EA8081C4E7F000094");
+
+	assertEquals(new BigDecimal("0.0"), rssi);
+    }
+
 }

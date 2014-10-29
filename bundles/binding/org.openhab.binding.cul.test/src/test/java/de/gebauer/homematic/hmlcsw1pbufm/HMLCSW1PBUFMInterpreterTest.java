@@ -32,7 +32,7 @@ public class HMLCSW1PBUFMInterpreterTest {
 	assertNotNull(read);
 	assertTrue(read instanceof SwitchStateMessage);
 	SwitchStateMessage ssm = (SwitchStateMessage) read;
-	assertEquals(false, ssm.isOn());
+	assertEquals(false, ssm.getState().isOn());
     }
 
     // A0E07A410209DA113C86D0601C8004A24
@@ -49,7 +49,7 @@ public class HMLCSW1PBUFMInterpreterTest {
 	assertNotNull(read);
 	assertTrue(read instanceof SwitchStateMessage);
 	SwitchStateMessage ssm = (SwitchStateMessage) read;
-	assertEquals(true, ssm.isOn());
+	assertEquals(true, ssm.getState().isOn());
     }
 
 }
