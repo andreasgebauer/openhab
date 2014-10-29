@@ -1,7 +1,5 @@
 package de.gebauer.homematic.msg;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
 
 /**
  * set desired temperature:
@@ -16,8 +14,8 @@ public class SetMessage extends AbstractMessage {
 
     private short value;
 
-    public SetMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short chnl, short value) {
-	super(new AbstractMessageParameter(msg, srcDevice, dstDevice, chnl));
+    public SetMessage(AbstractMessageParameter param, short value) {
+	super(param);
 	this.value = value;
     }
 

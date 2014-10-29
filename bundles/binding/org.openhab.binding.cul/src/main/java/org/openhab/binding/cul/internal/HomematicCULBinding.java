@@ -28,8 +28,6 @@
  */
 package org.openhab.binding.cul.internal;
 
-import gnu.io.SerialPort;
-
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -41,6 +39,9 @@ import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.cul.HomematicCULBindingProvider;
 import org.openhab.binding.cul.internal.binding.HomeMaticBindingConfig;
 import org.openhab.core.binding.AbstractActiveBinding;
+import org.openhab.core.binding.BindingProvider;
+import org.openhab.core.items.Item;
+import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
@@ -147,13 +148,16 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
      */
     @Override
     public void activate() {
+	super.activate();
+
 	this.dvcStore = new DeviceStore();
 	this.messageParser = new MessageInterpreter(this.dvcStore);
 	this.hmHandler = new HMHandler(this);
-	this.bindCULHandler();
     }
 
     private void bindCULHandler() {
+	LOG.info("Binding CUL and initializing.");
+
 	if (!StringUtils.isEmpty(this.deviceName)) {
 	    try {
 		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN_NORMAL, this.deviceParams);
@@ -197,8 +201,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
      */
     @Override
     public boolean isProperlyConfigured() {
-	LOG.debug(this.isProperlyConfigured() ? "We are properly configured"
-		: "We are not properly configured");
+	LOG.debug(this.isProperlyConfigured() ? "We are properly configured" : "We are not properly configured");
 	return this.isProperlyConfigured();
     }
 
@@ -212,7 +215,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	// event bus goes here. This method is only called if one of the
 	// BindingProviders provide a binding for the given 'itemName'.
 	LOG.debug("internalReceiveCommand() is called for item " + itemName);
-	final HomeMaticBindingConfig config = this.getBindingForItem(itemName);
+	final HomeMaticBindingConfig config = this.getBindingForName(itemName);
 
 	try {
 	    if (config != null && config.isWriteable()) {
@@ -229,7 +232,9 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
     public boolean executeCommand(final CULHandler cul, final Command command, final HomeMaticBindingConfig config) {
 	final AbstractDevice destination = this.dvcStore.get(config.getId());
-	State state = config.getItem().getState();
+	Item item = config.getItem();
+	LOG.info("Item {} should receive command {}", item.hashCode(), command);
+	State state = item.getState();
 
 	if (destination instanceof Dimmer) {
 	    DimMessage message = null;
@@ -268,11 +273,13 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	    }
 	    return true;
 	} else if (destination instanceof ThermoControl) {
-	    if (command instanceof DecimalType) {
-		final int intValue = ((DecimalType) command).intValue();
-		final ControlMode valueOf = ControlMode.valueOf(intValue);
-		((ThermoControl) destination).controlMode(this.ccu, valueOf);
-		return false;
+	    if ("CONTROL_MODE".equals(config.getParameter())) {
+		if (command instanceof DecimalType) {
+		    final int intValue = ((DecimalType) command).intValue();
+		    final ControlMode valueOf = ControlMode.valueOf(intValue);
+		    ((ThermoControl) destination).controlMode(this.ccu, valueOf);
+		    return false;
+		}
 	    }
 	} else if (destination instanceof Switch) {
 	    if (command instanceof OnOffType) {
@@ -301,11 +308,12 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	// event bus goes here. This method is only called if one of the
 	// BindingProviders provide a binding for the given 'itemName'.
 	LOG.debug("internalReceiveUpdate() is called for item " + itemName);
-	for (final HomematicCULBindingProvider provider : this.providers) {
-	    LOG.debug("Checking provider with names {}", provider.getItemNames());
-	    final HomeMaticBindingConfig parameterAddress = provider.getBindingConfigForItem(itemName);
 
-	    // setStateOnDevice(newState, parameterAddress);
+	Item item = getBindingForName(itemName).getItem();
+	if (item instanceof DimmerItem) {
+	    if (newState instanceof PercentType) {
+		((DimmerItem) item).setState(newState);
+	    }
 	}
     }
 
@@ -314,10 +322,10 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
      */
     @Override
     protected boolean providesBindingFor(final String itemName) {
-	return this.getBindingForItem(itemName) != null;
+	return this.getBindingForName(itemName) != null;
     }
 
-    private HomeMaticBindingConfig getBindingForItem(final String itemName) {
+    public HomeMaticBindingConfig getBindingForName(final String itemName) {
 	if (this.providers != null) {
 	    for (final HomematicCULBindingProvider provider : this.providers) {
 		final HomeMaticBindingConfig config = provider.getBindingConfigForItem(itemName);
@@ -328,6 +336,32 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	}
 	LOG.warn("Couldn't find config for device with item name " + itemName);
 	return null;
+    }
+
+    public HomeMaticBindingConfig getBindingForAddress(String name, String parameter) {
+	if (this.providers != null) {
+	    for (final HomematicCULBindingProvider provider : this.providers) {
+		final HomeMaticBindingConfig config = provider.getBindingConfigForAddress(name, parameter);
+		if (config != null) {
+		    return config;
+		}
+	    }
+	}
+	LOG.warn("Couldn't find config for device with address {}:{}", name, parameter);
+	return null;
+    }
+
+    @Override
+    public void bindingChanged(BindingProvider provider, String itemName) {
+	LOG.warn("Item Binding changed: {} {}", itemName, provider);
+	super.bindingChanged(provider, itemName);
+    }
+
+    @Override
+    public void allBindingsChanged(BindingProvider provider) {
+	LOG.warn("All Binding changed {}", provider);
+	super.allBindingsChanged(provider);
+
     }
 
     /**
@@ -389,7 +423,9 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 		this.deviceName = split[0];
 		this.deviceParams = params;
 		try {
-		    CULManager.close(this.cul);
+		    if (this.cul != null) {
+			CULManager.close(this.cul);
+		    }
 		    this.bindCULHandler();
 		    setProperlyConfigured(true);
 		} catch (final Exception e) {
@@ -419,16 +455,6 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	} else {
 	    LOG.debug("Received config is null");
 	}
-    }
-
-    HomeMaticBindingConfig getWritableBindingForAddress(final String string) {
-	for (final HomematicCULBindingProvider provider : this.providers) {
-	    final HomeMaticBindingConfig writeableBindingConfigForAddress = provider.getWriteableBindingConfigForAddress(string);
-	    if (writeableBindingConfigForAddress != null) {
-		return writeableBindingConfigForAddress;
-	    }
-	}
-	return null;
     }
 
     /*
@@ -558,7 +584,8 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	if (this.ccu.equals(message.getDestination())) {
 	    if (message.needsAck()) {
 		final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
-		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusEvent(build, this.ccu, message.getSource(), message.getChannel())));
+		AbstractMessageParameter param = new AbstractMessageParameter(build, ccu, message.getSource(), message.getChannel());
+		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusEvent(param)));
 	    }
 
 	    if (request != null && request.getSource().equals(this.ccu)) {
@@ -595,4 +622,5 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     public void postUpdate(String itemName, State newState) {
 	this.eventPublisher.postUpdate(itemName, newState);
     }
+
 }

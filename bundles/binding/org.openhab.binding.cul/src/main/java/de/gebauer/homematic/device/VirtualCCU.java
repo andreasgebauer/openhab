@@ -4,7 +4,6 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.lang.reflect.Method;
 import java.util.Calendar;
-import java.util.Iterator;
 
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -20,7 +19,6 @@ import de.gebauer.cul.homematic.in.CCUInterpreter;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.homematic.CyclicSendJob;
 import de.gebauer.homematic.DeviceInfo;
-import de.gebauer.homematic.msg.Message;
 
 public class VirtualCCU extends AbstractDevice {
 

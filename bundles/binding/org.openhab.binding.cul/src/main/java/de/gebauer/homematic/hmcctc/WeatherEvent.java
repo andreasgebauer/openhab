@@ -19,7 +19,7 @@ public class WeatherEvent extends AbstractEvent {
     private BigDecimal temperature;
     private int humidity;
 
-    public WeatherEvent(RawMessage msg, AbstractDevice sender, AbstractDevice receiver, BigDecimal temperature, int humidity, int rssi) {
+    public WeatherEvent(RawMessage msg, AbstractDevice sender, AbstractDevice receiver, BigDecimal temperature, int humidity, BigDecimal rssi) {
 	super(new AbstractMessageParameter(msg, sender, receiver, (short) -1, rssi));
 	this.temperature = temperature;
 	this.humidity = humidity;

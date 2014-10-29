@@ -2,6 +2,7 @@ package de.gebauer.homematic.hmcctc;
 
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.hmcctc.HMCCTCInterpreter.Time;
 import de.gebauer.homematic.msg.AbstractEvent;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
@@ -18,6 +19,10 @@ public class TemperaturePeriodEvent extends AbstractEvent implements Message {
 	    this.hour = hour;
 	    this.minute = minute;
 	    this.temp = temp;
+	}
+
+	public TemperaturePeriod(Time readTime, int i) {
+	    
 	}
 
 	@Override

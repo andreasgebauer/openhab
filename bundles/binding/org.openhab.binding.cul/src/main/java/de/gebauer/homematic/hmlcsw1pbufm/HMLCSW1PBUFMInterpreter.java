@@ -1,5 +1,7 @@
 package de.gebauer.homematic.hmlcsw1pbufm;
 
+import java.math.BigDecimal;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,8 @@ public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 	if (m.getMsgType() == MessageType.SWITCH) {
 	    if (m.getMsgFlag() == MessageFlag.VAL_84 || m.getMsgFlag() == MessageFlag.VAL_A4) {
 		final int state = MessageInterpreter.toInt(payload, 4, 2);
-		final int rssi = MessageInterpreter.toInt(payload, 8, 2);
+
+		BigDecimal rssi = MessageInterpreter.getRSSI(payload);
 
 		final AbstractMessageParameter msgParam = new AbstractMessageParameter(m, src, dst, (short) 1, rssi);
 
@@ -70,9 +73,9 @@ public class HMLCSW1PBUFMInterpreter implements DeviceMessageInterpreter {
 
 		final short chnl = MessageInterpreter.toShort(payload, 2, 2);
 		final int state = MessageInterpreter.toInt(payload, 4, 2);
-		final int rssi = MessageInterpreter.toInt(payload, 8, 2);
+		BigDecimal rssi = MessageInterpreter.getRSSI(payload);
 
-		return new AckStatusEvent(m, src, dst, chnl, rssi, new SwitchState(state == 0xC8));
+		return new AckStatusEvent(new AbstractMessageParameter(m, src, dst, chnl, rssi), new SwitchState(state == 0xC8));
 	    }
 	}
 

@@ -1,7 +1,11 @@
 package de.gebauer.cul.homematic.in;
 
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
+
+import java.math.BigDecimal;
+
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
 import de.gebauer.homematic.msg.SetMessage;
@@ -44,7 +48,9 @@ public class CCUInterpreter implements DeviceMessageInterpreter {
 
 	    if (m.getPayload().length() >= 6) {
 		short value = toShort(m.getPayload(), 4, 2);
-		return new SetMessage(m, src, dst, chnl, value);
+		BigDecimal rssi = MessageInterpreter.getRSSI(m.getPayload());
+
+		return new SetMessage(new AbstractMessageParameter(m, src, dst, chnl, rssi), value);
 	    }
 	} else if (MessageType.COMMAND2 == m.getMsgType()) {
 	    // there is no payload!

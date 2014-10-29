@@ -27,6 +27,11 @@ public class ConfigEndMessage extends AbstractConfigMessage implements Message {
     }
 
     @Override
+    public String getPayload() {
+	return String.format("%02X%02X", this.getChannel(), this.getSubType());
+    }
+
+    @Override
     public String toString() {
 	return "ConfigEndCommand [subType=" + getSubType() + ", msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
     }

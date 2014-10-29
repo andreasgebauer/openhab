@@ -88,25 +88,9 @@ public class DimMessage extends AbstractMessage {
     public DimMessage(AbstractDevice srcDevice, AbstractDevice dstDevice, int dimFactor) {
 	super(new AbstractMessageParameter(null, srcDevice, dstDevice, (short) 1));
 	this.dimFactor = dimFactor;
-    }
-
-    private static RawMessage getMessage(int dimFactor) {
 	if (dimFactor < 0 || dimFactor > 100) {
 	    throw new IllegalArgumentException("Argument dimFactor must be between 0 and 100.");
 	}
-	return new RawMessageBuilder()
-		.setPayload(String.format("0201%02X0320FFFF", dimFactor * 2))
-		.setMsgFlag(MessageFlag.VAL_A0)
-		.setMsgType(MessageType.COMMAND)
-		.build();
-    }
-
-    private static RawMessage getMessage(boolean state) {
-	return new RawMessageBuilder()
-		.setPayload(String.format("0201%02X0000", state ? 200 : 0))
-		.setMsgFlag(MessageFlag.VAL_A0)
-		.setMsgType(MessageType.COMMAND)
-		.build();
     }
 
     @Override
@@ -117,18 +101,26 @@ public class DimMessage extends AbstractMessage {
     @Override
     public RawMessage getRawMessage() {
 	if (super.getRawMessage() == null) {
-	    if (this.onOffState != null) {
-		this.setRawMessage(getMessage(this.onOffState));
-	    } else {
-		this.setRawMessage(getMessage(this.dimFactor));
-	    }
+	    this.setRawMessage(constructRawMessage());
 	}
 	return super.getRawMessage();
     }
 
+    private RawMessage constructRawMessage() {
+	RawMessage msg = new RawMessageBuilder()
+		.setPayload(this.getPayload())
+		.setMsgFlag(MessageFlag.VAL_A0)
+		.setMsgType(MessageType.COMMAND)
+		.build();
+	return msg;
+    }
+
     @Override
     public String getPayload() {
-	return this.getRawMessage().getPayload();
+	if (this.onOffState != null) {
+	    return String.format("0201%02X0000", onOffState ? 200 : 0);
+	}
+	return String.format("0201%02X0320FFFF", dimFactor * 2);
     }
 
     @Override

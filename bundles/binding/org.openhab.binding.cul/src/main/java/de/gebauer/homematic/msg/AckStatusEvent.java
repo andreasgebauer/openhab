@@ -1,5 +1,7 @@
 package de.gebauer.homematic.msg;
 
+import java.math.BigDecimal;
+
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.DeviceState;
 import de.gebauer.homematic.device.AbstractDevice;
@@ -25,27 +27,46 @@ public class AckStatusEvent extends AbstractEvent {
     private DeviceState deviceData;
     private Boolean success;
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, int rssi) {
+    @Deprecated
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, BigDecimal rssi) {
 	this(msg, src, dst, channel);
     }
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, int rssi, DeviceState deviceData) {
+    @Deprecated
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, BigDecimal rssi, DeviceState deviceData) {
 	super(new AbstractMessageParameter(msg, src, dst, chnl, rssi));
 	this.deviceData = deviceData;
     }
 
-    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, int rssi, boolean success) {
+    @Deprecated
+    public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short chnl, BigDecimal rssi, boolean success) {
 	this(msg, src, dst, chnl, rssi, null);
 	this.success = success;
     }
 
+    @Deprecated
     public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel, DeviceState deviceState) {
 	this(msg, src, dst, channel);
 	this.deviceData = deviceState;
     }
 
+    @Deprecated
     public AckStatusEvent(RawMessage msg, AbstractDevice src, AbstractDevice dst, short channel) {
 	super(msg, src, dst, channel);
+    }
+
+    public AckStatusEvent(AbstractMessageParameter param) {
+	super(param);
+    }
+
+    public AckStatusEvent(AbstractMessageParameter param, DeviceState deviceData) {
+	this(param);
+	this.deviceData = deviceData;
+    }
+
+    public AckStatusEvent(AbstractMessageParameter param, boolean success) {
+	super(param);
+	this.success = success;
     }
 
     public MessageType getType() {

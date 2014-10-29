@@ -1,10 +1,10 @@
 package de.gebauer.homematic.msg;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Calendar;
 
 import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.device.AbstractDevice;
 
 public abstract class AbstractMessage implements Message, Serializable {
@@ -93,7 +93,7 @@ public abstract class AbstractMessage implements Message, Serializable {
     }
 
     @Override
-    public int getRSSI() {
+    public BigDecimal getRSSI() {
 	return this.parameterObject.rssi;
     }
 

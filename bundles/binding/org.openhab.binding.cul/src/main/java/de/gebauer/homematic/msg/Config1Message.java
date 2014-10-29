@@ -1,5 +1,7 @@
 package de.gebauer.homematic.msg;
 
+import de.gebauer.homematic.DeviceState;
+
 /**
  * Config message with sub type 0x01<br>
  * 
@@ -8,8 +10,15 @@ package de.gebauer.homematic.msg;
  */
 public class Config1Message extends AbstractConfigMessage {
 
+    private DeviceState devData;
+
     public Config1Message(AbstractMessageParameter msgParam) {
 	super(msgParam);
+    }
+
+    public Config1Message(AbstractMessageParameter msgParam, DeviceState devData) {
+	super(msgParam);
+	this.devData = devData;
     }
 
     @Override

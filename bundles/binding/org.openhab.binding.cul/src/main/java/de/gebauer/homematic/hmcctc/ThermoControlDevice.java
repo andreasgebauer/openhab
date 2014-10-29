@@ -41,15 +41,32 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
 	SetControlModeCommand command = new SetControlModeCommand();
 	command.add(new HaveDataMessage(msgBuilder.build(), src, this));
 
-	// central 0110 0001 0000
-	// manual 0100 0000 0000
-	// auto 0108 0000 1000
-	// party 0118 0001 1000
 	msgBuilder.setMsgFlag(MessageFlag.VAL_A0);
 
 	AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), src, this, channel);
 	command.add(new ConfigStartMessage(msgParam, "000000", (short) 0, (short) 5));
-	command.add(new ConfigWriteMessage(msgParam, String.format("%04X", 0x0100 + (ctrlMode.getVal() << 3))));
+	//
+	// cent 0110 0001 0000
+	// auto 0108 0000 1000
+	// manu 0100 0000 0000
+	// part 0118 0001 1000
+
+	// 2014-10-29 got these values when sniffing FHEM:
+	// cent 0120 0010 0000 (0x00)
+	// auto 0128 0010 1000 (0x08)
+	// manu 0130 0011 0000 (0x10)
+	// part 0138 0011 1000 (0x18)
+
+	// CENTRAL: 0120 (00)
+	// AUTO: 0128 (01)
+	// MANUAL: 0130 (10)
+	// PARTY: 0138 (11)
+
+	int magic = 0x0120;
+	int i = (ctrlMode.getVal() << 3);
+
+	String dataString = String.format("%04X", magic + i);
+	command.add(new ConfigWriteMessage(msgParam, dataString));
 	command.add(new ConfigEndMessage(msgParam));
 
 	this.addToSendQueue(command);

@@ -9,9 +9,6 @@ import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.Cycle;
-import de.gebauer.homematic.device.VirtualCCU;
-import de.gebauer.homematic.msg.AbstractMessage;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageFlag;
 

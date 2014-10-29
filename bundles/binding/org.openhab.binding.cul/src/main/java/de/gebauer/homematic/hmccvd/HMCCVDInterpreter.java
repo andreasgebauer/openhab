@@ -3,6 +3,7 @@ package de.gebauer.homematic.hmccvd;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
 
+import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,9 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
+import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.hmccvd.ValveData.MotorError;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
@@ -114,6 +116,16 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
     // 03:58:55.747 [1C4E7F->1EA808 #37; len=10, flag=VAL_80, type=SWITCH, p=0209000A040000]
     //
 
+    // PAIRING VD With CCU
+
+    // /A 1A8C 84 00 1C4E7F 000000 20003A4A45513033313237323158010100 20 -> Serial No: JEQ0312721
+    // As 1001 A0 01 13C86D 1C4E7F 00050000000000
+    // /A 0A01 80 02 1C4E7F 13C86D 00 20
+    // As 1302 A0 01 13C86D 1C4E7F 00080201 0A130BC80C6D
+    // /A 0A02 80 02 1C4E7F 13C86D 00 20
+    // As 0B03 A0 01 13C86D 1C4E7F 0006
+    // /A 0A03 80 02 1C4E7F 13C86D 00 21
+
     // ?
     // 0D 00 A4 10 1C475A 13C86D 06000000
 
@@ -197,65 +209,115 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
 	    // ACK_STATUS CHANNEL:0x01 STATUS:0x00 UP:0x00 DOWN:0x00 LOWBAT:0x00
 	    // RSSI:0x31) (,WAKEMEUP,RPTEN)
 
-	    // 01 01 00 00 3332
-	    // 01 01 00 00 2B29
-	    // 01 01 00 00 3335
+	    // 01 01 00 00 33
+	    // 01 01 00 00 2B
+	    // 01 01 00 00 33
 
+	    // 01 01 00 00 3D
+
+	    // <sub> <ch> <vp> <err>
+
+	    // <err>:
 	    Pattern ptrn = Pattern.compile("^(..)(..)(..)(..)(..)(..)*$");
 	    Matcher matcher = ptrn.matcher(msg.getPayload());
 	    if (matcher.matches()) {
 		// sub type is always 01???
+
 		short chnl = toShort(matcher.group(2));
 		short vp = (short) (toShort(matcher.group(3)) / 2);
-		short err = toShort(matcher.group(4));
+		short status = toShort(matcher.group(4));
 
-		short rssi;
-		if (matcher.groupCount() == 5) {
-		    rssi = toShort(matcher.group(5));
-		} else if (matcher.groupCount() == 6) {
-		    LOG.trace("Uninterpreted: " + matcher.group(5));
-		    rssi = toShort(matcher.group(6));
-		} else {
-		    LOG.error("Could not interpret ACK message from Valve Device " + msg);
-		    return null;
+		// bit masks
+		// 0000 0110 > MotorErr
+		// 0000 1110 > Battery CRITICAL
+		// 1000 0000 > Battery OK/LOW
+		// 0011 0000 > MotorState
+
+		// VALUES
+		// .... 100. > Battery.CRITICAL
+		// 1... .... > Battery.LOW
+		// 0... .... > Battery.OK
+
+		// .... 000. > MotorError.OK
+		// .... 001. > MotorError.BLOCKED
+		// .... 010. > MotorError.LOOSE
+		// .... 011. > MotorError.ADJUSTING_RANGE_TO_SMALL
+
+		// my $stErr = ($err >>1) & 0x7; # Status-Byte Evaluation
+		// push @event,"battery:".(($stErr == 4)?"critical":($err&0x80?"low":"ok"));
+		// if (!$stErr){#remove both conditions
+		// push @event, "motorErr:ok";
+		// }
+		// else{
+		// push @event, "motorErr:blocked" if($stErr == 1);
+		// push @event, "motorErr:loose" if($stErr == 2);
+		// push @event, "motorErr:adjusting range too small" if($stErr == 3);
+		// # push @event, "battery:critical" if($stErr == 4);
+		// }
+		// push @event, "motor:opening" if(($err&0x30) == 0x10);
+		// push @event, "motor:closing" if(($err&0x30) == 0x20);
+		// push @event, "motor:stop" if(($err&0x30) == 0x00);
+		//
+		// #VD hang detection
+		// my $des = ReadingsVal($name, "ValveDesired", "");
+		// $des =~ s/ .*//; # remove unit
+		// if ($des ne $vp && ($err&0x30) == 0x00){
+		// push @event, "operState:errorTargetNotMet";
+		// push @event, "operStateErrCnt:".
+		// (ReadingsVal($name,"operStateErrCnt","0")+1);
+		// }
+		// else{
+		// push @event, "operState:".((($err&0x30) == 0x00)?"onTarget":"adjusting");
+		// }
+
+		MotorError motorError = null;
+		switch ((status >> 1) & 0x03) {
+		case 0:
+		    motorError = MotorError.OK;
+		    break;
+		case 1:
+		    motorError = MotorError.BLOCKED;
+		    break;
+		case 2:
+		    motorError = MotorError.LOOSE;
+		    break;
+		case 3:
+		    motorError = MotorError.ADJUSTING_RANGE_TO_SMALL;
+		    break;
+		case 4:
+		    // battery status : critical
 		}
 
-		int cmpVal = 0xFF;
-		cmpVal = (cmpVal ^ err) | err;
-
-		int stErr = (err >> 1) & 0x7;
-
-		ValveData valveData = new ValveData();
-		valveData.setPosition(vp);
-
-		if (stErr == 0) {
-		    valveData.setMotorError(MotorError.OK);
-		    valveData.setBatteryStatus(BatteryStatus.OK);
-		} else {
-		    if (stErr == 1) {
-			valveData.setMotorError(MotorError.BLOCKED);
-			valveData.setBatteryStatus(BatteryStatus.OK);
-		    } else if (stErr == 2) {
-			valveData.setMotorError(MotorError.LOOSE);
-			valveData.setBatteryStatus(BatteryStatus.OK);
-		    } else if (stErr == 3) {
-			valveData.setMotorError(MotorError.ADJUSTING_RANGE_TO_SMALL);
-			valveData.setBatteryStatus(BatteryStatus.OK);
-		    } else if (stErr == 4) {
-			valveData.setBatteryStatus(BatteryStatus.LOW);
-			valveData.setMotorError(MotorError.OK);
-		    }
+		BatteryStatus batteryStatus = null;
+		switch ((status >> 7) & 0x01) {
+		case 0:
+		    batteryStatus = BatteryStatus.OK;
+		    break;
+		case 1:
+		    batteryStatus = BatteryStatus.LOW;
+		    break;
+		}
+		if ((status >> 1 & 0x03) == 4) {
+		    batteryStatus = BatteryStatus.CRITICAL;
 		}
 
-		if ((err & 0x30) == 0x00) {
-		    valveData.setMotorState(ValveData.MotorState.STOP);
-		} else if ((err & 0x30) == 0x10) {
-		    valveData.setMotorState(ValveData.MotorState.OPENING);
-		} else if ((err & 0x30) == 0x20) {
-		    valveData.setMotorState(ValveData.MotorState.CLOSING);
+		MotorState motorState = null;
+		switch ((status >> 4) & 0x03) {
+		case 0:
+		    motorState = MotorState.STOP;
+		    break;
+		case 1:
+		    motorState = MotorState.OPENING;
+		    break;
+		case 2:
+		    motorState = MotorState.CLOSING;
+		    break;
 		}
 
-		return new AckStatusEvent(msg, src, dst, chnl, rssi, valveData);
+		ValveStateData valveData = new ValveStateData(vp, batteryStatus, motorError, motorState);
+
+		BigDecimal rssi = MessageInterpreter.getRSSI(msg.getPayload());
+		return new AckStatusEvent(new AbstractMessageParameter(msg, src, dst, chnl, rssi), valveData);
 	    }
 	} else if (MessageType.SWITCH == msg.getMsgType()) {
 	    // CMD:A010 SRC:13F251 DST:5D24C9 0401 00000000 05 09:00
@@ -265,18 +327,20 @@ public class HMCCVDInterpreter implements DeviceMessageInterpreter {
 	    // list 5 is channel-dependant not link dependant
 	    // => Link discriminator (00000000) is fixed
 
-	    Pattern compile = Pattern.compile("^0401000000000509(..)0A(..)");
+	    // sub: 04
+	    // ch: 01
+	    Pattern compile = Pattern.compile("^0401000000000509(..)0A(..)(..)?");
 	    Matcher matcher2 = compile.matcher(msg.getPayload());
 
 	    if (matcher2.matches()) {
 		short off = toShort(matcher2.group(1));
 		short vep = toShort(matcher2.group(2));
 
-		ValveData valveData = new ValveData();
-		valveData.setOffset(off);
-		valveData.setErrorPosition(vep);
+		ValveConfigData valveData = new ValveConfigData(off, vep);
 
-		new AckStatusEvent(msg, src, dst, (short) -1, (short) -1, valveData);
+		BigDecimal rssi = MessageInterpreter.getRSSI(msg.getPayload());
+
+		return new AckStatusEvent(new AbstractMessageParameter(msg, src, dst, (short) 1, rssi), valveData);
 	    }
 
 	    // when device is started we get the following message:

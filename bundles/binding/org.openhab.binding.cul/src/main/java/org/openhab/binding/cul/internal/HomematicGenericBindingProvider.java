@@ -28,7 +28,6 @@
  */
 package org.openhab.binding.cul.internal;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -50,17 +49,7 @@ public class HomematicGenericBindingProvider extends AbstractGenericBindingProvi
 
     private final static Logger log = LoggerFactory.getLogger(HomematicGenericBindingProvider.class);
 
-    /**
-     * A map from the item name to our binding config
-     */
-    private HashMap<String, HomeMaticBindingConfig> itemNameToConfig = new LinkedHashMap<String, HomeMaticBindingConfig>();
-
-    /**
-     * A map from an address to a read only binding config, so we can have a read only and a writeable binding config per device address
-     */
-    private Map<String, HomeMaticBindingConfig> addressToReadOnlyConfig = new LinkedHashMap<String, HomeMaticBindingConfig>();
-
-    private Map<String, HomeMaticBindingConfig> addressToWriteableConfig = new LinkedHashMap<String, HomeMaticBindingConfig>();
+    private Map<String, HomeMaticBindingConfig> addressToConfig = new LinkedHashMap<String, HomeMaticBindingConfig>();
 
     /**
      * {@inheritDoc}
@@ -74,52 +63,33 @@ public class HomematicGenericBindingProvider extends AbstractGenericBindingProvi
      * @{inheritDoc
      */
     @Override
-    public void validateItemType(Item item, String bindingConfig)
-	    throws BindingConfigParseException {
+    public void validateItemType(Item item, String bindingConfig) throws BindingConfigParseException {
 	HomeMaticBindingConfig.getBindingConfigFromString(item, bindingConfig);
-	
-	
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void processBindingConfiguration(String context, Item item,
-	    String bindingConfig) throws BindingConfigParseException {
+    public void processBindingConfiguration(String context, Item item, String bindingConfig) throws BindingConfigParseException {
 	super.processBindingConfiguration(context, item, bindingConfig);
 	log.debug("Parsing CUL binding config: " + bindingConfig);
 	HomeMaticBindingConfig config = HomeMaticBindingConfig.getBindingConfigFromString(item, bindingConfig);
 	if (config != null) {
-	    addBindingConfig(item, config);
-	}
-    }
+	    super.addBindingConfig(item, config);
 
-    private void addBindingConfig(Item item, HomeMaticBindingConfig config) {
-	itemNameToConfig.put(item.getName(), config);
-	if (config.isWriteable()) {
-	    addressToWriteableConfig.put(config.getAddress(), config);
-	} else {
-	    addressToReadOnlyConfig.put(config.getAddress(), config);
+	    this.addressToConfig.put(config.getAddress(), config);
 	}
-	super.addBindingConfig(item, config);
     }
 
     @Override
     public HomeMaticBindingConfig getBindingConfigForItem(String itemName) {
-	return itemNameToConfig.get(itemName);
+	return (HomeMaticBindingConfig) bindingConfigs.get(itemName);
     }
 
     @Override
-    public HomeMaticBindingConfig getReadOnlyBindingConfigForAddress(
-	    String address) {
-	return addressToReadOnlyConfig.get(address);
-    }
-
-    @Override
-    public HomeMaticBindingConfig getWriteableBindingConfigForAddress(
-	    String address) {
-	return addressToWriteableConfig.get(address);
+    public HomeMaticBindingConfig getBindingConfigForAddress(String itemName, String parameter) {
+	return addressToConfig.get(itemName + ":" + parameter);
     }
 
 }

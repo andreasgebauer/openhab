@@ -26,7 +26,7 @@ public class HaveDataMessage extends AbstractMessage {
 
     @Override
     public String toString() {
-	return "HaveDataMessage [msg=" + getRawMessage() + ", channel=" + getChannel() + "]";
+	return "HaveDataMessage [msg=" + getRawMessage() + "]";
     }
 
 }

@@ -3,16 +3,12 @@ package de.gebauer.homematic.hmlcsw1pbufm;
 import java.lang.reflect.Method;
 
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
-import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.command.SimpleCommand;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
-import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.CommandMessage;
 import de.gebauer.homematic.msg.MessageFlag;
-import de.gebauer.homematic.msg.SetMessage;
 
 public class SwitchDevice extends AbstractDevice implements Switch {
 

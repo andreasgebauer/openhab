@@ -39,35 +39,14 @@ import org.openhab.core.binding.BindingProvider;
  */
 public interface HomematicCULBindingProvider extends BindingProvider {
 
-	/**
-	 * Retrieve a binding for the given item name
-	 * 
-	 * @param itemName
-	 * @return {@link AbstractCulBindingConfig} or null if no binding for this
-	 *         item can be found
-	 */
-	HomeMaticBindingConfig getBindingConfigForItem(String itemName);
+    /**
+     * Retrieve a binding for the given item name
+     * 
+     * @param itemName
+     * @return {@link AbstractCulBindingConfig} or null if no binding for this item can be found
+     */
+    HomeMaticBindingConfig getBindingConfigForItem(String itemName);
 
-	/**
-	 * Retrieve a read only binding (such as a window contact, measured
-	 * temperature) for the given device address
-	 * 
-	 * @param address
-	 * @return {@link AbstractCulBindingConfig} or null if no binding can be
-	 *         found
-	 */
-	HomeMaticBindingConfig getReadOnlyBindingConfigForAddress(
-			String address);
+    HomeMaticBindingConfig getBindingConfigForAddress(String name, String parameter);
 
-	/**
-	 * Retrieve a writable binding config for the given address (such as a
-	 * switch or a desired tempreature)
-	 * 
-	 * @param address
-	 * @return {@link AbstractCulBindingConfig} or null if no binding can be
-	 *         found
-	 */
-	HomeMaticBindingConfig getWriteableBindingConfigForAddress(
-			String address);
-	
 }

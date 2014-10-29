@@ -7,5 +7,5 @@ package de.gebauer.homematic;
  * 
  */
 public interface DeviceState {
-
+    // just a marker
 }

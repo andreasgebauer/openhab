@@ -1,9 +1,11 @@
 package de.gebauer.homematic.hmccvd;
 
+import java.math.BigDecimal;
+
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.VirtualCCU;
-import de.gebauer.homematic.msg.AbstractMessageWithoutChannel;
+import de.gebauer.homematic.msg.AbstractMessage;
+import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.MessageType;
 
 /**
@@ -14,7 +16,7 @@ import de.gebauer.homematic.msg.MessageType;
  * @author andi
  * 
  */
-public class ClimateMessage extends AbstractMessageWithoutChannel {
+public class ClimateMessage extends AbstractMessage {
 
     /**
      * 
@@ -24,14 +26,14 @@ public class ClimateMessage extends AbstractMessageWithoutChannel {
     private final int command;
     private final int valvePos;
 
-    public ClimateMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice receiver, final int valvePosition, int rssi) {
-	super(msg, srcDevice, receiver, rssi);
+    public ClimateMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice receiver, final int valvePosition, BigDecimal rssi) {
+	super(new AbstractMessageParameter(msg, srcDevice, receiver, null, rssi));
 	this.command = 0;
 	this.valvePos = valvePosition;
     }
 
     public ClimateMessage(final RawMessage msg, final AbstractDevice srcDevice, final AbstractDevice receiver, final int valvePosition) {
-	super(msg, srcDevice, receiver, -1);
+	super(new AbstractMessageParameter(msg, srcDevice, receiver, null, null));
 	this.command = 0;
 	this.valvePos = valvePosition;
     }
@@ -57,6 +59,11 @@ public class ClimateMessage extends AbstractMessageWithoutChannel {
     @Override
     public String toString() {
 	return "Climate " + super.sendString() + " [command=" + this.command + ", valvePos=" + this.valvePos + "]";
+    }
+
+    @Override
+    public boolean needsAck() {
+	return true;
     }
 
 }

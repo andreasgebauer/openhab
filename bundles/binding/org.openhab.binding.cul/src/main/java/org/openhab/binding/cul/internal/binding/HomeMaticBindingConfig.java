@@ -44,6 +44,10 @@ public class HomeMaticBindingConfig implements BindingConfig {
 	return this.item;
     }
 
+    public String getParameter() {
+	return this.parameter;
+    }
+
     public boolean isWriteable() {
 	return true;
     }

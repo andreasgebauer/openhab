@@ -1,5 +1,7 @@
 package de.gebauer.homematic.msg;
 
+import java.math.BigDecimal;
+
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.msg.StatusChangeEvent.ChannelStatus;
@@ -14,9 +16,14 @@ public class InfoActuatorStatusMessage extends AbstractMessage implements Messag
 
     protected ChannelStatus chStatus;
 
-    public InfoActuatorStatusMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, ChannelStatus chStatus) {
+    @Deprecated
+    public InfoActuatorStatusMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst, ChannelStatus chStatus, BigDecimal rssi) {
 	super(new AbstractMessageParameter(msg, src, dst, chStatus.channel));
 	this.chStatus = chStatus;
+    }
+
+    public InfoActuatorStatusMessage(AbstractMessageParameter param) {
+	super(param);
     }
 
     @Override

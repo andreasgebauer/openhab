@@ -1,5 +1,6 @@
 package de.gebauer.homematic.msg;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 
 import de.gebauer.cul.homematic.in.RawMessage;
@@ -43,6 +44,6 @@ public interface Message {
 
     Calendar getTimestamp();
 
-    int getRSSI();
+    BigDecimal getRSSI();
 
 }

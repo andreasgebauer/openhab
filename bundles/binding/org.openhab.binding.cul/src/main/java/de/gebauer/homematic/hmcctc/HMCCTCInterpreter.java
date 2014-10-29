@@ -1,10 +1,9 @@
 package de.gebauer.homematic.hmcctc;
 
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toBigDecimal;
-import static de.gebauer.cul.homematic.in.MessageInterpreter.toFloat;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
-import static de.gebauer.homematic.Utils.*;
+import static de.gebauer.homematic.Utils.matcherFor;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -19,12 +18,13 @@ import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.WeekDay;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.hmcctc.BasicTCInfoMessage.BasicTCData;
 import de.gebauer.homematic.hmcctc.TemperaturePeriodEvent.TemperaturePeriod;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
-import de.gebauer.homematic.hmccvd.ValveData;
+import de.gebauer.homematic.hmccvd.ValveConfigData;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
-import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.CommandMessage;
+import de.gebauer.homematic.msg.Config1Message;
 import de.gebauer.homematic.msg.Config2Message;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.ConfigStartMessage;
@@ -303,6 +303,43 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
     // [13C86C->1EA808 #B0; len=09, flag=A1, type=COMMAND2, p=]
     // ??? - no response
 
+    public static class Time {
+
+	private int hour;
+	private int min;
+
+	public Time(int hour, int min) {
+	    this.hour = hour;
+	    this.min = min;
+	}
+
+	@Override
+	public int hashCode() {
+	    final int prime = 31;
+	    int result = 1;
+	    result = prime * result + hour;
+	    result = prime * result + min;
+	    return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    if (this == obj)
+		return true;
+	    if (obj == null)
+		return false;
+	    if (getClass() != obj.getClass())
+		return false;
+	    Time other = (Time) obj;
+	    if (hour != other.hour)
+		return false;
+	    if (min != other.min)
+		return false;
+	    return true;
+	}
+
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(HMCCTCInterpreter.class);
 
     @Override
@@ -325,9 +362,9 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 
 	String data = matcher.group(3);
 
-	int rssi = -1;
+	BigDecimal rssi = null;
 	if ((matcher = matcherFor(data, "^.*(..)$")).matches()) {
-	    rssi = toInt(matcher.group(1));
+	    rssi = MessageInterpreter.getRSSI(msg.getPayload());
 	}
 
 	switch (msg.getMsgType()) {
@@ -370,120 +407,150 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		// 1A 0C A4 10 1EA808 13C86C 04020000000005 0B3C0C1E0D900E280000
 		// payload: 04 02 00 00 00 00 05 0B 3C 0C 1E 0D 90 0E 28 00 00
 		// relevant: 5 0B 3C 0C 1E 0D 90 0E 28 00 00
-		if (channel == 2 && (matcher = matcherFor(data, "^000000000(.)(..)(..)(..)(..)(..)(..)(..)(..)(.*)$")).matches()) {
-		    int pList = toInt(matcher.group(1));
-		    int o1 = toInt(matcher.group(2));
-		    int v1 = toInt(matcher.group(3));
-		    int o2 = toInt(matcher.group(4));
-		    int v2 = toInt(matcher.group(5));
-		    int o3 = toInt(matcher.group(6));
-		    int v3 = toInt(matcher.group(7));
-		    int o4 = toInt(matcher.group(8));
-		    int v4 = toInt(matcher.group(9));
+		if (channel == 2) {
+		    if ((matcher = matcherFor(data, "^000000000(.)(..)(..)(..)(..)(..)(..)(..)(..)(.*)$")).matches()) {
+			int pList = toInt(matcher.group(1));
+			int o1 = toInt(matcher.group(2));
+			int v1 = toInt(matcher.group(3));
+			int o2 = toInt(matcher.group(4));
+			int v2 = toInt(matcher.group(5));
+			int o3 = toInt(matcher.group(6));
+			int v3 = toInt(matcher.group(7));
+			int o4 = toInt(matcher.group(8));
+			int v4 = toInt(matcher.group(9));
 
-		    int dayOff;
-		    int maxDays;
-		    int basevalue;
+			int dayOff;
+			int maxDays;
+			int basevalue;
 
-		    int[] days = new int[] { Calendar.SATURDAY, Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY,
-			    Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY };
+			int[] days = new int[] { Calendar.SATURDAY, Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY,
+				Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY };
 
-		    if (pList == 5 || pList == 6) {
-			if (pList == 5) {
-			    dayOff = 0;
-			    maxDays = 5;
-			    basevalue = 0x0B;
-			} else {
-			    dayOff = 5;
-			    maxDays = 2;
-			    basevalue = 0x01;
-			}
-			int idx = o1 - basevalue;
-			int dayIdx = idx / 48;
-			if (idx % 4 == 0 && dayIdx < maxDays) {
-			    idx -= 48 * dayIdx;
-			    idx /= 2;
+			if (pList == 5 || pList == 6) {
+			    if (pList == 5) {
+				dayOff = 0;
+				maxDays = 5;
+				basevalue = 0x0B;
+			    } else {
+				dayOff = 5;
+				maxDays = 2;
+				basevalue = 0x01;
+			    }
+			    int idx = o1 - basevalue;
+			    int dayIdx = idx / 48;
+			    if (idx % 4 == 0 && dayIdx < maxDays) {
+				idx -= 48 * dayIdx;
+				idx /= 2;
 
-			    TemperaturePeriod upTo = new TemperaturePeriod(v1 / 6, (v1 % 6) * 10, v2 / 2);
-			    TemperaturePeriod upTo2 = new TemperaturePeriod(v3 / 6, (v3 % 6) * 10, v4 / 2);
+				TemperaturePeriod upTo = new TemperaturePeriod(v1 / 6, (v1 % 6) * 10, v2 / 2);
+				TemperaturePeriod upTo2 = new TemperaturePeriod(v3 / 6, (v3 % 6) * 10, v4 / 2);
 
-			    return new TemperaturePeriodEvent(msg, src, dst, (short) 2, dayIdx + dayOff, upTo, upTo2);
+				return new TemperaturePeriodEvent(msg, src, dst, (short) 2, dayIdx + dayOff, upTo, upTo2);
 
-			    // data reg
-			    // 0B3C0C1E0D900E280000 05
-			    // 0: [10:0, temp=15] [24:0, temp=20]
-			    // 3B3C3C1E3D903E280000 05
-			    // 0: [10:0, temp=15] [24:0, temp=20]
-			    // 6B336C1E6D396E280000 05
-			    // 0: [8:30, temp=15] [9:30, temp=20]
-			    // 9B339C1E9D399E280000 05
-			    // 0: [8:30, temp=15] [9:30, temp=20]
-			    // CB33CC1ECD39CE280000 05
-			    // 0: [8:30, temp=15] [9:30, temp=20]
-			    // 0133021E033904280000 06
-			    // 0: [8:30, temp=15] [9:30, temp=20]
-			    // 3133321E333934280000 06
-			    // 0: [8:30, temp=15] [9:30, temp=20]
-			    // 0F8A102A119012220000 05
-			    // 2: [23:0, temp=21] [24:0, temp=17]
-			    // 3F8A402A419042220000 05
-			    // 2: [23:0, temp=21] [24:0, temp=17]
-			    // 6F72701E719072280000 05
-			    // 2: [19:0, temp=15] [24:0, temp=20]
-			    // 9F72A01EA190A2280000 05
-			    // 2: [19:0, temp=15] [24:0, temp=20]
-			    // CF72D01ED190D2280000 05
-			    // 2: [19:0, temp=15] [24:0, temp=20]
-			    // 0572061E079008280000 06
-			    // 2: [19:0, temp=15] [24:0, temp=20]
-			    // 3572361E379038280000 06
-			    // 2: [19:0, temp=15] [24:0, temp=20]
+				// data reg
+				// 0B3C0C1E0D900E280000 05
+				// 0: [10:0, temp=15] [24:0, temp=20]
+				// 3B3C3C1E3D903E280000 05
+				// 0: [10:0, temp=15] [24:0, temp=20]
+				// 6B336C1E6D396E280000 05
+				// 0: [8:30, temp=15] [9:30, temp=20]
+				// 9B339C1E9D399E280000 05
+				// 0: [8:30, temp=15] [9:30, temp=20]
+				// CB33CC1ECD39CE280000 05
+				// 0: [8:30, temp=15] [9:30, temp=20]
+				// 0133021E033904280000 06
+				// 0: [8:30, temp=15] [9:30, temp=20]
+				// 3133321E333934280000 06
+				// 0: [8:30, temp=15] [9:30, temp=20]
+				// 0F8A102A119012220000 05
+				// 2: [23:0, temp=21] [24:0, temp=17]
+				// 3F8A402A419042220000 05
+				// 2: [23:0, temp=21] [24:0, temp=17]
+				// 6F72701E719072280000 05
+				// 2: [19:0, temp=15] [24:0, temp=20]
+				// 9F72A01EA190A2280000 05
+				// 2: [19:0, temp=15] [24:0, temp=20]
+				// CF72D01ED190D2280000 05
+				// 2: [19:0, temp=15] [24:0, temp=20]
+				// 0572061E079008280000 06
+				// 2: [19:0, temp=15] [24:0, temp=20]
+				// 3572361E379038280000 06
+				// 2: [19:0, temp=15] [24:0, temp=20]
 
-			    // TODO set the periods on the device
-
-			}
-
-			for (int day : days) {
-			    int twentyfour = 0;
-			    String m = "tempList" + day + ":";
-			    for (int i = 0; i < 24; i++) {
+				// TODO set the periods on the device
 
 			    }
+
+			    for (int day : days) {
+				int twentyfour = 0;
+				String m = "tempList" + day + ":";
+				for (int i = 0; i < 24; i++) {
+				    // TODO implement!
+				}
+			    }
+
+			}
+		    } else if ((matcher = matcherFor(data, "^0000000005(..)(..)(....)(....)?(..)?$")).matches()) {
+			// when mode is set on device:
+			// 0402 0000000005 01 09 0000
+
+			// 0402 0000000005 01 30 0800 0000 -> 00:00
+			// 0402 0000000005 01 30 0801 0000 -> 00:10
+			// 0402 0000000005 01 30 0805 0000 -> 00:50 (5)
+
+			// 0402 0000000005 01 30 0808 0000 -> 01:00
+			// 0402 0000000005 01 30 0809 0000 -> 01:10
+			// 0402 0000000005 01 30 080A 0000 -> 01:20
+			// 0402 0000000005 01 30 080B 0000 -> 01:30
+			// 0402 0000000005 01 30 080C 0000 -> 01:40 (12)
+
+			// 0402 0000000005 01 2E 0860 0000 -> 12:00 (96)
+
+			// 0402 0000000005 01 30 0868 0000 -> 13:00 (104)
+			// 0402 0000000005 01 30 08BB 0000 -> 23:30 (187)
+
+			int o1 = toInt(matcher.group(1));
+			int v1 = toInt(matcher.group(2));
+
+			if (o1 == 1) {
+
+			    LOG.info("v: {}", String.format("%8s", Integer.toBinaryString(v1)).replace(" ", "0"));
+
+			    DisplayMode dm = (v1 & 0x01) == 0 ? DisplayMode.TEMPERATURE : DisplayMode.TEMPERATURE_AND_HUMDITY;
+			    DisplayTemp dt = (v1 >> 1 & 0x01) == 0 ? DisplayTemp.ACTUAL : DisplayTemp.SETPOINT;
+			    TemperatureUnit tempUnit = (v1 >> 2 & 0x01) == 0 ? TemperatureUnit.CELSIUS : TemperatureUnit.FAHRENHEIT;
+			    // 0X00 00000000 is Manual 0
+			    // 0x08 00001000 is Auto 1
+			    // 0X10 00010000 is Central 2
+			    // 0x18 00011000 is Party 3
+			    ControlMode ctrlMode = ControlMode.valueOf(v1 >> 3 & 0x03);
+			    // starts with sunday?
+			    // bit mask: 11100000
+			    WeekDay decalcDay = WeekDay.of(v1 >> 5 & 0x01);
+
+			    Time decalcTime = null;
+
+			    // if we have rssi there are 5 groups if we also have the decalc time
+			    if (matcher.groupCount() == 5) {
+				decalcTime = readTime(toInt(matcher.group(3), 2, 2));
+			    }
+
+			    BasicTCData tcData = new BasicTCData(dm, dt, tempUnit, ctrlMode, decalcDay, decalcTime);
+
+			    return new BasicTCInfoMessage(msg, src, dst, channel, tcData);
+			} else if (o1 == 2) {
+
+			    LOG.warn(o1 + ":" + v1);
+			} else {
+			    // eg ... 06 22 .. ..
+			    LOG.warn("Unhandled {}" + msg);
+
 			}
 
+		    } else if ((matcher = matcherFor(msg, "^0402000000000501(..)08(..)0000$")).matches()) {
+			// decalc message
 		    }
-		} else if ((matcher = matcherFor(data, "^0000000005(..)(..)(....)(..)*$")).matches()) {
-		    // when mode is set on device:
-		    // 0402000000000501090000
-		    int o1 = toInt(matcher.group(1));
-		    int v1 = toInt(matcher.group(2));
-
-		    if (o1 == 1) {
-			DisplayMode dm = (v1 & 0x01) == 1 ? DisplayMode.TEMPERATURE_AND_HUMDITY : DisplayMode.TEMPERATURE;
-			DisplayTemp dt = (v1 & 0x02 >> 1) == 1 ? DisplayTemp.SETPOINT : DisplayTemp.ACTUAL;
-			TemperatureUnit tempUnit = (v1 & 0x04 >> 2) == 1 ? TemperatureUnit.FAHRENHEIT : TemperatureUnit.CELSIUS;
-			// 0X00 00000000 is Manual 0
-			// 0x08 00001000 is Auto 1
-			// 0X10 00010000 is Central 2
-			// 0x18 00011000 is Party 3
-			ControlMode ctrlMode = ControlMode.valueOf(v1 >> 3);
-			// starts with sunday?
-			// bit mask: 11100000
-			WeekDay weekDay = WeekDay.of((v1 & 0xE0) >> 5);
-			return new BasicTCInfoMessage(msg, src, dst, channel, dm, dt, tempUnit, ctrlMode, weekDay);
-		    } else if (o1 == 2) {
-
-			LOG.warn(o1 + ":" + v1);
-		    } else {
-			// eg ... 06 22 .. ..
-			LOG.warn("Unhandled {}" + msg);
-
-		    }
-
-		} else if ((matcher = matcherFor(msg, "^0402000000000501(..)08(..)0000$")).matches()) {
-		    // decalc message
 		}
-
 	    } else if (subType == 6) {
 		// channel 2
 		// 06 02 2C 000000 00
@@ -499,7 +566,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		chStatus.peerId = data.substring(2, 6);
 		chStatus.peerChannel = toShort(data.substring(2, 6));
 
-		return new TemperatureSetMessage(msg, src, dst, desiredTemp, chStatus);
+		return new TemperatureSetMessage(new AbstractMessageParameter(msg, src, dst, chStatus.channel, rssi), desiredTemp);
 	    }
 	    break;
 	case COMMAND:
@@ -544,11 +611,9 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		short offset = toShort(matcher.group(1));
 		short vep = toShort(matcher.group(2));
 
-		ValveData vdValveData = new ValveData();
-		vdValveData.setErrorPosition(vep);
-		vdValveData.setOffset(offset);
+		ValveConfigData vdValveData = new ValveConfigData(offset, vep);
 
-		return new AckStatusEvent(msg, src, dst, (short) 8, vdValveData);
+		return new Config1Message(new AbstractMessageParameter(msg, src, dst, (short) 8, rssi), vdValveData);
 	    }
 
 	}
@@ -557,6 +622,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	// TODO interpret ACK
 	return null;
     }
+
     // time between climate commands:
     // 1.
     // 111 initial
@@ -566,6 +632,14 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
     // 146 -15
     // 132 -14
     // 181 +49
+
+    private Time readTime(int val) {
+	int hour = val / 8;
+	int min = (val - (hour * 8)) * 10;
+
+	return new Time(hour, min);
+
+    }
 
     // 2.
     // 104 initial

@@ -12,8 +12,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.openhab.io.transport.cul.internal.CULHandlerInternal;
 import org.slf4j.Logger;
@@ -115,7 +117,13 @@ public class CULManager {
 			if (handler instanceof CULHandlerInternal) {
 				CULHandlerInternal internalHandler = (CULHandlerInternal) handler;
 				if (!internalHandler.hasListeners()) {
-					openDevices.remove(handler);
+				    	Iterator<Entry<String, CULHandler>> iterator = openDevices.entrySet().iterator();
+				    	while(iterator.hasNext()){
+				    	    if(iterator.next().getValue().equals(internalHandler)){
+				    		iterator.remove();
+				    	    }
+				    	}
+				    	
 					try {
 						handler.send("X00");
 					} catch (CULCommunicationException e) {

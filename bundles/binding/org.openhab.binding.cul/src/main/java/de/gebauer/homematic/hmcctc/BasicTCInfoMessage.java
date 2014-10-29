@@ -3,6 +3,7 @@ package de.gebauer.homematic.hmcctc;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.WeekDay;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.hmcctc.HMCCTCInterpreter.Time;
 import de.gebauer.homematic.msg.AbstractEvent;
 import de.gebauer.homematic.msg.Message;
 import de.gebauer.homematic.msg.MessageType;
@@ -15,20 +16,31 @@ import de.gebauer.homematic.msg.MessageType;
  */
 public class BasicTCInfoMessage extends AbstractEvent implements Message {
 
-    protected DisplayMode dm;
-    private DisplayTemp dt;
-    private TemperatureUnit tempUnit;
-    private ControlMode controlMode;
-    private WeekDay decalcDay;
+    public static class BasicTCData {
 
-    public BasicTCInfoMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel, DisplayMode dm, DisplayTemp dt,
-	    TemperatureUnit tempUnit, ControlMode ctrlMode, WeekDay decalcDay) {
+	DisplayMode displayMode;
+	DisplayTemp displayTemp;
+	TemperatureUnit displayTempUnit;
+	ControlMode controlMode;
+	WeekDay decalcDay;
+	Time decalcTime;
+
+	public BasicTCData(DisplayMode displayMode, DisplayTemp displayTemp, TemperatureUnit tempUnit, ControlMode ctrlMode, WeekDay decalcDay, Time decalcTime) {
+	    this.displayMode = displayMode;
+	    this.displayTemp = displayTemp;
+	    this.displayTempUnit = tempUnit;
+	    this.controlMode = ctrlMode;
+	    this.decalcDay = decalcDay;
+	    this.decalcTime = decalcTime;
+	}
+
+    }
+
+    private BasicTCData tcData;
+
+    public BasicTCInfoMessage(RawMessage msg, AbstractDevice srcDevice, AbstractDevice dstDevice, short channel, BasicTCData tcData) {
 	super(msg, srcDevice, dstDevice, channel);
-	this.dm = dm;
-	this.dt = dt;
-	this.tempUnit = tempUnit;
-	this.controlMode = ctrlMode;
-	this.decalcDay = decalcDay;
+	this.tcData = tcData;
     }
 
     @Override
@@ -46,14 +58,13 @@ public class BasicTCInfoMessage extends AbstractEvent implements Message {
 	return true;
     }
 
-    public ControlMode getControlMode() {
-	return controlMode;
+    public BasicTCData getTcData() {
+	return tcData;
     }
 
     @Override
     public String toString() {
-	return "BasicTCInfo [dm=" + dm + ", dt=" + dt + ", tempUnit=" + tempUnit + ", ctrlMode=" + controlMode + ", decalcDay=" + decalcDay + ", msg="
-		+ getRawMessage() + ", channel=" + getChannel() + "]";
+	return "BasicTCInfoMessage [getRawMessage()=" + getRawMessage() + ", tcData=" + tcData + ", getChannel()=" + getChannel() + "]";
     }
 
 }

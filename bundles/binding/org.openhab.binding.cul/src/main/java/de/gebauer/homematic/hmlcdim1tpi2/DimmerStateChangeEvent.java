@@ -1,7 +1,5 @@
 package de.gebauer.homematic.hmlcdim1tpi2;
 
-import de.gebauer.cul.homematic.in.RawMessage;
-import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.msg.AbstractEvent;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.Message;
@@ -19,13 +17,11 @@ public class DimmerStateChangeEvent extends AbstractEvent implements Message {
      * 
      */
     private static final long serialVersionUID = 1L;
-    private int state;
-    private int subType;
+    private DimmerState state;
 
-    public DimmerStateChangeEvent(AbstractMessageParameter abstractMessageParameter, int state, int subType) {
+    public DimmerStateChangeEvent(AbstractMessageParameter abstractMessageParameter, DimmerState state) {
 	super(abstractMessageParameter);
 	this.state = state;
-	this.subType = subType;
     }
 
     @Override
@@ -33,12 +29,8 @@ public class DimmerStateChangeEvent extends AbstractEvent implements Message {
 	return MessageType.SWITCH;
     }
 
-    public int getState() {
+    public DimmerState getState() {
 	return state;
-    }
-
-    public int getDontknow1() {
-	return subType;
     }
 
     @Override
@@ -48,8 +40,7 @@ public class DimmerStateChangeEvent extends AbstractEvent implements Message {
 
     @Override
     public String toString() {
-	return "DimmerStateChangeEvent [msg=" + getRawMessage() + ", state=" + state + ", subType=" + subType + ", chnl="
-		+ getChannel() + "]";
+	return "DimmerStateChangeEvent [msg=" + getRawMessage() + ", state=" + state + "]";
     }
 
 }

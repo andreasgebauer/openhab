@@ -1,9 +1,9 @@
 package de.gebauer.homematic.hmcctc;
 
 public enum ControlMode {
-    MANUAL(0),
+    CENTRAL(0),
     AUTO(1),
-    CENTRAL(2),
+    MANUAL(2),
     PARTY(3);
 
     private final int val;

@@ -1,11 +1,14 @@
 package de.gebauer.homematic.hmlcdim1tpi2;
 
+import static de.gebauer.cul.homematic.in.MessageInterpreter.getRSSI;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toInt;
 import static de.gebauer.cul.homematic.in.MessageInterpreter.toShort;
+
+import java.math.BigDecimal;
+
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
-import de.gebauer.homematic.device.Model;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
@@ -161,22 +164,48 @@ public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
 	    // after pressing button on device:
 	    // 06010000 OFF
 	    // 0601C800 ON
+
+	    // 2014.10.29 10:47:10 5: CUL dispatch A0E01800220E91613C86D 01 01 00 00 22::-60:CUL
+	    // 2014.10.29 10:47:10 5: Triggering CUL_HM_HM_LC_Dim1T_Pl_2_20E916 (8 changes)
+	    // 2014.10.29 10:47:10 5: Notify loop for CUL_HM_HM_LC_Dim1T_Pl_2_20E916 level: 0 %
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 level: 0 % -> level: .* %
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 deviceMsg: off (to CUL) -> deviceMsg: off (to CUL)
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 off -> off
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 running: - -> running: -
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 dim: stop:off -> dim: stop:off
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 overload: off -> overload: off
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 overheat: off -> overheat: off
+	    // 2014.10.29 10:47:10 4: eventTypes: CUL_HM CUL_HM_HM_LC_Dim1T_Pl_2_20E916 reduced: off -> reduced: off
+
+	    // 01 01 00 00 22
+
+	    // push @event,"overload:".(($err&0x02)?"on":"off");
+	    // push @event,"overheat:".(($err&0x04)?"on":"off");
+	    // push @event,"reduced:" .(($err&0x08)?"on":"off");
+
 	    int subType = toInt(msg.getPayload(), 0, 2);
 	    short channel = toShort(msg.getPayload(), 2, 2);
-	    int dontknow3 = toInt(msg.getPayload(), 6, 2);
+	    int val = toInt(msg.getPayload(), 4, 2);
+	    int err = toInt(msg.getPayload(), 6, 2);
+
+	    boolean overload = (err >> 1 & 0x01) == 0;
+	    boolean overheat = (err >> 2 & 0x01) == 0;
+	    boolean reduced = (err >> 3 & 0x01) == 0;
+
 	    // 200 is on?
 	    // 0 is off
-	    int state = toInt(msg.getPayload(), 4, 2);
-	    int rssi = toInt(msg.getPayload(), 8, 2);
 
-	    return new DimmerStateChangeEvent(new AbstractMessageParameter(msg, src, dst, channel, rssi), state, subType);
+	    BigDecimal rssi = getRSSI(msg.getPayload());
+
+	    return new DimmerStateChangeEvent(new AbstractMessageParameter(msg, src, dst, channel, rssi), new DimmerState(val, overload, overheat, reduced));
 
 	case ACK:
 
 	    channel = toShort(msg.getPayload(), 2, 2);
 
 	    short success = toShort(msg.getPayload(), 6, 2);
-	    rssi = toInt(msg.getPayload(), 8, 2);
+	    rssi = getRSSI(msg.getPayload());
+
 	    return new AckStatusEvent(msg, src, dst, channel, rssi, success != 0);
 	    // flag: 80
 

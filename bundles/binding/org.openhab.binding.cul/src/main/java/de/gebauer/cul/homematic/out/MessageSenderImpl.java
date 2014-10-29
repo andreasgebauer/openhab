@@ -1,6 +1,7 @@
 package de.gebauer.cul.homematic.out;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -119,7 +120,7 @@ public class MessageSenderImpl implements MessageSender {
 	}
 
 	@Override
-	public int getRSSI() {
+	public BigDecimal getRSSI() {
 	    return this.wrapped.getRSSI();
 	}
 
@@ -228,7 +229,7 @@ public class MessageSenderImpl implements MessageSender {
 	    msgCount = 1;
 	}
 
-	//int count = message.getCount();
+	// int count = message.getCount();
 	return msgCount;
     }
 
