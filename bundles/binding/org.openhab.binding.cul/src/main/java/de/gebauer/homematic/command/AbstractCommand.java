@@ -16,6 +16,15 @@ public abstract class AbstractCommand implements Command {
 
     private int curMsg = 0;
 
+    private Integer msgCountStart;
+
+    public AbstractCommand(Integer msgCountStart) {
+	this.msgCountStart = msgCountStart;
+    }
+
+    public AbstractCommand() {
+    }
+
     public void add(final Message message) {
 	this.messages.add(message);
     }
@@ -37,7 +46,7 @@ public abstract class AbstractCommand implements Command {
 
     @Override
     public Integer getCountForce() {
-	return null;
+	return msgCountStart;
     }
 
 }

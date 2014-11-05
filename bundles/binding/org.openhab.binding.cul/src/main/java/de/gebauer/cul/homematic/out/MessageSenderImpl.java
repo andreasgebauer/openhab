@@ -219,6 +219,13 @@ public class MessageSenderImpl implements MessageSender {
 	responseSetup(dst, message.getWrapped());
     }
 
+    /**
+     * We should store the count. If we are sending an answer we should use the message count from the request. Otherwise we should increase out own count.
+     * 
+     * @param message
+     * @param retryCount
+     * @return
+     */
     private int getMessageCount(final WrappedMessage message, int retryCount) {
 	final Message lastEventReceived = message.getDestination().getLastEventReceived();
 

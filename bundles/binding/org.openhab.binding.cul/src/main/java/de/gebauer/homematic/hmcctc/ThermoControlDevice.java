@@ -38,7 +38,7 @@ public class ThermoControlDevice extends AbstractDevice implements ThermoControl
 
 	final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A1);
 
-	SetControlModeCommand command = new SetControlModeCommand();
+	SetControlModeCommand command = new SetControlModeCommand(1);
 	command.add(new HaveDataMessage(msgBuilder.build(), src, this));
 
 	msgBuilder.setMsgFlag(MessageFlag.VAL_A0);

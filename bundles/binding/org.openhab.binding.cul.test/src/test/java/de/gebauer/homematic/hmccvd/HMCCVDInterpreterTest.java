@@ -43,19 +43,41 @@ public class HMCCVDInterpreterTest {
 	AbstractDevice dst = null;
 	Message read = interpreter.read(MessageInterpreter.getRawMessage("A0E2782021C4E7F1EA808010100003DEE"), src, dst);
 
+	checkState(read, BatteryStatus.OK, MotorError.OK, MotorState.STOP, 0);
+    }
+
+    @Test
+    public void testReadSetValvePositionResponseOk22() {
+	Message read = interpreter.read(MessageInterpreter.getRawMessage("A0E5782021C4E7F1EA80801012C003723"), null, null);
+	
+	checkState(read, BatteryStatus.OK, MotorError.OK, MotorState.STOP, 22);
+    }
+    
+    @Test
+    public void testReadSetValvePositionResponseBatteryLow() {
+	Message read = interpreter.read(MessageInterpreter.getRawMessage("A0E5782021C4E7F1EA80801011E88381F"), null, null);
+
+	BatteryStatus batStatus = BatteryStatus.LOW;
+	MotorError motorErr = MotorError.OK;
+	MotorState motorState = MotorState.STOP;
+
+	checkState(read, batStatus, motorErr, motorState, 15);	
+    }
+
+    private void checkState(Message read, BatteryStatus batStatus, MotorError motorErr, MotorState motorState, int position) {
 	assertNotNull(read);
+
 	assertTrue(read instanceof AckStatusEvent);
-	AckStatusEvent ack = (AckStatusEvent) read;
+	AckStatusEvent ackMsg = (AckStatusEvent) read;
+	DeviceState deviceState = ackMsg.getDeviceState();
 
-	DeviceState deviceState = ack.getDeviceState();
-	assertNotNull(deviceState);
 	assertTrue(deviceState instanceof ValveStateData);
+	ValveStateData valveState = (ValveStateData) deviceState;
 
-	ValveStateData vd = (ValveStateData) deviceState;
-
-	assertEquals(BatteryStatus.OK, vd.getBatteryStatus());
-	assertEquals(MotorError.OK, vd.getMotorError());
-	assertEquals(MotorState.STOP, vd.getMotorState());
+	assertEquals(batStatus, valveState.getBatteryStatus());
+	assertEquals(motorErr, valveState.getMotorError());
+	assertEquals(motorState, valveState.getMotorState());
+	assertEquals(position, valveState.getPosition());
     }
 
     // /A0E2782021C4E7F1EA808010100003DEE
@@ -78,7 +100,7 @@ public class HMCCVDInterpreterTest {
 
 	assertEquals(17, vd.getErrorPosition());
 	assertEquals(17, vd.getOffset());
-	
+
 	assertEquals(new BigDecimal("-83.0"), read.getRSSI());
     }
 

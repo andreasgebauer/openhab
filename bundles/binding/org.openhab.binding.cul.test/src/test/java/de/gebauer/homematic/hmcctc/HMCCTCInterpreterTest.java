@@ -65,7 +65,7 @@ public class HMCCTCInterpreterTest {
     // [1EA808->13C86C #93; len=14, flag=A4, type=SWITCH, p=0402000000000501110000]
     // [13C86C->1EA808 #93; len=0A, flag=80, type=ACK, p=00]
     @Test
-    public void testSetModeCentral() throws Exception {
+    public void testReadModeCentral() throws Exception {
 	AbstractDevice src = null;
 	AbstractDevice dst = null;
 	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA8080402000000000501110000"), src, dst);
