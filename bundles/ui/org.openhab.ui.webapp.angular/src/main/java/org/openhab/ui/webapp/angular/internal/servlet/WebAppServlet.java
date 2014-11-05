@@ -27,7 +27,6 @@ import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.library.items.RollershutterItem;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.types.State;
-import org.openhab.model.sitemap.AbstractChart;
 import org.openhab.model.sitemap.Chart;
 import org.openhab.model.sitemap.Frame;
 import org.openhab.model.sitemap.LinkableWidget;
@@ -35,7 +34,6 @@ import org.openhab.model.sitemap.Mapping;
 import org.openhab.model.sitemap.Setpoint;
 import org.openhab.model.sitemap.Sitemap;
 import org.openhab.model.sitemap.SitemapProvider;
-import org.openhab.model.sitemap.SmartChart;
 import org.openhab.model.sitemap.Switch;
 import org.openhab.model.sitemap.Text;
 import org.openhab.model.sitemap.Widget;
@@ -266,39 +264,22 @@ public class WebAppServlet extends BaseServlet {
 	}
 
 	//
-	if (widget instanceof AbstractChart) {
+	if (widget instanceof Chart) {
 	    try {
-		String period = ((AbstractChart) widget).getPeriod();
+		String period = ((Chart) widget).getPeriod();
 		widgetBuilder.add("period", periodToTimespan(period));
 
 		JsonArrayBuilder arrBldr = Json.createArrayBuilder();
 
-		if (widget instanceof Chart || widget instanceof SmartChart) {
-		    Item item = this.itemRegistry.getItem(itemName);
+		Item item = this.itemRegistry.getItem(itemName);
 
-		    if (item instanceof GroupItem) {
-			for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-			    GenericItem genItem = (GenericItem) chartItem;
-			    arrBldr.add(genItem.getName());
-			}
-		    } else {
-			arrBldr.add(item.getName());
+		if (item instanceof GroupItem) {
+		    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
+			GenericItem genItem = (GenericItem) chartItem;
+			arrBldr.add(genItem.getName());
 		    }
-		}  
-		if (widget instanceof SmartChart) {
-		    EList<String> items = ((SmartChart) widget).getItems();
-		    for (String string : items) {
-			Item item = itemRegistry.getItem(string);
-
-			if (item instanceof GroupItem) {
-			    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-				GenericItem genItem = (GenericItem) chartItem;
-				arrBldr.add(genItem.getName());
-			    }
-			} else {
-			    arrBldr.add(item.getName());
-			}
-		    }
+		} else {
+		    arrBldr.add(item.getName());
 		}
 
 		widgetBuilder.add("items", arrBldr);
