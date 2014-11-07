@@ -200,6 +200,7 @@ public class WebAppServlet extends BaseServlet {
 	}
 
 	String id = itemUIRegistry.getWidgetId(widget);
+	String labelPattern = widget.getLabel();
 	String label = itemUIRegistry.getLabel(widget);
 	JsonValue valueJson = null;
 	if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
@@ -239,6 +240,9 @@ public class WebAppServlet extends BaseServlet {
 	widgetBuilder.add("type", type);
 	if (label != null) {
 	    widgetBuilder.add("label", label);
+	}
+	if (labelPattern != null) {
+	    widgetBuilder.add("labelPattern", labelPattern);
 	}
 	if (valueJson != null) {
 	    widgetBuilder.add("value", valueJson);
