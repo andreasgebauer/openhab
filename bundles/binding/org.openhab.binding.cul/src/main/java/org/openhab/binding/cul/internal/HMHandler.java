@@ -16,14 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import de.gebauer.homematic.DeviceState;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.hmcctc.DesiredTemperatureSetMessage;
 import de.gebauer.homematic.hmcctc.TemperaturePeriodEvent;
-import de.gebauer.homematic.hmcctc.TemperatureSetMessage;
 import de.gebauer.homematic.hmcctc.WeatherEvent;
-import de.gebauer.homematic.hmccvd.BatteryStatus;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
-import de.gebauer.homematic.hmccvd.MotorError;
 import de.gebauer.homematic.hmccvd.ValveConfigData;
 import de.gebauer.homematic.hmccvd.ValveStateData;
+import de.gebauer.homematic.hmlcdim1tpi2.DimMessage;
 import de.gebauer.homematic.hmlcdim1tpi2.DimmerState;
 import de.gebauer.homematic.hmlcdim1tpi2.DimmerStateChangeEvent;
 import de.gebauer.homematic.hmlcsw1pbufm.HMLCSW1PBUFMInterpreter;
@@ -83,6 +82,15 @@ public class HMHandler {
 	    } else if (deviceState instanceof HMLCSW1PBUFMInterpreter.SwitchState) {
 		SwitchState state = (HMLCSW1PBUFMInterpreter.SwitchState) deviceState;
 		updateIfExists(message.getSource(), "STATE", state.isOn() ? OnOffType.ON : OnOffType.OFF);
+	    } else if (deviceState == null) {
+		// if ack status us successful then command succeeded
+		if (Boolean.TRUE.equals(((AckStatusEvent) message).getSuccess())) {
+		    Message request = message.getRequest();
+		    if (request instanceof DimMessage) {
+			DimMessage dim = (DimMessage) request;
+			updateIfExists(message.getSource(), "STATE", new PercentType(dim.getValue()));
+		    }
+		}
 	    }
 	} else if (message instanceof ShutterStateEvent) {
 	    ShutterStateEvent state = (ShutterStateEvent) message;
@@ -98,8 +106,8 @@ public class HMHandler {
 	    updateIfExists(message.getSource(), "REDUCED", state.isReduced() ? OnOffType.ON : OnOffType.OFF);
 	} else if (message instanceof TemperaturePeriodEvent) {
 
-	} else if (message instanceof TemperatureSetMessage) {
-	    updateIfExists(message.getSource(), "DESIRED_TEMPERATURE", new DecimalType(((TemperatureSetMessage) message).getDesiredTemp()));
+	} else if (message instanceof DesiredTemperatureSetMessage) {
+	    updateIfExists(message.getSource(), "DESIRED_TEMPERATURE", new DecimalType(((DesiredTemperatureSetMessage) message).getDesiredTemp()));
 	}
     }
 

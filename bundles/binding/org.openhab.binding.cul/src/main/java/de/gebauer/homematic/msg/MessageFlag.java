@@ -12,6 +12,7 @@ public enum MessageFlag {
     VAL_A2((short) 0xA2),
     VAL_A4((short) 0xA4),
     VAL_A6((short) 0xA6),
+    VAL_B1((short) 0xB1),
 
     ;
 

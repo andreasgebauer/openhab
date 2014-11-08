@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.in.MessageInterpreter;
 import de.gebauer.cul.homematic.in.RawMessage;
+import de.gebauer.homematic.DeviceState;
 import de.gebauer.homematic.WeekDay;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.hmcctc.BasicTCInfoMessage.BasicTCData;
@@ -23,12 +24,14 @@ import de.gebauer.homematic.hmcctc.TemperaturePeriodEvent.TemperaturePeriod;
 import de.gebauer.homematic.hmccvd.ClimateMessage;
 import de.gebauer.homematic.hmccvd.ValveConfigData;
 import de.gebauer.homematic.msg.AbstractMessageParameter;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.CommandMessage;
 import de.gebauer.homematic.msg.Config1Message;
 import de.gebauer.homematic.msg.Config2Message;
 import de.gebauer.homematic.msg.ConfigRegisterReadMessage;
 import de.gebauer.homematic.msg.ConfigStartMessage;
 import de.gebauer.homematic.msg.Message;
+import de.gebauer.homematic.msg.MessageFlag;
 import de.gebauer.homematic.msg.StatusChangeEvent;
 
 public class HMCCTCInterpreter implements DeviceMessageInterpreter {
@@ -369,6 +372,34 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 
 	switch (msg.getMsgType()) {
 
+	case ACK:
+	    // reponse to set desired temperature:
+	    // A 0E 03 80 02 1EA808 13C86D 010224003F1D
+
+	    if (data.length() == 0) {
+		break;
+	    }
+
+	    if (msg.getMsgFlag() == MessageFlag.VAL_80) {
+		// TODO interpret data
+
+		// 01 02 24003F
+
+		// 01 02 24002A
+
+		// 21.5°C
+		// 01 02 2B0022
+
+		int batteryStatus = toInt(data, 2, 2);
+
+		BigDecimal desiredTemp = toBigDecimal(data, 0, 2, 1).divide(BigDecimal.valueOf(2));
+		LOG.info("Desired Temp: {} Battery: {}", desiredTemp, batteryStatus);
+
+		DeviceState deviceData = new DesiredTemperatureState(desiredTemp);
+
+		return new AckStatusEvent(new AbstractMessageParameter(msg, src, dst, (short) 02), deviceData);
+	    }
+
 	case THSENSOR:
 	    // no channel
 	    // 0C .. 86 70 ....... ...... .... .. ..
@@ -566,7 +597,7 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 		chStatus.peerId = data.substring(2, 6);
 		chStatus.peerChannel = toShort(data.substring(2, 6));
 
-		return new TemperatureSetMessage(new AbstractMessageParameter(msg, src, dst, chStatus.channel, rssi), desiredTemp);
+		return new DesiredTemperatureSetMessage(new AbstractMessageParameter(msg, src, dst, chStatus.channel, rssi), desiredTemp);
 	    }
 	    break;
 	case COMMAND:
@@ -619,7 +650,6 @@ public class HMCCTCInterpreter implements DeviceMessageInterpreter {
 	}
 
 	LOG.warn("Unhandled {}" + msg);
-	// TODO interpret ACK
 	return null;
     }
 

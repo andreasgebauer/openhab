@@ -6,11 +6,17 @@ import de.gebauer.homematic.msg.AbstractMessageParameter;
 import de.gebauer.homematic.msg.InfoActuatorStatusMessage;
 import de.gebauer.homematic.msg.Message;
 
-public class TemperatureSetMessage extends InfoActuatorStatusMessage implements Message {
+/**
+ * Received when wheel is turned on the TC to set the desired temperature;
+ * 
+ * @author andreas
+ *
+ */
+public class DesiredTemperatureSetMessage extends InfoActuatorStatusMessage implements Message {
 
     private final BigDecimal desiredTemp;
 
-    public TemperatureSetMessage(AbstractMessageParameter param, BigDecimal desiredTemp) {
+    public DesiredTemperatureSetMessage(AbstractMessageParameter param, BigDecimal desiredTemp) {
 	super(param);
 	this.desiredTemp = desiredTemp;
     }

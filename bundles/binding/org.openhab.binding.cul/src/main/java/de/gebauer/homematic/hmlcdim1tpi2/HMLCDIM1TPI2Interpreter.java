@@ -185,12 +185,12 @@ public class HMLCDIM1TPI2Interpreter implements DeviceMessageInterpreter {
 
 	    int subType = toInt(msg.getPayload(), 0, 2);
 	    short channel = toShort(msg.getPayload(), 2, 2);
-	    int val = toInt(msg.getPayload(), 4, 2);
+	    int val = toInt(msg.getPayload(), 4, 2) / 2;
 	    int err = toInt(msg.getPayload(), 6, 2);
 
-	    boolean overload = (err >> 1 & 0x01) == 0;
-	    boolean overheat = (err >> 2 & 0x01) == 0;
-	    boolean reduced = (err >> 3 & 0x01) == 0;
+	    boolean overload = (err >> 1 & 0x01) == 1;
+	    boolean overheat = (err >> 2 & 0x01) == 1;
+	    boolean reduced = (err >> 3 & 0x01) == 1;
 
 	    // 200 is on?
 	    // 0 is off

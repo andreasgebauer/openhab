@@ -1,5 +1,7 @@
 package de.gebauer.homematic.hmcctc;
 
+import java.math.BigDecimal;
+
 import de.gebauer.homematic.device.AbstractDevice;
 
 /**
@@ -11,5 +13,7 @@ import de.gebauer.homematic.device.AbstractDevice;
 public interface ThermoControl {
 
     boolean controlMode(final AbstractDevice src, final ControlMode ctrlMode);
+
+    boolean setTemperature(final AbstractDevice src, final BigDecimal temp);
 
 }

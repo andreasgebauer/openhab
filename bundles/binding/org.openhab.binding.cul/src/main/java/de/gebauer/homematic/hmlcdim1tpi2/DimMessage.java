@@ -128,6 +128,13 @@ public class DimMessage extends AbstractMessage {
 	return true;
     }
 
+    public int getValue() {
+	if (this.dimFactor != null) {
+	    return this.dimFactor;
+	}
+	return this.onOffState ? 100 : 0;
+    }
+
     @Override
     public String toString() {
 	return "DimCommand [onOffState=" + onOffState + ", dimFactor=" + dimFactor + ", channel=" + getChannel() + ", getRawMessage()=" + getRawMessage() + "]";

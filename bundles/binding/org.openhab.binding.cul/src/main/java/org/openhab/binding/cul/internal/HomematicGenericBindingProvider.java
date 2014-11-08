@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.openhab.binding.cul.HomematicCULBindingProvider;
 import org.openhab.binding.cul.internal.binding.HomeMaticBindingConfig;
+import org.openhab.core.binding.BindingConfig;
 import org.openhab.core.items.Item;
 import org.openhab.model.item.binding.AbstractGenericBindingProvider;
 import org.openhab.model.item.binding.BindingConfigParseException;
@@ -90,6 +91,13 @@ public class HomematicGenericBindingProvider extends AbstractGenericBindingProvi
     @Override
     public HomeMaticBindingConfig getBindingConfigForAddress(String itemName, String parameter) {
 	return addressToConfig.get(itemName + ":" + parameter);
+    }
+
+    public void updateBinding(String itemName) {
+	HomeMaticBindingConfig bindingConfig = (HomeMaticBindingConfig) super.bindingConfigs.get(itemName);
+	Item item = bindingConfig.getItem();
+	
+	
     }
 
 }

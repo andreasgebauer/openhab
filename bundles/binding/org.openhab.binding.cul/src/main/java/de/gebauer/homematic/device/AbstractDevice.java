@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import de.gebauer.cul.homematic.device.ResponseWait;
 import de.gebauer.cul.homematic.in.DeviceMessageInterpreter;
 import de.gebauer.cul.homematic.out.MessageSenderImpl.WrappedMessage;
+import de.gebauer.homematic.CommunicationHandler;
 import de.gebauer.homematic.DeviceInfo;
 import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.device.ChannelImpl.Holder;
@@ -49,6 +50,10 @@ public abstract class AbstractDevice implements Serializable, Channelable {
     protected Map<Short, Channelable> channels = new HashMap<Short, Channelable>();
 
     private List<AbstractDevice> pairedDevices = new ArrayList<AbstractDevice>();
+
+    private List<MessageReceivedListener> messageReceivedListeners = new ArrayList<MessageReceivedListener>();
+
+    private List<MessageSentListener> messageSentListeners = new ArrayList<MessageSentListener>();
 
     public AbstractDevice(final String name, final String id, final DeviceInfo info) {
 	this.name = name;
@@ -117,11 +122,17 @@ public abstract class AbstractDevice implements Serializable, Channelable {
      */
     public void messageReceived(final Message event) {
 	this.messagesReceived.add(event);
+	for (MessageReceivedListener listener : this.messageReceivedListeners) {
+	    listener.messageReceived(event);
+	}
     }
 
     public void messageSent(final Message event) {
 	if (!this.messagesSent.contains(event)) {
 	    this.messagesSent.add(event);
+	}
+	for (MessageSentListener listener : this.messageSentListeners) {
+	    listener.messageSent(event);
 	}
     }
 
@@ -225,6 +236,14 @@ public abstract class AbstractDevice implements Serializable, Channelable {
      */
     public Iterator<Message> getEventsSent() {
 	return this.messagesSent.descendingIterator();
+    }
+
+    protected void registerMessageListener(MessageReceivedListener listener) {
+	this.messageReceivedListeners.add(listener);
+    }
+
+    protected void registerMessageListener(MessageSentListener listener) {
+	this.messageSentListeners.add(listener);
     }
 
     @Override

@@ -10,8 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.gebauer.cul.homematic.in.MessageInterpreter;
+import de.gebauer.homematic.DeviceState;
 import de.gebauer.homematic.WeekDay;
 import de.gebauer.homematic.device.AbstractDevice;
+import de.gebauer.homematic.msg.AckStatusEvent;
 import de.gebauer.homematic.msg.Message;
 
 public class HMCCTCInterpreterTest {
@@ -30,8 +32,8 @@ public class HMCCTCInterpreterTest {
 	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A107980101C4E7F1EA80806021D00000000"), src, dst);
 
 	assertNotNull(read);
-	assertTrue(read instanceof TemperatureSetMessage);
-	TemperatureSetMessage message = (TemperatureSetMessage) read;
+	assertTrue(read instanceof DesiredTemperatureSetMessage);
+	DesiredTemperatureSetMessage message = (DesiredTemperatureSetMessage) read;
 	assertEquals(new BigDecimal("14.5"), message.getDesiredTemp());
     }
 
@@ -53,8 +55,8 @@ public class HMCCTCInterpreterTest {
 	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A10B5A4101EA80813C86D06022E0000000044"), null, null);
 
 	assertNotNull(read);
-	assertTrue(read instanceof TemperatureSetMessage);
-	TemperatureSetMessage tsm = (TemperatureSetMessage) read;
+	assertTrue(read instanceof DesiredTemperatureSetMessage);
+	DesiredTemperatureSetMessage tsm = (DesiredTemperatureSetMessage) read;
 
 	BigDecimal desiredTemp = tsm.getDesiredTemp();
 	assertEquals(23, desiredTemp.doubleValue(), 0);
@@ -133,4 +135,22 @@ public class HMCCTCInterpreterTest {
 	assertEquals(WeekDay.SUNDAY, basicTcInfo.getTcData().decalcDay);
 	assertEquals(new HMCCTCInterpreter.Time(12, 00), basicTcInfo.getTcData().decalcTime);
     }
+
+    // A 0E 03 80 02 1EA808 13C86D 01 02 24003F
+    @Test
+    public void testReadSetDesiredTemperatureResponse() {
+	Message read = hmcctcInterpreter.read(MessageInterpreter.getRawMessage("A0E0380021EA80813C86D010224003F1D"), null, null);
+
+	assertNotNull(read);
+	assertTrue(read instanceof AckStatusEvent);
+	AckStatusEvent ack = (AckStatusEvent) read;
+	assertNotNull(ack.getDeviceState());
+	assertTrue(ack.getDeviceState() instanceof DesiredTemperatureState);
+	DesiredTemperatureState deviceState = (DesiredTemperatureState) ack.getDeviceState();
+
+	BigDecimal desiredTemperature = deviceState.getDesiredTemperature();
+
+	assertEquals(new BigDecimal("18"), desiredTemperature);
+    }
+
 }

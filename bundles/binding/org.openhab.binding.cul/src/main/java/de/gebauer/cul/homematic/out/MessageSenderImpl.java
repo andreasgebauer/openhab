@@ -15,6 +15,7 @@ import de.gebauer.cul.homematic.in.PendType;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.cul.homematic.in.RawMessageBuilder;
 import de.gebauer.homematic.CommunicationHandler;
+import de.gebauer.homematic.command.Command;
 import de.gebauer.homematic.device.AbstractDevice;
 import de.gebauer.homematic.device.Channelable;
 import de.gebauer.homematic.msg.AbstractConfigMessage;
@@ -150,7 +151,13 @@ public class MessageSenderImpl implements MessageSender {
 	}
 
 	LOG.debug("Processing send stack of {}: {} messages pending", destination, destination.getCommandStack().size());
-	this.executor.submit(new CommunicationHandler(this, destination.getCommandStack().poll(), Calendar.getInstance()));
+	Command command = destination.getCommandStack().poll();
+
+	if (command.hasCustomCommunicationHandler()) {
+	    this.executor.submit(command.getCommunicationHandler(this));
+	} else {
+	    this.executor.submit(new CommunicationHandler(this, command, Calendar.getInstance(), command.getRetryCount()));
+	}
     }
 
     @Override

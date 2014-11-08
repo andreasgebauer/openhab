@@ -31,4 +31,10 @@ public class DimmerState implements DeviceState {
     public boolean isReduced() {
 	return reduced;
     }
+
+    @Override
+    public String toString() {
+	return "DimmerState [val=" + val + ", overload=" + overload + ", overheat=" + overheat + ", reduced=" + reduced + "]";
+    }
+
 }

@@ -29,6 +29,7 @@
 package org.openhab.binding.cul.internal;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -40,7 +41,10 @@ import org.openhab.binding.cul.HomematicCULBindingProvider;
 import org.openhab.binding.cul.internal.binding.HomeMaticBindingConfig;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.binding.BindingProvider;
+import org.openhab.core.events.EventPublisher;
 import org.openhab.core.items.Item;
+import org.openhab.core.items.ItemNotFoundException;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.items.DimmerItem;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.IncreaseDecreaseType;
@@ -138,6 +142,8 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
     private Map<String, Integer> deviceParams;
 
+    private ItemRegistry itemRegistry;
+
     public HomematicCULBinding() {
 	INSTANCE = this;
     }
@@ -205,6 +211,156 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	return this.isProperlyConfigured();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openhab.io.transport.cul.CULListener#dataReceived(java.lang.String)
+     */
+    @Override
+    public void dataReceived(final String data) {
+	try {
+	    final Message message = this.messageParser.parse(data);
+	    
+	    if (message == null) {
+		LOG.debug("Could not interpret " + data);
+		return;
+	    }
+	    
+	    LOG.debug("Received {} {}", message, message.getRSSI());
+	    
+	    message.getSource().messageSent(message);
+	    
+	    // LOG.debug("Parsed event " + event);
+	    if (message.getDestination() != null) {
+		message.getDestination().messageReceived(message);
+	    }
+	    
+	    communication(message);
+	    
+	    this.hmHandler.receivedMessage(message);
+	    
+	    // just process if the message received is for us or if we received a broadcast
+	    if (message.isBroadCast() || this.ccu.equals(message.getDestination())) {
+		this.messageSender.processCmdStack(message.getSource());
+	    }
+	    
+	} catch (final IOException e) {
+	    LOG.error("Error while writing to ");
+	}
+    }
+    
+    private void communication(final Message message) {
+	if (message instanceof DeviceInfoEvent) {
+	    // pairing
+	    if (!this.ccu.isPairingEnabled()) {
+		LOG.info("Pairing not enabled.");
+		return;
+	    }
+	    
+	    final RawMessage msg = message.getRawMessage();
+	    if (msg.getSrc().equals(this.ccu.getId())) {
+		// repeater?
+		return;
+	    } else if (msg.getMsgType() == MessageType.UNKNOWN2 && msg.getMsgFlag() == MessageFlag.VAL_00) {
+		// TODO why?
+		return;
+	    }
+	    final AbstractDevice destination = message.getDestination();
+	    if (destination != null && destination.getId() != this.ccu.getId()) {
+		LOG.info("Not our pairing request.");
+		return;
+	    }
+	    
+	    LOG.info("Initiating Pairing. clearing commands.");
+	    message.getSource().getCommandStack().clear();
+	    
+	    final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A0);
+	    
+	    // 02010A130BC80C6D
+	    if (message.getSource().getInfo().mdl == Model.HMCCVD) {
+		// try to simulate a TC
+		final PairingCommand pairingCommand = new PairingCommand();
+		// 21 0039 4B455130303339363531 58 00 02 00
+		
+		String serNo = message.getSource().getInfo().serNo;
+		if (serNo == null) {
+		    serNo = "4B455130303339363531";
+		}
+		// String serNo = "00000000000000000000";
+		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, serNo);
+		final String pAddr = "000000";
+		final short chnl = (short) 01;
+		final short pList = (short) 5;
+		final short pChnl = (short) 0;
+		
+		// [1EA808->1C475A #48; len=1A, flag=VAL_A0, type=UNKNOWN, p=21 0039 4A455130373039393232 58 00 02 00]
+		pairingCommand.add(new DeviceInfoEvent(msgBuilder.build(), this.ccu, message.getSource(), info, (short) 0x00, (short) 0x02, "00"));
+		
+		// [1EA808->1C475A #49; len=10, flag=VAL_A0, type=CONFIG, p=0104 000000 00 05] ConfigRegisterReadCommand
+		final AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), this.ccu, message.getSource(), chnl);
+		pairingCommand.add(new ConfigRegisterReadMessage(msgParam, pAddr, pChnl, pList));
+		message.getSource().addToSendQueue(pairingCommand);
+	    } else {
+		message.getSource().addToSendQueue(new PairingCommand(this.ccu, message.getSource()));
+	    }
+	    
+	    this.ccu.setHmPairSerial(message.getSource().getInfo().serNo);
+	}
+	
+	final AbstractDevice destination = message.getDestination();
+	final Message request;
+	if (destination != null) {
+	    request = destination.getEventSend(message.getCount());
+	} else {
+	    request = null;
+	}
+	
+	if (!message.isBroadCast()) {
+	    // if we have sent a request the we add the response as answer
+	    // TODO consider time passed by since we sent the message
+	    if (request != null && request.getSource().equals(this.ccu)) {
+		// add that as answer no matter if successful or not
+		request.setResponse(message);
+		
+		if (message instanceof ParamResponseMessage) {
+		    final ParamResponseMessage paramResponseMessage = (ParamResponseMessage) message;
+		    final ConfigRegisterReadMessage configReadRequest = (ConfigRegisterReadMessage) request;
+		    final Matcher matcher = Utils.matcherFor(paramResponseMessage.getData(), ".* 00:00$");
+		    if (matcher.matches()) {
+			if (configReadRequest.getPeerList() == 0) {
+			    LOG.info("Successfully paired {} with {} ", message.getSource(), message.getDestination());
+			}
+		    }
+		}
+	    }
+	}
+	
+	if (this.ccu.equals(message.getDestination())) {
+	    if (message.needsAck()) {
+		final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
+		AbstractMessageParameter param = new AbstractMessageParameter(build, ccu, message.getSource(), message.getChannel());
+		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusEvent(param)));
+	    }
+	    
+	    if (request != null && request.getSource().equals(this.ccu)) {
+		if (message instanceof AckStatusEvent || message instanceof ParamResponseMessage) {
+		    // if pairing is in progress
+		    if (this.ccu.getHmPairSerial() != null
+			    && this.ccu.getHmPairSerial().equals(message.getSource().getInfo().serNo)
+			    && message.getSource().getCommandStack().isEmpty()) {
+			if (request.hasAck() && request instanceof ConfigEndMessage) {
+			    LOG.info("Successfully paired CCU with " + message.getSource());
+			    this.ccu.pairedWith(message.getSource());
+			    
+			    this.ccu.scheduleCycle(message.getSource(), this.ccu);
+			    this.ccu.setHmPairSerial(null);
+			}
+		    }
+		}
+	    }
+	}
+    }
+    
     /**
      * @throws IOException
      * @{inheritDoc
@@ -225,14 +381,14 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	    } else {
 		LOG.warn("Config null or {} not writable", command);
 	    }
-	} catch (final IOException e) {
+	} catch (final Exception e) {
 	    LOG.error("Unexpected Exception:", e);
 	}
     }
 
-    public boolean executeCommand(final CULHandler cul, final Command command, final HomeMaticBindingConfig config) {
+    public boolean executeCommand(final CULHandler cul, final Command command, final HomeMaticBindingConfig config) throws ItemNotFoundException {
 	final AbstractDevice destination = this.dvcStore.get(config.getId());
-	Item item = config.getItem();
+	Item item = this.itemRegistry.getItem(config.getItem().getName());
 	LOG.info("Item {} should receive command {}", item.hashCode(), command);
 	State state = item.getState();
 
@@ -273,12 +429,16 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	    }
 	    return true;
 	} else if (destination instanceof ThermoControl) {
+	    ThermoControl thermoControl = (ThermoControl) destination;
 	    if ("CONTROL_MODE".equals(config.getParameter())) {
 		if (command instanceof DecimalType) {
 		    final int intValue = ((DecimalType) command).intValue();
-		    final ControlMode valueOf = ControlMode.valueOf(intValue);
-		    ((ThermoControl) destination).controlMode(this.ccu, valueOf);
-		    return false;
+		    return thermoControl.controlMode(this.ccu, ControlMode.valueOf(intValue));
+		}
+	    } else if ("DESIRED_TEMPERATURE".equals(config.getParameter())) {
+		if (command instanceof DecimalType) {
+		    final BigDecimal value = ((DecimalType) command).toBigDecimal();
+		    return thermoControl.setTemperature(this.ccu, value);
 		}
 	    }
 	} else if (destination instanceof Switch) {
@@ -309,12 +469,12 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	// BindingProviders provide a binding for the given 'itemName'.
 	LOG.debug("internalReceiveUpdate() is called for item " + itemName);
 
-	Item item = getBindingForName(itemName).getItem();
-	if (item instanceof DimmerItem) {
-	    if (newState instanceof PercentType) {
-		((DimmerItem) item).setState(newState);
-	    }
-	}
+//	Item item = getBindingForName(itemName).getItem();
+//	if (item instanceof DimmerItem) {
+//	    if (newState instanceof PercentType) {
+//		((DimmerItem) item).setState(newState);
+//	    }
+//	}
     }
 
     /**
@@ -355,6 +515,9 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     public void bindingChanged(BindingProvider provider, String itemName) {
 	LOG.warn("Item Binding changed: {} {}", itemName, provider);
 	super.bindingChanged(provider, itemName);
+
+	HomematicGenericBindingProvider prov = (HomematicGenericBindingProvider) provider;
+	prov.updateBinding(itemName);
     }
 
     @Override
@@ -457,156 +620,6 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 	}
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.openhab.io.transport.cul.CULListener#dataReceived(java.lang.String)
-     */
-    @Override
-    public void dataReceived(final String data) {
-	try {
-	    final Message message = this.messageParser.parse(data);
-
-	    if (message == null) {
-		LOG.debug("Could not interpret " + data);
-		return;
-	    }
-
-	    LOG.debug("Received {} {}", message, message.getRSSI());
-
-	    message.getSource().messageSent(message);
-
-	    // LOG.debug("Parsed event " + event);
-	    if (message.getDestination() != null) {
-		message.getDestination().messageReceived(message);
-	    }
-
-	    communication(message);
-
-	    this.hmHandler.receivedMessage(message);
-
-	    // just process if the message received is for us or if we received a broadcast
-	    if (message.isBroadCast() || this.ccu.equals(message.getDestination())) {
-		this.messageSender.processCmdStack(message.getSource());
-	    }
-
-	} catch (final IOException e) {
-	    LOG.error("Error while writing to ");
-	}
-    }
-
-    private void communication(final Message message) {
-	if (message instanceof DeviceInfoEvent) {
-	    // pairing
-	    if (!this.ccu.isPairingEnabled()) {
-		LOG.info("Pairing not enabled.");
-		return;
-	    }
-
-	    final RawMessage msg = message.getRawMessage();
-	    if (msg.getSrc().equals(this.ccu.getId())) {
-		// repeater?
-		return;
-	    } else if (msg.getMsgType() == MessageType.UNKNOWN2 && msg.getMsgFlag() == MessageFlag.VAL_00) {
-		// TODO why?
-		return;
-	    }
-	    final AbstractDevice destination = message.getDestination();
-	    if (destination != null && destination.getId() != this.ccu.getId()) {
-		LOG.info("Not our pairing request.");
-		return;
-	    }
-
-	    LOG.info("Initiating Pairing. clearing commands.");
-	    message.getSource().getCommandStack().clear();
-
-	    final RawMessageBuilder msgBuilder = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_A0);
-
-	    // 02010A130BC80C6D
-	    if (message.getSource().getInfo().mdl == Model.HMCCVD) {
-		// try to simulate a TC
-		final PairingCommand pairingCommand = new PairingCommand();
-		// 21 0039 4B455130303339363531 58 00 02 00
-
-		String serNo = message.getSource().getInfo().serNo;
-		if (serNo == null) {
-		    serNo = "4B455130303339363531";
-		}
-		// String serNo = "00000000000000000000";
-		final DeviceInfo info = new DeviceInfo("21", Model.HMCCTC, serNo);
-		final String pAddr = "000000";
-		final short chnl = (short) 01;
-		final short pList = (short) 5;
-		final short pChnl = (short) 0;
-
-		// [1EA808->1C475A #48; len=1A, flag=VAL_A0, type=UNKNOWN, p=21 0039 4A455130373039393232 58 00 02 00]
-		pairingCommand.add(new DeviceInfoEvent(msgBuilder.build(), this.ccu, message.getSource(), info, (short) 0x00, (short) 0x02, "00"));
-
-		// [1EA808->1C475A #49; len=10, flag=VAL_A0, type=CONFIG, p=0104 000000 00 05] ConfigRegisterReadCommand
-		final AbstractMessageParameter msgParam = new AbstractMessageParameter(msgBuilder.build(), this.ccu, message.getSource(), chnl);
-		pairingCommand.add(new ConfigRegisterReadMessage(msgParam, pAddr, pChnl, pList));
-		message.getSource().addToSendQueue(pairingCommand);
-	    } else {
-		message.getSource().addToSendQueue(new PairingCommand(this.ccu, message.getSource()));
-	    }
-
-	    this.ccu.setHmPairSerial(message.getSource().getInfo().serNo);
-	}
-
-	final AbstractDevice destination = message.getDestination();
-	final Message request;
-	if (destination != null) {
-	    request = destination.getEventSend(message.getCount());
-	} else {
-	    request = null;
-	}
-
-	if (!message.isBroadCast()) {
-	    // if we have sent a request the we add the response as answer
-	    // TODO consider time passed by since we sent the message
-	    if (request != null && request.getSource().equals(this.ccu)) {
-		// add that as answer no matter if successful or not
-		request.setResponse(message);
-
-		if (message instanceof ParamResponseMessage) {
-		    final ParamResponseMessage paramResponseMessage = (ParamResponseMessage) message;
-		    final ConfigRegisterReadMessage configReadRequest = (ConfigRegisterReadMessage) request;
-		    final Matcher matcher = Utils.matcherFor(paramResponseMessage.getData(), ".* 00:00$");
-		    if (matcher.matches()) {
-			if (configReadRequest.getPeerList() == 0) {
-			    LOG.info("Successfully paired {} with {} ", message.getSource(), message.getDestination());
-			}
-		    }
-		}
-	    }
-	}
-
-	if (this.ccu.equals(message.getDestination())) {
-	    if (message.needsAck()) {
-		final RawMessage build = new RawMessageBuilder().setMsgFlag(MessageFlag.VAL_80).setPayload(String.format("%02X", 0)).build();
-		AbstractMessageParameter param = new AbstractMessageParameter(build, ccu, message.getSource(), message.getChannel());
-		message.getSource().addToSendQueue(new SimpleCommand(new AckStatusEvent(param)));
-	    }
-
-	    if (request != null && request.getSource().equals(this.ccu)) {
-		if (message instanceof AckStatusEvent || message instanceof ParamResponseMessage) {
-		    // if pairing is in progress
-		    if (this.ccu.getHmPairSerial() != null
-			    && this.ccu.getHmPairSerial().equals(message.getSource().getInfo().serNo)
-			    && message.getSource().getCommandStack().isEmpty()) {
-			if (request.hasAck() && request instanceof ConfigEndMessage) {
-			    LOG.info("Successfully paired CCU with " + message.getSource());
-			    this.ccu.pairedWith(message.getSource());
-
-			    this.ccu.scheduleCycle(message.getSource(), this.ccu);
-			    this.ccu.setHmPairSerial(null);
-			}
-		    }
-		}
-	    }
-	}
-    }
-
     @Override
     public void error(final Exception e) {
 	// TODO Auto-generated method stub
@@ -621,6 +634,14 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
 
     public void postUpdate(String itemName, State newState) {
 	this.eventPublisher.postUpdate(itemName, newState);
+    }
+
+    public void setItemRegistry(ItemRegistry itemRegistry) {
+	this.itemRegistry = itemRegistry;
+    }
+
+    public void unsetItemRegistry(ItemRegistry itemRegistry) {
+	this.itemRegistry = null;
     }
 
 }

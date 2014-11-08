@@ -17,8 +17,8 @@ public class CommunicationHandler extends Thread {
     private static final int MILLIS_WAIT_FOR_ACK = 300;
     private static final int MAX_TRIES = 3;
 
-    private final Command command;
-    private final MessageSender sender;
+    protected final Command command;
+    protected final MessageSender sender;
     private final int tries;
     private final Calendar timestampSend;
 
@@ -35,6 +35,11 @@ public class CommunicationHandler extends Thread {
 
     @Override
     public void run() {
+	try {
+	    Thread.sleep(80);
+	} catch (InterruptedException e1) {
+	}
+
 	Message msg = null;
 	boolean success = true;
 	while ((msg = this.command.getNextMessage()) != null) {

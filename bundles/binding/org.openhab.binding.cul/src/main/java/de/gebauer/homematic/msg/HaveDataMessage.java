@@ -3,6 +3,13 @@ package de.gebauer.homematic.msg;
 import de.gebauer.cul.homematic.in.RawMessage;
 import de.gebauer.homematic.device.AbstractDevice;
 
+/**
+ * Message type '12'<br>
+ * Message flag 'A1'
+ * 
+ * @author andreas
+ *
+ */
 public class HaveDataMessage extends AbstractMessage {
 
     public HaveDataMessage(RawMessage msg, AbstractDevice src, AbstractDevice dst) {
