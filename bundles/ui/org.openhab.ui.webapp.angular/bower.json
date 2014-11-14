@@ -1,0 +1,8 @@
+{
+  "name": "webapp.angular",
+  "private": "true",
+  "devDependencies": {},
+  "dependencies": {
+    "sprintf": "~1.0.2"
+  }
+}
