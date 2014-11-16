@@ -7,17 +7,19 @@ angular.module('app').provider('webSocket', function() {
 
 	return {
 		$get : function($q, $log) {
+			this.opened = false;
+			this.closed = false;
+
 			if (!webSocketURL && !webSocketObject) {
 				throw 'WebSocket URL is not defined';
 			}
 			
-			var setup = function(){
+			var setup = function() {
 				var socket = !webSocketObject ? new WebSocket(webSocketURL) : webSocketObject;
 				
 				socket.onopen = function() {
 					deferred.resolve();
 				};
-				
 
 				socket.onmessage = function(e) {
 					var data = JSON.parse(e.data);
@@ -26,18 +28,19 @@ angular.module('app').provider('webSocket', function() {
 
 				socket.onclose = function(){
 					$log.info("Websocket closed");
+					socket.closed = true;
 				};
 				
 				return socket;
 			}
 			
-			var socket = setup();
-
+			var socket;
 			var deferred = $q.defer();
-
 			var callbacks = jQuery.Callbacks();
 
 			return {
+				closed: false,
+
 				send : function(message) {
 					var msg = JSON.stringify(message);
 
@@ -59,10 +62,16 @@ angular.module('app').provider('webSocket', function() {
 				
 				close : function(){
 					socket.close();
+					this.closed = true;
 				},
 				
 				init: function(){
 					socket = setup();
+					this.closed = false;
+				},
+
+				isClosed : function() {
+					return this.closed;
 				}
 			};
 		},

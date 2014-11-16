@@ -3,6 +3,7 @@ package org.openhab.ui.webapp.angular.internal.servlet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,6 +31,8 @@ import org.eclipse.jetty.websocket.WebSocketServlet;
 import org.openhab.core.items.GenericItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
+import org.openhab.core.library.types.DateTimeType;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.persistence.FilterCriteria;
 import org.openhab.core.persistence.FilterCriteria.Ordering;
 import org.openhab.core.persistence.HistoricItem;
@@ -330,7 +333,16 @@ public class ChartDataServlet extends WebSocketServlet {
 	if (timestamp != null) {
 	    valueBuilder.add("timestamp", timestamp.getTime());
 	}
-	valueBuilder.add("value", state.toString());
+	if (state instanceof DecimalType) {
+	    valueBuilder.add("value", ((DecimalType) state).toBigDecimal());
+	} else if (state instanceof DateTimeType) {
+	    Calendar calendar = ((DateTimeType) state).getCalendar();
+	    valueBuilder.add("value", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(calendar.getTime()));
+	    valueBuilder.add("type", "datetime");
+	} else {
+	    valueBuilder.add("value", state.toString());
+	}
+
 	valuesBuilder.add(valueBuilder.build());
 	return valuesBuilder;
     }

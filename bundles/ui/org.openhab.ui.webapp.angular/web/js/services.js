@@ -21,7 +21,7 @@ appModule.factory('sitemap', function($http, $log) {
 				if(root.id == widgetId) {
 					return root;
 				}
-				if(!angular.isUndefined(root.children)) {
+				if(angular.isDefined(root.children)) {
 					for(var i=0; i<root.children.length; i++){
 						var child = root.children[i];
 						if(child.id == widgetId){

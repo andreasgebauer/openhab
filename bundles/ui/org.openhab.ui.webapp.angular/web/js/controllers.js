@@ -1,7 +1,7 @@
 var url = "/angular/sitemap/";
 var commandUrl = "/angular/cmd/";
 
-var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 'ngAnimate']);
+var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 'ngAnimate', 'sprintf']);
 
 
 	// process an item being shown
@@ -23,11 +23,26 @@ var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 
 			
 			var widget = this;
 			var value = item.values[0].value;
+			var type = item.values[0].type;
 			var iconPrefix = item.icon != "none" ? item.icon : widget.type;
 
-			if(item.label.indexOf('[') != -1){
-				widget.label = item.label.substring(0, item.label.indexOf('['));
-				widget.value = item.label.substring(item.label.indexOf('[') +  1, item.label.indexOf(']'));
+			var label;
+			
+			if(angular.isDefined(widget.labelPattern)) {
+				// try to parse date type
+				// TODO
+				if(widget.valueType == "datetime") {
+					value = new Date(value);
+				}
+				label = mdgw.format(widget.labelPattern, value);
+			} else {
+				label = item.label;
+			}
+			
+			if(label.indexOf('[') != -1) {
+				// {"id":"Raumklima_SZ","label":"Schlafzimmer [20.5Â°C 69%]","icon":"temperature","values":[{"timestamp":1416080120072,"value":"20.5Â°C 69%"}]}
+				widget.label = label.substring(0, label.indexOf('['));
+				widget.value = label.substring(label.indexOf('[') +  1, label.indexOf(']'));
 			}
 
 			if (widget.type === "text" || widget.type === "text_link") {
@@ -177,8 +192,10 @@ var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 
 
 appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval) {
 
-	$scope.show = false;
+	webSocket.init();
 
+	$scope.stayConnected = false;
+	$scope.show = false;
 
 	// watch change of the location
 	$scope.$watch(function() {
@@ -273,6 +290,17 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			$scope.viewItem.selected = false;
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
+			if(angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
+				// we need to load the sitemap data for the page shown
+				sitemap.fetch("default", widgetId, setupModel);
+			} else {
+				var pendingChartData = {};
+
+				process($scope.viewItem, pendingChartData);
+
+				webSocket.send(pendingChartData);
+			}
+
 			if(angular.isDefined($scope.nav)) {
 				$scope.nav.back.visible = sitemap.location !== "";
 				$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
@@ -286,16 +314,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 				}
 			}
 			
-			if(angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
-				// we need to load the sitemap data for the page shown
-				sitemap.fetch("default", widgetId, setupModel);
-			} else {
-				var pendingChartData = {};
-
-				process($scope.viewItem, pendingChartData);
-
-				webSocket.send(pendingChartData);
-			}
 		}
 	});
 
@@ -361,16 +379,20 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 	webSocket.subscribe(handleUpdate);
 
-	reconnect = function(){
-		webSocket.init();
-		webSocket.subscribe(handleUpdate);
-		$log.info("Reconnected");
+	reconnect = function() {
+		if(webSocket.isClosed()) {
+			webSocket.init();
+			webSocket.subscribe(handleUpdate);
+			$log.info("Reconnected");
+		}
 	};
 
-	disconnect = function(){
-		webSocket.unsubscribe(handleUpdate);
-		webSocket.close();
-		$log.info("Disconnected");
+	disconnect = function() {
+		if(!$scope.stayConnected) {
+			webSocket.unsubscribe(handleUpdate);
+			webSocket.close();
+			$log.info("Disconnected");
+		}
 	};
 
 	// event handling
@@ -395,14 +417,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		disconnect();			
 	});
 	
-	$scope.$on("pagehide", function(event){
-		console.log("onPageHide");
-	});
-	
-	$scope.$on("pageshow", function(event){
-		console.log("onPageShow");
-	});
-
 	// scope functions
 	
 	// sets the location for the widget given

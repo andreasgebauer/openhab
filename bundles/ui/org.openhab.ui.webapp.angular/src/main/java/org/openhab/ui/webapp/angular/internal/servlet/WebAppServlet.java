@@ -180,7 +180,7 @@ public class WebAppServlet extends BaseServlet {
 	return null;
     }
 
-    private JsonArrayBuilder render(EList<Widget> children) {
+    private JsonArrayBuilder render(EList<Widget> children) throws ItemNotFoundException {
 	JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 	for (Iterator<Widget> iterator = children.iterator(); iterator.hasNext();) {
 	    Widget widget = iterator.next();
@@ -189,7 +189,7 @@ public class WebAppServlet extends BaseServlet {
 	return arrayBuilder;
     }
 
-    private JsonObjectBuilder render(Widget widget) {
+    private JsonObjectBuilder render(Widget widget) throws ItemNotFoundException {
 
 	String simpleName = widget.getClass().getSimpleName();
 	String type = simpleName.substring(0, simpleName.length() - "Impl".length()).toLowerCase();
@@ -201,6 +201,10 @@ public class WebAppServlet extends BaseServlet {
 
 	String id = itemUIRegistry.getWidgetId(widget);
 	String labelPattern = widget.getLabel();
+	if (labelPattern == null) {
+	    labelPattern = itemUIRegistry.getLabel(widget.getItem());
+	}
+
 	String label = itemUIRegistry.getLabel(widget);
 	JsonValue valueJson = null;
 	if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
@@ -235,9 +239,22 @@ public class WebAppServlet extends BaseServlet {
 	String valueColor = itemUIRegistry.getValueColor(widget);
 	String itemName = widget.getItem();
 
+	Item item = null;
+
+	try {
+	    item = itemRegistry.getItem(itemName);
+	} catch (ItemNotFoundException e) {
+	    // do nothing
+	}
+
 	JsonObjectBuilder widgetBuilder = Json.createObjectBuilder();
 	widgetBuilder.add("id", id);
 	widgetBuilder.add("type", type);
+
+	if (item != null) {
+	    String itemType = item.getClass().getSimpleName();
+	    widgetBuilder.add("valueType", itemType.substring(0, itemType.length() - 4).toLowerCase());
+	}
 	if (label != null) {
 	    widgetBuilder.add("label", label);
 	}
@@ -269,36 +286,31 @@ public class WebAppServlet extends BaseServlet {
 
 	//
 	if (widget instanceof Chart) {
-	    try {
-		String period = ((Chart) widget).getPeriod();
-		widgetBuilder.add("period", periodToTimespan(period));
+	    String period = ((Chart) widget).getPeriod();
+	    widgetBuilder.add("period", periodToTimespan(period));
 
-		JsonArrayBuilder arrBldr = Json.createArrayBuilder();
+	    JsonArrayBuilder arrBldr = Json.createArrayBuilder();
 
-		Item item = this.itemRegistry.getItem(itemName);
-
-		if (item instanceof GroupItem) {
-		    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-			GenericItem genItem = (GenericItem) chartItem;
-			arrBldr.add(genItem.getName());
-		    }
-		} else {
-		    arrBldr.add(item.getName());
+	    if (item instanceof GroupItem) {
+		for (Item chartItem : ((GroupItem) item).getAllMembers()) {
+		    GenericItem genItem = (GenericItem) chartItem;
+		    arrBldr.add(genItem.getName());
 		}
-
-		widgetBuilder.add("items", arrBldr);
-
-	    } catch (ItemNotFoundException e) {
-		// ignore
-
+	    } else {
+		arrBldr.add(item.getName());
 	    }
+
+	    widgetBuilder.add("items", arrBldr);
+
 	} else if (widget instanceof Setpoint) {
 	    Setpoint setPoint = ((Setpoint) widget);
 	    BigDecimal maxValue = setPoint.getMaxValue();
 	    BigDecimal minValue = setPoint.getMinValue();
 	    BigDecimal step = setPoint.getStep();
 
+	    widgetBuilder.add("min", minValue);
 	    widgetBuilder.add("max", maxValue);
+	    widgetBuilder.add("step", step);
 
 	} else if (widget instanceof Switch) {
 	    Switch sw = (Switch) widget;
