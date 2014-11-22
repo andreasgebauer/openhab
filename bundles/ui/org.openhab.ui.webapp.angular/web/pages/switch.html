@@ -1,7 +1,7 @@
-<b class="iToggle {{widget.value ? '__sel' : ''}}"
+<b class="iToggle {{widget.value == 'ON' ? '__sel' : ''}}"
 	title="{{widget.item}}" ng-click="changeState(widget.item, 'TOGGLE')">&nbsp;<b
-	style="{{widget.value ? 'right' : 'left'; }}: -1px;"></b><i
-	style="{{widget.value ? 'left' : 'right'}}: 0px;">{{widget.value ? 'I' : 'O'}}</i></b>
+	style="{{widget.value == 'ON' ? 'right' : 'left'; }}: -1px;"></b><i
+	style="{{widget.value == 'ON' ? 'left' : 'right'}}: 0px;">{{widget.value == 'ON' ? 'I' : 'O'}}</i></b>
 
 <input type="checkbox" id="{{widget.item}}" class="iToggle" title="I|O"
 	{{widget.checked}} ng-click="changeState(widget.item, 'TOGGLE')" />

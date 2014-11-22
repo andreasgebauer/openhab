@@ -63,6 +63,74 @@ b.iToggle{margin-left:8px;/* height: 24px; */}
   to { opacity:0; }
 }
 
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .iMenu class
+*/
+.iLayer span.red {
+  -webkit-animation:2s to_red;
+  -moz-animation:2s to_red;
+  -o-animation:2s to_red;
+  animation:2s to_red;
+}
+
+@-webkit-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@-moz-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@-o-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .iMenu class
+*/
+.iLayer span.inherit {
+  -webkit-animation:3s to_inh;
+  -moz-animation:3s to_inh;
+  -o-animation:3s to_inh;
+  animation: 3s to_inh;
+}
+
+@-webkit-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@-moz-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@-o-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+
+
+
 label {
   margin-bottom: 0px;
 }

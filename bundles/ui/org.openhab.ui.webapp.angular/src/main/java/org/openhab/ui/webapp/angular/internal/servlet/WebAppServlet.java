@@ -3,7 +3,9 @@ package org.openhab.ui.webapp.angular.internal.servlet;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -128,7 +130,7 @@ public class WebAppServlet extends BaseServlet {
 			label = "undefined";
 
 		    JsonObjectBuilder sitemapBuilder = Json.createObjectBuilder();
-		    String id = itemUIRegistry.getWidgetId(w);
+		    String id = getItemUIRegistry().getWidgetId(w);
 		    String parentWidgetId = getParentWidgetId(sitemap, w);
 		    sitemapBuilder.add("id", id);
 		    sitemapBuilder.add("parentId", parentWidgetId);
@@ -199,17 +201,24 @@ public class WebAppServlet extends BaseServlet {
 	    type += "_link";
 	}
 
-	String id = itemUIRegistry.getWidgetId(widget);
+	String id = getItemUIRegistry().getWidgetId(widget);
 	String labelPattern = widget.getLabel();
+	String valuePattern = null;
 	if (labelPattern == null) {
-	    labelPattern = itemUIRegistry.getLabel(widget.getItem());
+	    labelPattern = getItemUIRegistry().getLabel(widget.getItem());
+	}
+	if (labelPattern != null) {
+	    Matcher matcher = Pattern.compile(".*\\[(.*)\\].*").matcher(labelPattern);
+	    if (matcher.matches()) {
+		valuePattern = matcher.group(1);
+	    }
 	}
 
-	String label = itemUIRegistry.getLabel(widget);
+	String label = getItemUIRegistry().getLabel(widget);
 	JsonValue valueJson = null;
 	if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
 	    final String value = label.substring(label.indexOf('[') + 1, label.indexOf(']'));
-	    label = label.substring(0, label.indexOf('[') - 1);
+	    label = label.substring(0, label.indexOf('[') - 1).trim();
 	    valueJson = new JsonString() {
 
 		@Override
@@ -229,14 +238,16 @@ public class WebAppServlet extends BaseServlet {
 
 	    };
 	} else {
-	    State state = itemUIRegistry.getState(widget);
+	    State state = getItemUIRegistry().getState(widget);
 	    if (state instanceof OnOffType) {
 		valueJson = ((OnOffType) state) == OnOffType.ON ? JsonValue.TRUE : JsonValue.FALSE;
 	    }
 	}
-	String icon = itemUIRegistry.getIcon(widget);
-	String labelColor = itemUIRegistry.getLabelColor(widget);
-	String valueColor = itemUIRegistry.getValueColor(widget);
+
+	
+	String icon = getItemUIRegistry().getIcon(widget);
+	String labelColor = getItemUIRegistry().getLabelColor(widget);
+	String valueColor = getItemUIRegistry().getValueColor(widget);
 	String itemName = widget.getItem();
 
 	Item item = null;
@@ -252,20 +263,15 @@ public class WebAppServlet extends BaseServlet {
 	widgetBuilder.add("type", type);
 
 	if (item != null) {
-	    String itemType = item.getClass().getSimpleName();
-	    widgetBuilder.add("valueType", itemType.substring(0, itemType.length() - 4).toLowerCase());
-	}
-	if (label != null) {
-	    widgetBuilder.add("label", label);
+	    //String itemType = item.getClass().getSimpleName();
+	    //widgetBuilder.add("type", itemType.substring(0, itemType.length() - 4).toLowerCase());
+	    DataServlet.addValue(new Date(),item.getState(), widgetBuilder);
 	}
 	if (labelPattern != null) {
 	    widgetBuilder.add("labelPattern", labelPattern);
 	}
-	if (valueJson != null) {
-	    widgetBuilder.add("value", valueJson);
-	}
-	if (icon != null) {
-	    widgetBuilder.add("icon", icon);
+	if (valuePattern != null) {
+	    widgetBuilder.add("valuePattern", valuePattern);
 	}
 	if (null != labelColor) {
 	    widgetBuilder.add("labelColor", labelColor);
@@ -273,9 +279,20 @@ public class WebAppServlet extends BaseServlet {
 	if (null != valueColor) {
 	    widgetBuilder.add("valueColor", valueColor);
 	}
+	
+	if(valueJson != null){
+	    widgetBuilder.add("formattedValue", valueJson);
+	}
+	if (label != null) {
+	    widgetBuilder.add("label", label);
+	}
+	if (icon != null) {
+	    widgetBuilder.add("icon", icon);
+	}
 	if (itemName != null) {
 	    widgetBuilder.add("item", itemName);
 	}
+	
 
 	if (widget instanceof LinkableWidget) {
 	    LinkableWidget link = (LinkableWidget) widget;
@@ -292,13 +309,14 @@ public class WebAppServlet extends BaseServlet {
 	    JsonArrayBuilder arrBldr = Json.createArrayBuilder();
 
 	    if (item instanceof GroupItem) {
-		for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-		    GenericItem genItem = (GenericItem) chartItem;
-		    arrBldr.add(genItem.getName());
+			List<Item> allMembers = ((GroupItem) item).getAllMembers();
+			for (Item chartItem : allMembers) {
+				GenericItem genItem = (GenericItem) chartItem;
+				arrBldr.add(genItem.getName());
+			}
+		} else {
+			arrBldr.add(item.getName());
 		}
-	    } else {
-		arrBldr.add(item.getName());
-	    }
 
 	    widgetBuilder.add("items", arrBldr);
 

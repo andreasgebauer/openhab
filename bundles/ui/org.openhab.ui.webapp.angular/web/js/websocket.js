@@ -7,50 +7,40 @@ angular.module('app').provider('webSocket', function() {
 
 	return {
 		$get : function($q, $log) {
-			this.opened = false;
-			this.closed = false;
+			var opened = false;
+			var closed = false;
+			var closeForced = false;
 
 			if (!webSocketURL && !webSocketObject) {
 				throw 'WebSocket URL is not defined';
 			}
 			
-			var setup = function() {
-				var socket = !webSocketObject ? new WebSocket(webSocketURL) : webSocketObject;
-				
-				socket.onopen = function() {
-					deferred.resolve();
-				};
-
-				socket.onmessage = function(e) {
-					var data = JSON.parse(e.data);
-					callbacks.fire(data);
-				};
-
-				socket.onclose = function(){
-					$log.info("Websocket closed");
-					socket.closed = true;
-				};
-				
-				return socket;
-			}
-			
-			var socket;
-			var deferred = $q.defer();
 			var callbacks = jQuery.Callbacks();
+			var socket;
 
-			return {
-				closed: false,
+			function onopen(){
+				console.log("onopen");
+				opened = true;
+				closed = false;
+			}
 
-				send : function(message) {
-					var msg = JSON.stringify(message);
+			function onmessage(e) {
+				var data = JSON.parse(e.data);
+				callbacks.fire(data);
+			}
 
-					deferred.promise.then(function() {
-						if(socket.readyState == 3){
-							socket = new WebSocket(webSocketURL);
-						}	
-						socket.send(msg);
-					});
-				},
+			function onclose(m){
+				console.log("onclose");
+				closed = true;
+				opened = false;
+
+				if(!closeForced) {
+					// try to reconnect
+					webSocket.reconnect();
+				}
+			}
+
+			var webSocket = {
 
 				subscribe : function(callback) {
 					callbacks.add(callback);
@@ -61,19 +51,34 @@ angular.module('app').provider('webSocket', function() {
 				},
 				
 				close : function(){
+					//callbacks.disable();
 					socket.close();
-					this.closed = true;
+					closeForced = true;
 				},
 				
 				init: function(){
-					socket = setup();
-					this.closed = false;
+					socket = !webSocketObject ? new WebSocket(webSocketURL) : webSocketObject;
+					socket.onopen = onopen;
+					socket.onmessage = onmessage;
+					socket.onclose = onclose;
+
+					closeForced = false;
+				},
+
+				reconnect: function() {
+					this.init();
 				},
 
 				isClosed : function() {
-					return this.closed;
+					return closed;
+				},
+
+				isOpen : function() {
+					return opened;
 				}
 			};
+
+			return webSocket;
 		},
 
 		setWebSocketURL : function(wsURL) {

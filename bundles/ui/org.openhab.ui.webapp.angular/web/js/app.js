@@ -1,4 +1,4 @@
-var app = angular.module("app", [ 'appControllers', 'ngAnimate', 'ui.bootstrap' ]);
+var app = angular.module("app", [ 'app.controllers', 'app.directives', 'ngAnimate', 'ui.bootstrap' ]);
 
 app.config(function(webSocketProvider) {
 	

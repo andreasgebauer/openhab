@@ -1,28 +1,209 @@
 'use strict';
 
-var app = angular.module('app');
+var app = angular.module('app.directives', ['app.controllers']);
 
-app.directive('chart', function($interval, $log) {
+app.directive('chart', function($interval, $log, $rootScope) {
 	return {
-		template : '<div></div>',
+		template : '<div><div ng-transclude></div><div class="ng-chart"></div></div>',
 		scope : {
-			chart : '=',
-			id : '@'
+			widgetData: '@',
+			item : '@',
+			id : '@',
+			widget: '='
 		},
 		restrict : 'E',
 		replace : true,
-		link : function postLink($scope, element, attrs) {
-			var lineChart = new google.visualization.LineChart(element[0]);
+		transclude: true,
+		link : function postLink($scope, element, attrs, ctrl) {
+			//$scope.widget = $scope.$parent.$parent.widget;
+			console.log($scope.widget);
+
+			//$rootScope.getWidgets($scope.widget.item);
+
+			var chartDiv = angular.element(".ng-chart", element);
+			$scope.lineChart = new google.visualization.LineChart(chartDiv[0]);
+
+			ctrl.init($scope.widget, {});
+
+
+		},
+		controller: function($scope, $log, $http, $interval, webSocket){
+			console.log("Chart Controller initializing");
+
 			var view = null;
+			var that = this;
+			var widget = null;
 
-			var widgetScope = $scope.$parent.$parent;
-			$scope.widget = widgetScope.widget;
-			
-			function draw(table, viewData) {
+			var initTable = function (widget, forceNew) {
+				
+				if(forceNew || widget.data.table == null) {
+					widget.data.table = new google.visualization.DataTable();
+					widget.data.table.addColumn('datetime', "Datum", "Datum");
 
-				if (!view) {
-					view = new google.visualization.DataView(table);
+					widget.items.sort();
+					var now = new Date().getTime();
+
+					var begin = now - widget.period;
+					var end = now;
+
+
+					angular.forEach(widget.items, function(el){
+						widget.data.table.addColumn('number', el, el);
+					});
+
+					widget.data.timestampToRowIndex = {};
 				}
+			};
+
+			var updateData = function(timespan) {
+				console.log("updating data");
+				var now = new Date().getTime();
+				var ts = timespan || {
+					begin : now - widget.period,
+					end : now
+				};
+				widget.data.viewData.begin = ts.begin;
+				widget.data.viewData.end = ts.end;
+
+				var pendingChartData = {};
+				for (var i = 0; i < widget.items.length; i++) {
+					var itemName = widget.items[i];
+					if (!pendingChartData[itemName]) {
+						pendingChartData[itemName] = new Array;
+					}
+					pendingChartData[itemName].push(ts);
+				}
+
+				$http.post(chartDataUrl, pendingChartData)
+				.success(function(data) {
+					that.processChartData(data);
+				})
+				.error(function() {
+					$log.error("Command was not successful");
+				});
+			};
+
+			var updateChart = function(newValue, oldValue) {
+				if (newValue !== oldValue) {
+					if (widget.data) {
+						console.log("Updating chart");
+						var data = widget.data.table;
+						var viewData = widget.data.viewData;
+
+						if (data && viewData) {
+							//$log.debug("Data updated");
+							that.draw(data, viewData);
+						}
+					}
+				}
+			};
+
+			var getColumnIndex = function(item, table) {
+				var colIndex = table.getColumnIndex(item.id);
+				if (colIndex == -1) {
+					colIndex = table.addColumn('number', item.id, item.id);
+				}
+				return colIndex;
+			};
+			
+			var getRowIndex = function(value, widget) {
+				var table = widget.data.table;
+				var timestamp = (value.timestamp ? new Date(value.timestamp) : new Date());
+				if (timestamp > widget.data.viewData.end) {
+					widget.data.viewData.end = timestamp.getTime();
+				}
+				
+				var index = widget.data.timestampToRowIndex[timestamp.getTime()];
+				if (angular.isUndefined(index)) {
+					index = table.addRow();
+					// update the lookup table
+					widget.data.timestampToRowIndex[timestamp] = index;
+					table.setCell(index, 0, timestamp);
+				}
+				return index;
+			};
+			
+			var processItemValues = function (item, widget) {
+				var table = widget.data.table;
+				
+				var colIndex = getColumnIndex(item,table);
+
+				var rowAdded = false;
+				var minTS = Math.max, maxTS = 0;
+
+				for (var j = 0; j < item.values.length; j++) {
+					var value = item.values[j];
+					
+					var timestamp = (value.timestamp ? new Date(value.timestamp) : new Date());
+					var val = parseFloat(value.value);
+					
+					var index = widget.data.timestampToRowIndex[timestamp.getTime()];
+					if (angular.isUndefined(index)) {
+						index = table.addRow();
+						table.setCell(index, 0, timestamp);
+						rowAdded = true;
+					}
+					
+					table.setCell(index, colIndex, val);
+				}
+				return rowAdded;
+			};
+			
+			var processItemUpdate = function (item, widget){
+				var table = widget.data.table;
+				var colIndex = getColumnIndex(item, table);
+
+				var val = parseFloat(item.value);
+				var index = getRowIndex(item, widget);
+
+				table.setCell(index, colIndex, val);
+
+				var timespan = widget.data.viewData.end - widget.data.viewData.begin;
+				if (item.timestamp > widget.data.viewData.end) {
+					widget.data.viewData.end = item.timestamp;
+					widget.data.viewData.begin += timespan;
+				}
+
+				widget.data.counter++;
+			};
+
+			this.init = function(widgetP) {
+				widget = widgetP;
+				if(angular.isUndefined(widget.data)) {
+					widget.data = {
+						timestampToRowIndex : {},
+						counter : 0,
+						viewData : {
+							begin : new Date().getTime() - widget.period,
+							end : new Date().getTime(),
+							max : widget.period,
+							id : widget.id,
+							item : widget.item,
+							label : widget.label
+						},
+					};
+					initTable(widget);
+					updateData();
+
+				} else {
+					updateChart(true);
+				}
+
+				webSocket.subscribe(this.processUpdate);
+
+				$scope.$watch(function() {
+					if (widget.data) {
+						return widget.data.counter;
+					}
+				}, updateChart, false);
+
+			};
+
+			this.draw = function (table, viewData) {
+				console.log("Drawing chart");
+				var start = new Date().getTime();
+
+				view = new google.visualization.DataView(table);
 
 				var max = new Date(viewData.end);
 				var min = new Date(viewData.begin);
@@ -54,225 +235,96 @@ app.directive('chart', function($interval, $log) {
 					height : height
 				};
 
-				lineChart.draw(view, chartOptions);
-			}
-			
-			var update = function(newValue, oldValue) {
-				if (newValue !== oldValue) {
-					if ($scope.widget.data) {
-						var data = $scope.widget.data.table;
-						var viewData = $scope.widget.data.viewData;
+				$scope.lineChart.draw(view, chartOptions);
+				//$scope.lineChart.draw();
 
-						if (data && viewData) {
-							//$log.debug("Data updated");
-							draw(data, viewData);
-						}
+				var took = new Date().getTime() - start;
+				console.log("Drawing chart done in " + took +"ms");
+
+			};
+			
+			this.processUpdate = function(item) {
+				for(var i = 0; i < widget.items.length; i++) {
+					if(widget.items[i] == item.id) {
+						processItemUpdate(item, widget);
 					}
 				}
 			};
 			
-			var stop;
-			$scope.draw = function() {
-				if ( angular.isDefined(stop) ) return;
+			this.processChartData = function(data) {
+				//initTable(widget);
+				console.log("Processing chart data");
 
-				var interval = $scope.widget.period / 800;
-			  	stop = $interval(function() {
-				  	var widget = $scope.widget;
-				  
-					if (widget.data) {
-						var data = widget.data.table;
-						
-						var collected = [];
-						var notCollected = data.getNumberOfColumns() - 1;
-						for(var row = data.getNumberOfRows() -1; row >= 0 && notCollected > 0; row--){
-							for(var col=1; col < data.getNumberOfColumns(); col++){
-								if(!collected[col]){
-									var val = data.getValue(row, col);
-									if(val != null && !isNaN(val)){
-										collected[col] = val;
-										notCollected--;
-									}
-								}								
+				var table = widget.data.table;
+				
+				for(var k=0; k < data.length; k++){
+					var item = data[k];
+
+					if (widget.period == item.period || !item.period) {
+						if (processItemValues(item, widget)) {
+							table.sort([ {
+								column : 0,
+								desc : false
+							} ]);
+
+							for (var i = 0; i < table.getNumberOfRows(); i++) {
+								widget.data.timestampToRowIndex[table.getValue(i, 0).getTime()] = i;
 							}
 						}
-						
-						for(var i = 0; i < widget.items.length; i++){
-							var itemName = widget.items[i];
-							var value = collected[data.getColumnIndex(itemName)];
-							var update = {
-								period: widget.period,
-								id: itemName,
-								values: [
-									{value: value}
-								]
-							};
-							// fake update to keep the chart scrolling
-							widget.processUpdate(update);
-						}
+
+						// the watched binding will receive an update now
+						widget.data.counter++;
 					}
-			  }, interval);
-			};
-			
-			$scope.stopDraw = function() {
-			  if (angular.isDefined(stop)) {
-				$interval.cancel(stop);
-				stop = undefined;
-			  }
-			};
-
-			$scope.$on('$destroy', function() {
-			  // Make sure that the interval is destroyed too
-			  $scope.stopDraw();
-			});
-			
-			$scope.draw();
-
-			widgetScope.$watch(function() {
-				if ($scope.widget.data) {
-					return $scope.widget.data.counter;
 				}
-			}, update, false);
+			};
+
+			this.narrow = function(value) {
+				var begin = $scope.widget.data.viewData.begin;
+				var end = $scope.widget.data.viewData.end;
+				var timespan = end - begin;
+				var decrease = value * timespan / 100;
+
+				updateData({begin: begin + decrease, end: end});
+			};
+
+			this.expand = function(value) {
+				var timespan = $scope.widget.data.viewData.end - $scope.widget.data.viewData.begin;
+				var increase = value * timespan / 100;
+
+				updateData({begin: $scope.widget.data.viewData.begin - increase, end: $scope.widget.data.viewData.end});
+			};
+		
 		}
 	};
+})
 
-});
 
-
-app.directive('smartchart', function($interval, dateFilter, $log) {
+.directive('scale', function($interval, $log) {
 	return {
-		template : '<div></div>',
+		template:"<button ng-transclude></button>",
 		scope : {
-			chart : '=',
-			id : '@'
+			narrow : '@',
+			expand : '@'
 		},
-		restrict : 'E',
-		replace : true,
-		link : function postLink($scope, element, attrs) {
-			
-			var lineChart = new google.visualization.LineChart(element[0]);
-			var view = null;
+		require: '^chart',
+		restrict : 'A',
+		transclude: true,
+		replace: true,
+		link : function postLink($scope, element, attrs, chartCtrl) {
+			element.on('mousedown', function(event) {
+				// Prevent default dragging of selected content
+				//event.preventDefault();
 
-			var widgetScope = $scope.$parent.$parent.$parent;
-			$scope.widget = widgetScope.widget;
-			
-			function draw(table, viewData) {
-
-				if (!view) {
-					view = new google.visualization.DataView(table);
+				if(attrs.expand) {
+					chartCtrl.expand(eval(attrs.expand));
+				} else if(attrs.narrow) {
+					chartCtrl.narrow(eval(attrs.narrow));
 				}
-
-				var max = new Date(viewData.end);
-				var min = new Date(viewData.begin);
-
-				var height = 300;
-				var chartOptions = {
-					legend : {
-						position : 'bottom',
-						maxLines : 1,
-						alignment : 'center'
-					},
-					//title : viewData.label,
-					interpolateNulls : true,
-					chartArea : {
-						width : '93%',
-						height : height-40
-					},
-					vAxis : {
-						textPosition : 'in'
-					},
-					hAxis : {
-						textPosition : 'in',
-						viewWindow : {
-							min : min,
-							max : max
-						}
-					},
-					lineWidth : 1,
-					height : height
-				};
-
-				lineChart.draw(view, chartOptions);
-			}
-			
-			var update = function(newValue, oldValue) {
-				if (newValue !== oldValue) {
-					$log.debug("redraw")
-					if ($scope.widget.data) {
-						var data = $scope.widget.data.table;
-						var viewData = $scope.widget.data.viewData;
-
-						if (data && viewData) {
-							//$log.debug("Data updated");
-							draw(data, viewData);
-						}
-					}
-				}
-			};
-			
-			var stop;
-			$scope.draw = function() {
-				if ( angular.isDefined(stop) ) return;
-
-				var interval = $scope.widget.period / 800;
-			  	stop = $interval(function() {
-				  	var widget = $scope.widget;
-				  
-					if (widget.data) {
-						var data = widget.data.table;
-						
-						var collected = [];
-						var notCollected = data.getNumberOfColumns() - 1;
-						for(var row = data.getNumberOfRows() -1; row >= 0 && notCollected > 0; row--){
-							for(var col=1; col < data.getNumberOfColumns(); col++){
-								if(!collected[col]){
-									var val = data.getValue(row, col);
-									if(val != null && !isNaN(val)){
-										collected[col] = val;
-										notCollected--;
-									}
-								}								
-							}
-						}
-						
-						for(var i = 0; i < widget.items.length; i++){
-							var itemName = widget.items[i];
-							var value = collected[data.getColumnIndex(itemName)];
-							var update = {
-								period: widget.period,
-								id: itemName,
-								values: [
-									{value: value}
-								]
-							};
-							// fake update to keep the chart scrolling
-							widget.processUpdate(update);
-						}
-					}
-			  }, interval);
-			};
-			
-			$scope.stopDraw = function() {
-			  if (angular.isDefined(stop)) {
-				$interval.cancel(stop);
-				stop = undefined;
-			  }
-			};
-
-			$scope.$on('$destroy', function() {
-			  // Make sure that the interval is destroyed too
-			  $scope.stopDraw();
 			});
-			
-			$scope.draw();
-
-			widgetScope.$watch(function() {
-				if ($scope.widget.data) {
-					return $scope.widget.data.counter;
-				}
-			}, update, false);
-
-			
-			
 		}
 	};
-});
+})
+		
+
+
+;

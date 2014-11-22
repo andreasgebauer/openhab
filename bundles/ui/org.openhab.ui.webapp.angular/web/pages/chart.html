@@ -1,16 +1,15 @@
-<div ng-controller="ChartCtrl">
- 	<div class="row">
-         <div class="col-md-6">
-         	<button ng-click="expand(100)">---</button>
-         	<button ng-click="expand(10)">--</button>
-         	<button ng-click="expand(1)">-</button>
+<div>
+	<chart ng-attr-widget-data="{{widget}}" widget="widget"  id="{{widget.id}}" item="{{widget.item}}">
+		<div class="row">
+			<div class="col-md-6">
+				<button scale expand="100">---</button>
+				<button scale expand="10">--</button>
+				<button scale expand="1">-</button>
 
-         	<button ng-click="narrow(1)">+</button>
-         	<button ng-click="narrow(10)">++</button>
-         	<button ng-click="narrow(90)">+++</button>
-
-         </div>
-    </div>
-	<smartchart id="{{widget.id}}" item="{{widget.item}}">
-	</smartchart>
+				<button scale narrow="1">+</button>
+				<button scale narrow="10">++</button>
+				<button scale narrow="50">+++</button>
+			</div>
+		</div>
+	</chart>
 </div>

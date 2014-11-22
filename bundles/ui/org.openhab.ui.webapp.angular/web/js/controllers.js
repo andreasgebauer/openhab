@@ -1,201 +1,119 @@
 var url = "/angular/sitemap/";
 var commandUrl = "/angular/cmd/";
+var chartDataUrl = "/angular/chartdata/";
 
-var appControllers = angular.module('appControllers', ['windowEventBroadcasts', 'ngAnimate', 'sprintf']);
-
-
-	// process an item being shown
-	var process = function(element, pendingChartData) {
-		//$log.debug("Processing element " + JSON.stringify(element));
-		if (element.children) {
-			for (var int = 0; int < element.children.length; int++) {
-				var child = element.children[int];
-				// don't follow links
-				if(!/_link$/.test(child.type)){
-					process(child, pendingChartData);
-				}
-			}
-		}
-
-		// add function to process update data (from websocket)
-		element.processUpdate = function(item) {
-			//$log.debug("processing update for " + item.id);
-			
-			var widget = this;
-			var value = item.values[0].value;
-			var type = item.values[0].type;
-			var iconPrefix = item.icon != "none" ? item.icon : widget.type;
-
-			var label;
-			
-			if(angular.isDefined(widget.labelPattern)) {
-				// try to parse date type
-				// TODO
-				if(widget.valueType == "datetime") {
-					value = new Date(value);
-				}
-				label = mdgw.format(widget.labelPattern, value);
-			} else {
-				label = item.label;
-			}
-			
-			if(label.indexOf('[') != -1) {
-				// {"id":"Raumklima_SZ","label":"Schlafzimmer [20.5Â°C 69%]","icon":"temperature","values":[{"timestamp":1416080120072,"value":"20.5Â°C 69%"}]}
-				widget.label = label.substring(0, label.indexOf('['));
-				widget.value = label.substring(label.indexOf('[') +  1, label.indexOf(']'));
-			}
-
-			if (widget.type === "text" || widget.type === "text_link") {
-				// or simply widget.value = value.toLowerCase();
-				widget.icon = item.icon;
-			} else {
-				if(widget.type === "switch"){
-					if(value == "ON"){
-						widget.value = true;
-					} else {
-						widget.value = false;
-					}
-
-				} else if(widget.type === "slider"){
-					// try to find an image with xhr
-
-					widget.value = value;
-					widget.icon = widget.icon.substring(0, widget.icon.indexOf('-') +  1) + value.toLowerCase();
-
-					widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
-
-				} else {
-					$log.info("Unhandled data for: " + JSON.stringify(widget));
-				}
-
-				if(!angular.isUndefined(widget.value)) {
-					if(iconPrefix.indexOf("-") == -1) {
-						if(typeof widget.value === "string") {
-							widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
-						} else if(typeof value === "string") {
-							widget.icon = iconPrefix + "-" + value.toLowerCase();
-						}
-					}else{
-						widget.icon = iconPrefix;
-					}
-				}
-
-			}
-		};
-
-		if(element.type === "chart" || element.type === "smartchart"){
-			if(element.items){
-				//element.data = { counter: 0 };
-				for(var i = 0; i < element.items.length; i++){
-					var item = element.items[i];
-					if(!pendingChartData[item]){
-						pendingChartData[item] = new Array;
-					}
-					var now = new Date().getTime();
-					pendingChartData[item].push(
-					{
-						begin: now - element.period,
-						end: now
-					});
-				}
-			}
-			
-			if (!element.data) {
-				element.data = {
-					timestampToRowIndex: {},
-					counter : 0,
-					viewData: {
-						begin : new Date().getTime() - element.period,
-						end : new Date().getTime(),
-						max : element.period,
-						id : element.id,
-						item : element.item,
-						label : element.label
-					}
-				};
-			}
-
-			
-			element.processUpdate = function(item) {
-				var widget = this;
-
-				if (widget.period == item.period || !item.period) {
-
-					//$log.debug("Update for " + item.id);
-
-					var table;
-					if(widget.data.table){
-						//table = new google.visualization.DataTable(widget.data.table.toJSON());
-						table = widget.data.table;
-					}else{
-						table = widget.data.table = new google.visualization.DataTable();
-						if (table.getColumnIndex("Datum") == -1) {
-							table.addColumn('datetime', "Datum", "Datum");
-
-							widget.items.sort();
-							for(var i = 0; i < widget.items.length; i++){
-								var itemName = widget.items[i];
-								table.addColumn('number', itemName, itemName);
-							}
-						}
-					}
-
-					var colIndex = table.getColumnIndex(item.id);
-					if (colIndex == -1) {
-						colIndex = table.addColumn('number', item.id, item.id);
-					}
-
-					var rowAdded = false;
-					for(var j = 0; j< item.values.length; j++){
-						var value = item.values[j];
-
-						var timestamp = (value.timestamp ? new Date(value.timestamp) : new Date());
-						var val = parseFloat(value.value);
-
-						if(timestamp > widget.data.viewData.end){
-							widget.data.viewData.end = timestamp;
-						}
-
-						var existingRowIndex = widget.data.timestampToRowIndex[timestamp.getTime()];
-
-						var index;
-						if(existingRowIndex != undefined){
-							index = existingRowIndex;
-						}else{
-							index = table.addRow();
-							table.setCell(index, 0, timestamp);
-							rowAdded = true;
-						}
-
-						table.setCell(index, colIndex, val);
-					}
-
-					if(rowAdded){
-						table.sort([{column: 0, desc: false}]);
-						
-						for(var i=0; i<table.getNumberOfRows(); i++) {
-							widget.data.timestampToRowIndex[table.getValue(i, 0).getTime()] = i;
-						}
-						
-					}
-
-					widget.data.table = table;
-
-					// the watched binding will receive an update now
-					//$log.debug(widget.data.counter++);
-					widget.data.counter++;
-				}
-			};
-		}
-	};
+var appControllers = angular.module('app.controllers', [ 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
 
 
-appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval) {
+appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval, $timeout, getWatchCount) {
 
 	webSocket.init();
 
 	$scope.stayConnected = false;
 	$scope.show = false;
+
+	var that = this;
+
+
+	var parseValue = function(value){
+		if (value.valueType == "datetime") {
+			return new Date(value.value);
+		}
+		return value.value;
+	};
+
+	var formatted = function(widget, data) {
+		if(angular.isDefined(data.value) && data.value != 'Uninitialized' && widget.valuePattern) {
+			return mdgw.format(widget.valuePattern,  parseValue(data));
+		}
+	};
+
+
+	var processUpdate = function(widget, item) {
+		// $log.debug("processing update for " + item.id);
+
+		var value = parseValue(item);
+		var iconPrefix = item.icon != "none" ? item.icon : widget.type;
+
+		widget.formattedValue = formatted(widget, item);
+
+		if (widget.type === "text" || widget.type === "text_link") {
+			// or simply widget.value = value.toLowerCase();
+			widget.icon = item.icon;
+		} else {
+			if (widget.type === "switch") {
+				if (value == "ON") {
+					widget.value = true;
+				} else {
+					widget.value = false;
+				}
+
+			} else if (widget.type === "slider") {
+				widget.value = value;
+				if(value instanceof String) {
+					value = value.toLowerCase();
+				}
+				widget.icon = iconPrefix + "-" + value;
+
+			} else if (widget.type === "chart") {
+				// nothing to do
+			} else {
+				console.log("Unhandled data for: " + JSON.stringify(widget));
+			}
+
+			if (angular.isDefined(widget.value)) {
+				if (iconPrefix.indexOf("-") == -1) {
+					if (typeof widget.value === "string") {
+						widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
+					} else if (typeof value === "string") {
+						widget.icon = iconPrefix + "-" + value.toLowerCase();
+					}
+				} else {
+					widget.icon = iconPrefix;
+				}
+			}
+		}
+	};
+
+	var processWidget = function (element) {
+
+		if(angular.isUndefined(element.formattedValue)) {
+			element.formattedValue = formatted(element, element);
+		}
+
+	//	if(element.processUpdate) {
+	//		return;
+	//	}
+	//
+	//	if(!element.item){
+	//		return;
+	//	}
+
+		//console.debug("Registering processUpdate() at " + element.item);
+
+		// add function to process update data (from websocket)
+		//element.processUpdate = processUpdate;
+	};
+
+	// process an item being shown
+	var process = function(element) {
+		// console.debug("Processing element " + JSON.stringify(element));
+		if (element.children) {
+			for (var int = 0; int < element.children.length; int++) {
+				var child = element.children[int];
+				// don't follow links
+				if (!/_link$/.test(child.type)) {
+					process(child);
+				}
+
+				processWidget(child);
+			}
+		}
+
+		processWidget(element);
+	};
+
+
 
 	// watch change of the location
 	$scope.$watch(function() {
@@ -216,28 +134,28 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			data.id = widgetId;
 
 			var oldSitemap = $scope.sitemap;
-			if(angular.isDefined(oldSitemap)) {
+			if (angular.isDefined(oldSitemap)) {
 				// merge the two sitemap partials if possible
-				
+
 				var getWidget = function(root, id) {
 					for (var int = 0; root.children && int < root.children.length; int++) {
 						var child = root.children[int];
-						if(child.id == id){
+						if (child.id == id) {
 							return child;
 						}
-						if(child.children) {
+						if (child.children) {
 							var candidate = getWidget(child, id);
-							if(!angular.isUndefined(candidate)) {
+							if (!angular.isUndefined(candidate)) {
 								return candidate;
 							}
 						}
 					}
-				}
-				
+				};
+
 				var widget = getWidget(oldSitemap, data.id);
-				if(angular.isUndefined(widget)){
+				if (angular.isUndefined(widget)) {
 					widget = getWidget(data, oldSitemap.id);
-					if(!angular.isUndefined(widget)){
+					if (angular.isDefined(widget)) {
 						// old sitemap appended as children
 						// in case of navigating a level up
 						widget.parentId = oldSitemap.parentId;
@@ -272,15 +190,11 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			$scope.show = true;
 
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
-			if(angular.isUndefined($scope.viewItem)) {
+			if (angular.isUndefined($scope.viewItem)) {
 				$scope.viewItem = $scope.sitemap;
 			}
 
-			var pendingChartData = {};
-
-			process($scope.viewItem, pendingChartData);
-
-			webSocket.send(pendingChartData);
+			process($scope.viewItem);
 
 		};
 
@@ -290,36 +204,31 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			$scope.viewItem.selected = false;
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
-			if(angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
+			if (angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
 				// we need to load the sitemap data for the page shown
 				sitemap.fetch("default", widgetId, setupModel);
 			} else {
-				var pendingChartData = {};
-
-				process($scope.viewItem, pendingChartData);
-
-				webSocket.send(pendingChartData);
+				process($scope.viewItem);
 			}
 
-			if(angular.isDefined($scope.nav)) {
+			if (angular.isDefined($scope.nav)) {
 				$scope.nav.back.visible = sitemap.location !== "";
 				$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
 
 				$scope.nav.home.visible = sitemap.location !== "";
-				if(angular.isDefined($scope.viewItem)) {
+				if (angular.isDefined($scope.viewItem)) {
 					$scope.nav.title.text = $scope.viewItem.label;
-					if(angular.isDefined($scope.viewItem.value)){
-						$scope.nav.title.text += " " + $scope.viewItem.value
+					if (angular.isDefined($scope.viewItem.formattedValue)) {
+						$scope.nav.title.text += " " + $scope.viewItem.formattedValue;
 					}
 				}
 			}
-			
+
 		}
 	});
 
-
-	var getWidgets = function(root, id) {
-		if(angular.isUndefined(root)) {
+	this.getWidgets = function(root, id) {
+		if (angular.isUndefined(root)) {
 			return;
 		}
 		var addIfNotExistent = function(arr, el) {
@@ -343,7 +252,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 				addIfNotExistent(items, widget);
 			}
 			if (widget.children) {
-				var it = getWidgets(widget, id);
+				var it = this.getWidgets(widget, id);
 				if (it) {
 					for (var j = 0; j < it.length; j++) {
 						addIfNotExistent(items, it[j]);
@@ -361,70 +270,110 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		return items;
 	};
 
-	var handleUpdate = function(item) {
-		$scope.$apply(function() {
-			var widgets = getWidgets($scope.sitemap, item.id);
-			if (!widgets || widgets.length == 0 || !item.values) {
+	this.handleUpdate = function(item) {
+		$scope.$apply(function () {
+			// console.debug("Received " + item.id);
+			var widgets = that.getWidgets($scope.sitemap, item.id);
+			if (!widgets || widgets.length == 0 || angular.isUndefined(item.value)) {
+				//console.debug("No widget found for " + item.id);
 				return;
 			}
 
-			for (var int = 0; int < widgets.length; int++) {
-				var widget = widgets[int];
-				if(!angular.isUndefined(widget.processUpdate)) {
-					widget.processUpdate(item);
-				}
-			}
+			// console.debug(widgets.length + " widgets found for " + item.id);
+			angular.forEach(widgets, function(widget){
+				//console.log("red: " + widget.item)
+				widget.styleClass = "red";
+				var w = widget;
+				$timeout(function() {
+					//console.log("whi: " + w.item)
+					w.styleClass = "inherit";
+					$timeout(function() {
+						//console.log("whi: " + w.item)
+						w.styleClass = "";
+					}, 3000);
+				}, 2000);
+				processUpdate(widget, item);
+			});
 		});
 	};
 
-	webSocket.subscribe(handleUpdate);
+	webSocket.subscribe(this.handleUpdate);
 
-	reconnect = function() {
-		if(webSocket.isClosed()) {
-			webSocket.init();
-			webSocket.subscribe(handleUpdate);
+	this.reconnect = function() {
+		if (webSocket.isClosed()) {
+			webSocket.reconnect();
+			//webSocket.subscribe(that.handleUpdate);
 			$log.info("Reconnected");
 		}
 	};
 
-	disconnect = function() {
-		if(!$scope.stayConnected) {
-			webSocket.unsubscribe(handleUpdate);
+	this.disconnect = function() {
+		if (!$scope.stayConnected) {
+			//webSocket.unsubscribe(that.handleUpdate);
 			webSocket.close();
 			$log.info("Disconnected");
 		}
 	};
 
 	// event handling
-	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent) {
 		// works when entering window
-		reconnect();
+		that.reconnect();
 	});
 
 	// event handling
-	$scope.$on('$windowShow', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowShow', function(broadcastEvent, browserEvent) {
 		console.log("onShow");
-		reconnect();
+		that.reconnect();
 	});
 
-	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent) {
 		// works when leaving window
-		disconnect();			
+		that.disconnect();
 	});
 
-	$scope.$on('$windowHide', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowHide', function(broadcastEvent, browserEvent) {
 		console.log("onHide");
-		disconnect();			
+		that.disconnect();
 	});
-	
+
 	// scope functions
-	
-	// sets the location for the widget given
+
+	// sets the widget to show
 	$scope.load = function(widget) {
 		widget.selected = true;
 		$scope.viewItem = widget;
 		$location.path(widget.id);
 	};
+
+	$scope.getWidgets = this.getWidgets();
+
+	// I hold the current count of watchers in the current page. This extends
+	// beyond the current scope, and will hold the count for all scopes on 
+	// the entire page.
+	$scope.watchCount = 0;
+
+	// I hold the bookmarkletized version of the function to provide a take-
+	// away feature that can be used on any AngularJS page.
+	$scope.bookmarklet = getWatchCount.bookmarklet;
+
+
+	// Every time the digest runs, it's possible that we'll change the number
+	// of $watch() bindings on the current page. 
+	$scope.$watch(
+		function watchCountExpression() {
+
+			return( getWatchCount() );
+
+		},
+		function handleWatchCountChange( newValue ) {
+
+			$scope.watchCount = newValue;
+
+		}
+	);
+
+	
 
 	$scope.changeState = function(widget, state) {
 		$log.debug("changeState invoked: " + widget + ": " + state);
@@ -448,73 +397,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 	$scope.stopRepeatedRequest = function(item, cmd) {
 		$log.debug("stopRepeatedRequest invoked: " + item + ": " + cmd);
-	};
-
-});
-
-
-appControllers.controller('ChartCtrl', function($scope, $log, $http, webSocket, $interval) {
-	$scope.initDate = new Date('2016-15-20');
-	$scope.formats = ['dd-MMMM-yyyy', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'];
-	$scope.format = $scope.formats[0];
-
-	$scope.widget = $scope.$parent.$parent.widget;
-
-  // Disable weekend selection
-  $scope.disabled = function(date, mode) {
-    return ( mode === 'day' && ( date.getDay() === 0 || date.getDay() === 6 ) );
-  };
-
-  $scope.toggleMin = function() {
-    $scope.minDate = $scope.minDate ? null : new Date();
-  };
-  $scope.toggleMin();
-
-
-  $scope.dateOptions = {
-    formatYear: 'yy',
-    startingDay: 1
-  };
-
-	$scope.open = function($event) {
-		$event.preventDefault();
-		$event.stopPropagation();
-		$scope.opened = true;
-	};
-	
-	var updateWidget = function(newBegin){
-		$scope.widget.data.viewData.end = new Date();
-		var pendingChartData = {};
-		if(newBegin < $scope.widget.data.viewData.begin) {
-			angular.forEach($scope.widget.items, function(key){
-				pendingChartData[key] = new Array;
-				pendingChartData[key].push({
-						begin: newBegin,
-						end: $scope.widget.data.viewData.begin -1
-				});
-			});
-		} else {
-			// force update
-			$scope.widget.data.counter++;
-		}
-		$scope.widget.data.viewData.begin = newBegin;
-		
-		//process($scope.widget, pendingChartData);
-		webSocket.send(pendingChartData);
-	}
-	
-	$scope.narrow = function(value) {
-		var timespan = $scope.widget.data.viewData.end - $scope.widget.data.viewData.begin;
-		var decrease = value * timespan / 100;
-		
-		updateWidget($scope.widget.data.viewData.begin + decrease);
-	};
-
-	$scope.expand = function(value) {
-		var timespan = $scope.widget.data.viewData.end - $scope.widget.data.viewData.begin;
-		var increase = value * timespan / 100;
-
-		updateWidget($scope.widget.data.viewData.begin - increase);
 	};
 
 });
