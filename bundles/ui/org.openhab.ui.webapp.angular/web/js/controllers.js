@@ -342,8 +342,13 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	// sets the widget to show
 	$scope.load = function(widget) {
 		widget.selected = true;
-		$scope.viewItem = widget;
-		$location.path(widget.id);
+
+		$timeout(function() {
+			$scope.viewItem = widget;
+			$location.path(widget.id);
+			widget.selected = false;
+		});
+
 	};
 
 	$scope.getWidgets = this.getWidgets();
