@@ -42,12 +42,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			widget.icon = item.icon;
 		} else {
 			if (widget.type === "switch") {
-				if (value == "ON") {
-					widget.value = true;
-				} else {
-					widget.value = false;
-				}
-
+				widget.value = value;
 			} else if (widget.type === "slider") {
 				widget.value = value;
 				if(value instanceof String) {

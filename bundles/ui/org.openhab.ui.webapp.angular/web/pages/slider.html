@@ -1,5 +1,6 @@
 <img ng-src="/images/{{widget.icon}}.png" width=29 height=29 class="iFull" />
 <span class="options">
+	<span class="val">{{widget.value}}</span>
 	<img src="/images/_down.png"
 		ng-touchstart="repeatedRequest(widget.item, 'DECREASE', widget.frequency, widget.switch)"
 		ng-mousedown="repeatedRequest(widget.item, 'DECREASE', widget.frequency, widget.switch)"
