@@ -394,15 +394,30 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 				}
 
 				record = new OpenHABConfigurationRecord(domain, "ManufacturerID", "Manufacturer ID", true);
-				record.value = Integer.toHexString(node.getManufacturer());
+				if(node.getDeviceId() == Integer.MAX_VALUE) {
+					record.value = "UNKNOWN";
+				}
+				else {
+					record.value = Integer.toHexString(node.getManufacturer());
+				}
 				records.add(record);
 
-				record = new OpenHABConfigurationRecord(domain, "DeviceId", "Device ID", true);
-				record.value = Integer.toHexString(node.getDeviceId());
+				record = new OpenHABConfigurationRecord(domain, "DeviceID", "Device ID", true);
+				if(node.getDeviceId() == Integer.MAX_VALUE) {
+					record.value = "UNKNOWN";
+				}
+				else {
+					record.value = Integer.toHexString(node.getDeviceId());
+				}
 				records.add(record);
 
 				record = new OpenHABConfigurationRecord(domain, "DeviceType", "Device Type", true);
-				record.value = Integer.toHexString(node.getDeviceType());
+				if(node.getDeviceId() == Integer.MAX_VALUE) {
+					record.value = "UNKNOWN";
+				}
+				else {
+					record.value = Integer.toHexString(node.getDeviceType());
+				}
 				records.add(record);
 
 				record = new OpenHABConfigurationRecord(domain, "Version", "Version", true);
@@ -421,9 +436,14 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 				ZWaveBatteryCommandClass batteryCommandClass = (ZWaveBatteryCommandClass) node
 						.getCommandClass(CommandClass.BATTERY);
 				if (batteryCommandClass != null) {
-					record.value = "Battery " + batteryCommandClass.getBatteryLevel() + "%";
+					if(batteryCommandClass.getBatteryLevel() == null) {
+						record.value = "BATTERY " + "UNKNOWN";
+					}
+					else {
+						record.value = "BATTERY " + batteryCommandClass.getBatteryLevel() + "%";
+					}
 				} else {
-					record.value = "Mains";
+					record.value = "MAINS";
 				}
 				records.add(record);
 
@@ -465,8 +485,22 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 					records.add(record);
 				}
 			} else if (arg.equals("status/")) {
-				record = new OpenHABConfigurationRecord(domain, "LastUpdated", "Last Updated", true);
-				record.value = df.format(node.getLastUpdated());
+				record = new OpenHABConfigurationRecord(domain, "LastSent", "Last Packet Sent", true);
+				if(node.getLastSent() == null) {
+					record.value = "NEVER";
+				}
+				else {
+					record.value = df.format(node.getLastSent());
+				}
+				records.add(record);
+				
+				record = new OpenHABConfigurationRecord(domain, "LastReceived", "Last Packet Received", true);
+				if(node.getLastReceived() == null) {
+					record.value = "NEVER";
+				}
+				else {
+					record.value = df.format(node.getLastReceived());
+				}
 				records.add(record);
 				
 				if(networkMonitor != null) {
@@ -794,20 +828,23 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 					if (networkMonitor != null)
 						networkMonitor.rescheduleHeal();
 				}
-				if (inclusion == false && exclusion == false) {
-					if (action.equals("Include")) {
-						inclusion = true;
-						zController.requestAddNodesStart();
-						setInclusionTimer();
+				if (action.equals("Include") || action.equals("Exclude")) {
+					// Only do include/exclude if it's not already in progress
+					if(inclusion == false && exclusion == false) {
+						if (action.equals("Include")) {
+							inclusion = true;
+							zController.requestAddNodesStart();
+							setInclusionTimer();
+						}
+						if (action.equals("Exclude")) {
+							exclusion = true;
+							zController.requestRemoveNodesStart();
+							setInclusionTimer();
+						}
 					}
-					if (action.equals("Exclude")) {
-						exclusion = true;
-						zController.requestRemoveNodesStart();
-						setInclusionTimer();
+					else {
+						logger.debug("Exclusion/Inclusion already in progress.");
 					}
-				}
-				else {
-					logger.debug("Exclusion/Inclusion already in progress.");
 				}
 			}
 		}
@@ -1085,6 +1122,8 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 	 * @param event
 	 */
 	void handleInclusionEvent(ZWaveInclusionEvent event) {
+		boolean endInclusion = false;
+
 		switch(event.getEvent()) {
 		case IncludeStart:
 			break;
@@ -1093,8 +1132,10 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 		case IncludeControllerFound:
 			break;
 		case IncludeFail:
+			endInclusion = true;
 			break;
 		case IncludeDone:
+			endInclusion = true;
 			break;
 		case ExcludeStart:
 			break;
@@ -1103,9 +1144,15 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 		case ExcludeControllerFound:
 			break;
 		case ExcludeFail:
+			endInclusion = true;
 			break;
 		case ExcludeDone:
+			endInclusion = true;
 			break;
+		}
+		
+		if(endInclusion) {
+			stopInclusionTimer();
 		}
 	}
 
@@ -1160,28 +1207,13 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 		}
 	}
 
-	// The following timer implements a re-triggerable timer to stop the inclusion
+	// The following timer class implements a re-triggerable timer to stop the inclusion
 	// mode after 30 seconds.
 	private class InclusionTimerTask extends TimerTask {
-		ZWaveController zController;
-//		boolean inclusion;
-
-//		InclusionTimerTask(ZWaveController zController, boolean inclusion) {
-		InclusionTimerTask(ZWaveController zController) {
-			this.zController = zController;
-//			this.inclusion = inclusion;
-		}
-
 		@Override
 		public void run() {
 			logger.debug("Ending inclusion mode.");
-			if(inclusion)
-				zController.requestAddNodesStop();
-			else
-				zController.requestRemoveNodesStop();
-			
-			inclusion = false;
-			exclusion = false;
+			stopInclusionTimer();
 		}
 	}
 	
@@ -1192,11 +1224,36 @@ public class ZWaveConfiguration implements OpenHABConfigurationService, ZWaveEve
 		}
 
 		// Create the timer task
-//		timerTask = new InclusionTimerTask(zController, inclusion);
-		timerTask = new InclusionTimerTask(zController);
+		timerTask = new InclusionTimerTask();
 
-		// Start the timer
+		// Start the timer for 30 seconds
 		timer.schedule(timerTask, 30000);
+	}
+
+	/**
+	 * Stops any pending inclusion/exclusion.
+	 * Resets flags, and signals to controller.
+	 */
+	public synchronized void stopInclusionTimer() {
+		logger.debug("Stopping inclusion timer.");
+		if(inclusion) {
+			zController.requestAddNodesStop();
+		}
+		else if(exclusion) {
+			zController.requestRemoveNodesStop();
+		}
+		else {
+			logger.error("Neither inclusion nor exclusion was active!");
+		}
+
+		inclusion = false;
+		exclusion = false;
+
+		// Stop the timer
+		if(timerTask != null) {
+			timerTask.cancel();
+			timerTask = null;
+		}
 	}
 
 	/**
