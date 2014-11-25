@@ -8,15 +8,10 @@
  */
 package org.openhab.binding.tinkerforge.internal.model;
 
-import java.math.BigDecimal;
-
 
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>TF Hysteresis Configuration</b></em>'.
- * 
- * @author Theo Weiss
- * @since 1.3.0
  * <!-- end-user-doc -->
  *
  * <p>
@@ -42,12 +37,12 @@ public interface TFBaseConfiguration extends TFConfig
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Threshold</em>' attribute.
-   * @see #setThreshold(BigDecimal)
+   * @see #setThreshold(int)
    * @see org.openhab.binding.tinkerforge.internal.model.ModelPackage#getTFBaseConfiguration_Threshold()
    * @model unique="false"
    * @generated
    */
-  BigDecimal getThreshold();
+  int getThreshold();
 
   /**
    * Sets the value of the '{@link org.openhab.binding.tinkerforge.internal.model.TFBaseConfiguration#getThreshold <em>Threshold</em>}' attribute.
@@ -57,7 +52,7 @@ public interface TFBaseConfiguration extends TFConfig
    * @see #getThreshold()
    * @generated
    */
-  void setThreshold(BigDecimal value);
+  void setThreshold(int value);
 
   /**
    * Returns the value of the '<em><b>Callback Period</b></em>' attribute.

@@ -8,9 +8,6 @@
  */
 package org.openhab.binding.hue.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.openhab.binding.hue.HueBindingProvider;
 import org.openhab.binding.hue.internal.HueBindingConfig.BindingType;
 import org.openhab.core.binding.BindingConfig;
@@ -49,7 +46,6 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * 
  * @author Roman Hartmann
- * @author Jos Schering
  * @since 1.2.0
  */
 public class HueGenericBindingProvider extends AbstractGenericBindingProvider
@@ -122,14 +118,4 @@ public class HueGenericBindingProvider extends AbstractGenericBindingProvider
 		return (HueBindingConfig) bindingConfigs.get(itemName);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public List<String> getInBindingItemNames() {
-		List<String> inBindings = new ArrayList<String>();
-		for (String itemName : bindingConfigs.keySet()) {
-			inBindings.add(itemName);
-		}
-		return inBindings;
-	}
 }

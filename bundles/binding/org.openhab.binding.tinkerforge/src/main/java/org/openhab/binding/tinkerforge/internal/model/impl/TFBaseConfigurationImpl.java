@@ -8,7 +8,6 @@
  */
 package org.openhab.binding.tinkerforge.internal.model.impl;
 
-import java.math.BigDecimal;
 import org.eclipse.emf.common.notify.Notification;
 
 import org.eclipse.emf.ecore.EClass;
@@ -46,7 +45,7 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
    * @generated
    * @ordered
    */
-  protected static final BigDecimal THRESHOLD_EDEFAULT = null;
+  protected static final int THRESHOLD_EDEFAULT = 0;
 
   /**
    * The cached value of the '{@link #getThreshold() <em>Threshold</em>}' attribute.
@@ -56,7 +55,7 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
    * @generated
    * @ordered
    */
-  protected BigDecimal threshold = THRESHOLD_EDEFAULT;
+  protected int threshold = THRESHOLD_EDEFAULT;
 
   /**
    * The default value of the '{@link #getCallbackPeriod() <em>Callback Period</em>}' attribute.
@@ -104,7 +103,7 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
    * <!-- end-user-doc -->
    * @generated
    */
-  public BigDecimal getThreshold()
+  public int getThreshold()
   {
     return threshold;
   }
@@ -114,9 +113,9 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setThreshold(BigDecimal newThreshold)
+  public void setThreshold(int newThreshold)
   {
-    BigDecimal oldThreshold = threshold;
+    int oldThreshold = threshold;
     threshold = newThreshold;
     if (eNotificationRequired())
       eNotify(new ENotificationImpl(this, Notification.SET, ModelPackage.TF_BASE_CONFIGURATION__THRESHOLD, oldThreshold, threshold));
@@ -174,7 +173,7 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
     switch (featureID)
     {
       case ModelPackage.TF_BASE_CONFIGURATION__THRESHOLD:
-        setThreshold((BigDecimal)newValue);
+        setThreshold((Integer)newValue);
         return;
       case ModelPackage.TF_BASE_CONFIGURATION__CALLBACK_PERIOD:
         setCallbackPeriod((Integer)newValue);
@@ -214,7 +213,7 @@ public class TFBaseConfigurationImpl extends MinimalEObjectImpl.Container implem
     switch (featureID)
     {
       case ModelPackage.TF_BASE_CONFIGURATION__THRESHOLD:
-        return THRESHOLD_EDEFAULT == null ? threshold != null : !THRESHOLD_EDEFAULT.equals(threshold);
+        return threshold != THRESHOLD_EDEFAULT;
       case ModelPackage.TF_BASE_CONFIGURATION__CALLBACK_PERIOD:
         return callbackPeriod != CALLBACK_PERIOD_EDEFAULT;
     }

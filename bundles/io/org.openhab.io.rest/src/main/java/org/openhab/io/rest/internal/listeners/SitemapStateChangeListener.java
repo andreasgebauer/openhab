@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SitemapStateChangeListener extends ResourceStateChangeListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(SitemapStateChangeListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(ResourceStateChangeListener.class);
 	
 	@Override
 	protected Object getResponseObject(HttpServletRequest request) {
@@ -103,10 +103,6 @@ public class SitemapStateChangeListener extends ResourceStateChangeListener {
 		for(Widget child : children) {
 			if (child instanceof Frame) {
 				Frame frame = (Frame) child;
-				String itemName = frame.getItem();
-				if(itemName!=null) {
-					itemNames.add(itemName);
-				}
 				itemNames.addAll(getRelevantItemNamesForWidgets(frame.getChildren()));
 			} else {
 				String itemName = child.getItem();
@@ -119,8 +115,6 @@ public class SitemapStateChangeListener extends ResourceStateChangeListener {
 	}
 	
 	private PageBean getPageBean(HttpServletRequest request){
-		try {
-			String query = request.getQueryString();
 		String pathInfo = request.getPathInfo();
 		
 		String responseType = (new ResponseTypeHelper()).getResponseType(request);
@@ -137,9 +131,6 @@ public class SitemapStateChangeListener extends ResourceStateChangeListener {
 	            	}
 	            }
 	        }
-		}
-		} catch (Exception e) {
-			return null;
 		}
 		return null;
 		

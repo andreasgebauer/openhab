@@ -1,0 +1,8 @@
+<div class="iMenu">
+	<h3 ng-style="{{widget.labelStyle}}">{{widget.label}}</h3>
+	<ul class="iArrow">
+		<li ng-repeat="widget in widget.children" ng-include
+			src="'pages/'+widget.type+'.html'" ng-style="{{widget.labelStyle}}"></li>
+	</ul>
+</div>
+

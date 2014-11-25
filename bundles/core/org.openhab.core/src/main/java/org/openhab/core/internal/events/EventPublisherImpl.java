@@ -51,6 +51,7 @@ public class EventPublisherImpl implements EventPublisher {
 	/* (non-Javadoc)
 	 * @see org.openhab.core.internal.events.EventPublisher#sendCommand(org.openhab.core.items.GenericItem, org.openhab.core.datatypes.DataType)
 	 */
+	@Override
 	public void sendCommand(String itemName, Command command) {
 		if (command != null) {
 			if(eventAdmin!=null) eventAdmin.sendEvent(createCommandEvent(itemName, command));
@@ -62,6 +63,7 @@ public class EventPublisherImpl implements EventPublisher {
 	/* (non-Javadoc)
 	 * @see org.openhab.core.internal.events.EventPublisher#postCommand(org.openhab.core.items.GenericItem, org.openhab.core.datatypes.DataType)
 	 */
+	@Override
 	public void postCommand(String itemName, Command command) {
 		if (command != null) {
 			if(eventAdmin!=null) eventAdmin.postEvent(createCommandEvent(itemName, command));
@@ -73,6 +75,7 @@ public class EventPublisherImpl implements EventPublisher {
 	/* (non-Javadoc)
 	 * @see org.openhab.core.internal.events.EventPublisher#postUpdate(org.openhab.core.items.GenericItem, org.openhab.core.datatypes.DataType)
 	 */
+	@Override
 	public void postUpdate(String itemName, State newState) {
 		if (newState != null) {
 			if(eventAdmin!=null) eventAdmin.postEvent(createUpdateEvent(itemName, newState));

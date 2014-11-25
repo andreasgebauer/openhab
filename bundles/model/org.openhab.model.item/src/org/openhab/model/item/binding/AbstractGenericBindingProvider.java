@@ -72,6 +72,7 @@ public abstract class AbstractGenericBindingProvider implements BindingConfigRea
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void processBindingConfiguration(String context, Item item, String bindingConfig) throws BindingConfigParseException {
 		Set<Item> items = contextMap.get(context);
 		if (items==null) {

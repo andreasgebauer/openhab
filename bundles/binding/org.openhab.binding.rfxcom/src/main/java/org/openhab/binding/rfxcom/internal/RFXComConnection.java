@@ -75,12 +75,6 @@ public class RFXComConnection implements ManagedService {
 		logger.debug("Configuration updated, config {}", config != null ? true
 				: false);
 
-		if (serialPort != null) {
-			logger.debug("Close previous connection");
-			connector.removeEventListener(eventLister);
-			connector.disconnect();
-		}
-		
 		if (config != null) {
 
 			serialPort = (String) config.get("serialPort");

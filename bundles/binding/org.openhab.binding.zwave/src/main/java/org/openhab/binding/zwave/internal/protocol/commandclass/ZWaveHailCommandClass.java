@@ -8,7 +8,6 @@
  */
 package org.openhab.binding.zwave.internal.protocol.commandclass;
 
-
 import org.openhab.binding.zwave.internal.protocol.SerialMessage;
 import org.openhab.binding.zwave.internal.protocol.ZWaveController;
 import org.openhab.binding.zwave.internal.protocol.ZWaveEndpoint;
@@ -69,8 +68,8 @@ public class ZWaveHailCommandClass extends ZWaveCommandClass {
 				if (this.getNode().getNodeStage() != NodeStage.DONE)
 					return;
 				
-				getController().pollNode(getNode());
-				
+				this.getNode().setNodeStage(NodeStage.DYNAMIC);
+				this.getNode().advanceNodeStage(NodeStage.DONE);
 				break;
 			default:
 			logger.warn(String.format("Unsupported Command 0x%02X for command class %s (0x%02X).", 

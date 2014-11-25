@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.openhab.bundles</groupId>
+		<artifactId>ui</artifactId>
+		<version>1.5.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>org.openhab.bundles.ui</groupId>
+	<artifactId>org.openhab.ui.webapp.angular</artifactId>
+
+	<packaging>eclipse-plugin</packaging>
+
+	<name>openHAB UI WebApp AngularJS</name>
+
+	<properties>
+		<bundle.symbolicName>org.openhab.ui.webapp.angular</bundle.symbolicName>
+		<bundle.namespace>org.openhab.ui.webapp.angular</bundle.namespace>
+	</properties>
+
+</project>

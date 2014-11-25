@@ -118,7 +118,7 @@ public class MqttEventBusBinding extends AbstractBinding<MqttBindingProvider> im
 	@Override
 	public void receiveUpdate(String itemName, State newState) {
 		if (newState == null || statePublisher == null
-				|| !statePublisher.isActivated()) {
+				|| !statePublisher.isActived()) {
 			return;
 		}
 		statePublisher.publish(statePublisher.getTopic(itemName), newState
@@ -127,7 +127,7 @@ public class MqttEventBusBinding extends AbstractBinding<MqttBindingProvider> im
 
 	@Override
 	public void receiveCommand(String itemName, Command command) {
-		if (commandPublisher == null || command == null || !commandPublisher.isActivated()) {
+		if (commandPublisher == null || command == null || !commandPublisher.isActived()) {
 			return;
 		}
 		commandPublisher.publish(

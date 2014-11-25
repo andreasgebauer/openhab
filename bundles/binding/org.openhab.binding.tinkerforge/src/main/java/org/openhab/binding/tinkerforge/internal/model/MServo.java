@@ -13,9 +13,6 @@ package org.openhab.binding.tinkerforge.internal.model;
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>MServo</b></em>'.
- * 
- * @author Theo Weiss
- * @since 1.3.0
  * <!-- end-user-doc -->
  *
  * <p>

@@ -49,7 +49,7 @@ public class MqttMessageSubscriberTest {
 	private void validateBadConfig(String configString) {
 		try {
 			new MqttMessageSubscriber(configString);
-			fail("Missing exception for config " + configString);
+			fail("Missing exception..");
 		} catch (BindingConfigParseException e) {
 			return;
 		}
@@ -103,16 +103,17 @@ public class MqttMessageSubscriberTest {
 	@Test
 	public void canDetectInvalidConfigurations() {
 
-		validateBadConfig(" :/mytopic:command:ON:.*:1");
-		validateBadConfig("mybroker:/mytopic:command:ON:.*:1");
+		validateBadConfig(" :/mytopic:command:ON:1");
+		validateBadConfig("mybroker:/mytopic:command:ON:1");
 		validateBadConfig("mybroker:/mytopic:command:ON:1:99");
 		validateBadConfig("mybroker::/mytopic:command:ON:1");
 		validateBadConfig("mybroker:command:ON:1");
-		validateBadConfig("mybroker:/mytopic:command:ON:.*:1");
+		validateBadConfig("mybroker:/mytopic:command:ON:1");
+		validateBadConfig("mybroker:/mytopic:command:ON:1");
 		validateBadConfig(null);
 		validateBadConfig("");
-		validateBadConfig("  mybroker : /mytopic : command : * : .* : file(/tmp/myfile.txt)");
-		validateBadConfig("mybroker:/mytopic:comand:ON:1");
+		validateBadConfig("  mybroker : /mytopic : command : * : file(/tmp/myfile.txt)");
+		validateBadConfig("mybroker:/mytopic:command:ON:1");
 	}
 
 	@Test

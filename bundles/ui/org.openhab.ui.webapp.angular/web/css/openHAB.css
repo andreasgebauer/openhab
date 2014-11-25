@@ -1,0 +1,12 @@
+b.iToggle{margin-left:8px;}
+.options img { margin-right:0px !important; margin-left:8px !important;}
+
+
+.show-hide .iMenu{
+  -webkit-transition:all linear 20.5s;
+  transition:all linear 20.5s;
+}
+
+.show-hide.ng-hide .iMenu{
+  opacity:0;
+}

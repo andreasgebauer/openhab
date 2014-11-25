@@ -11,8 +11,6 @@ package org.openhab.binding.openpaths.internal;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.openpaths.OpenPathsBindingProvider;
 import org.openhab.core.items.Item;
-import org.openhab.core.library.items.NumberItem;
-import org.openhab.core.library.items.StringItem;
 import org.openhab.core.library.items.SwitchItem;
 import org.openhab.model.item.binding.AbstractGenericBindingProvider;
 import org.openhab.model.item.binding.BindingConfigParseException;
@@ -29,8 +27,7 @@ import org.openhab.model.item.binding.BindingConfigParseException;
  * @author Ben Jones
  * @since 1.4.0
  */
-public class OpenPathsGenericBindingProvider extends
-		AbstractGenericBindingProvider implements OpenPathsBindingProvider {
+public class OpenPathsGenericBindingProvider extends AbstractGenericBindingProvider implements OpenPathsBindingProvider {
 
 	/**
 	 * {@inheritDoc}
@@ -40,36 +37,28 @@ public class OpenPathsGenericBindingProvider extends
 	}
 
 	/**
-	 * @{inheritDoc
+	 * @{inheritDoc}
 	 */
 	@Override
-	public void validateItemType(Item item, String bindingConfig)
-			throws BindingConfigParseException {
-		if (!(item instanceof SwitchItem) && !(item instanceof NumberItem)
-				&& !(item instanceof StringItem)) {
-			throw new BindingConfigParseException(
-					"item '"
-							+ item.getName()
-							+ "' is of type '"
-							+ item.getClass().getSimpleName()
-							+ "', only Switch,Number and String are allowed - please check your *.items configuration");
+	public void validateItemType(Item item, String bindingConfig) throws BindingConfigParseException {
+		if (!(item instanceof SwitchItem)) {
+			throw new BindingConfigParseException("item '" + item.getName()
+					+ "' is of type '" + item.getClass().getSimpleName()
+					+ "', only Switch are allowed - please check your *.items configuration");
 		}
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void processBindingConfiguration(String context, Item item,
-			String bindingConfig) throws BindingConfigParseException {
+	public void processBindingConfiguration(String context, Item item, String bindingConfig) throws BindingConfigParseException {
 		super.processBindingConfiguration(context, item, bindingConfig);
 
-		if (StringUtils.isEmpty(bindingConfig))
-			throw new BindingConfigParseException("Null config for "
-					+ item.getName() + " - expecting an OpenPaths name");
-
-		OpenPathsBindingConfig openPathsBindingConfig = new OpenPathsBindingConfig(
-				bindingConfig);
+        if (StringUtils.isEmpty(bindingConfig))
+            throw new BindingConfigParseException("Null config for " + item.getName() + " - expecting an OpenPaths name");
+		
+		OpenPathsBindingConfig openPathsBindingConfig = new OpenPathsBindingConfig(bindingConfig);
 
 		addBindingConfig(item, openPathsBindingConfig);
 	}
@@ -77,8 +66,8 @@ public class OpenPathsGenericBindingProvider extends
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
+	@Override 
 	public OpenPathsBindingConfig getItemConfig(String itemName) {
 		return (OpenPathsBindingConfig) bindingConfigs.get(itemName);
-	}
+	}	
 }

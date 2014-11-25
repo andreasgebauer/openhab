@@ -51,6 +51,12 @@ public class NetworkHealthBinding extends AbstractActiveBinding<NetworkHealthBin
 	protected long getRefreshInterval() {
 		return refreshInterval;
 	}
+
+	@Override
+	public void activate() {
+		super.activate();
+		setProperlyConfigured(true);
+	}
 	
 	/**
 	 * @{inheritDoc}
@@ -101,9 +107,8 @@ public class NetworkHealthBinding extends AbstractActiveBinding<NetworkHealthBin
 			String refreshIntervalString = (String) config.get("refresh");
 			if (refreshIntervalString != null && !refreshIntervalString.isEmpty()) {
 				refreshInterval = Long.parseLong(refreshIntervalString);
-			}			
+			}
 		}
-		setProperlyConfigured(true);
 	}
 	
 	

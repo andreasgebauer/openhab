@@ -1,0 +1,13 @@
+<img ng-src="/images/{{widget.icon}}.png" width=29 height=29
+	class="iFull" />
+<span class="options"><img src="/images/_down.png"
+	ng-touchstart="buttonPressed(widget.item, 'DOWN')"
+	ng-mousedown="buttonPressed(widget.item, 'DOWN')"
+	ng-mouseup="buttonReleased(widget.item, 'DOWN', widget.item, 'STOP')" /><img
+	src="/images/_stop.png" ng-click="changeState(widget.item, 'STOP')" /><img
+	src="/images/_up.png"
+	ng-touchstart="buttonPressed(widget.item, 'UP')"
+	ng-mousedown="buttonPressed(widget.item, 'UP')"
+	ng-mouseup="buttonReleased(widget.item, 'UP', widget.item, 'STOP')" />
+</span>
+<label ng-style="{{widget.labelStyle}}">{{widget.label}} </label>
