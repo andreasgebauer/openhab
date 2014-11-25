@@ -1,5 +1,5 @@
-<a ng-click="load(widget.id)"> <img
+<a ng-click="load(widget)"> <img
 	ng-src="/images/{{widget.icon}}.png" width=29 height=29 /> <label
 	style="{{widget.labelStyle}}">{{widget.label}}</label> <span
-	style="{{widget.valueStyle}}">{{widget.value}}</span>
+	style="{{widget.valueStyle}}" class="{{widget.styleClass}}">{{widget.formattedValue}}</span>
 </a>

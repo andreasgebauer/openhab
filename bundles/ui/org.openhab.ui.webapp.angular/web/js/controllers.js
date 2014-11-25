@@ -1,45 +1,114 @@
 var url = "/angular/sitemap/";
 var commandUrl = "/angular/cmd/";
+var chartDataUrl = "/angular/chartdata/";
 
-var appControllers = angular.module('appControllers', ['windowEventBroadcasts']);
+var appControllers = angular.module('app.controllers', [ 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
 
-appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval) {
 
-	var setupModel = function(data) {
-		$log.debug("Sitemap loaded");
+appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval, $timeout, getWatchCount) {
 
-		$scope.loader = {
-			style : {
-				display : "none"
-			}
-		};
+	webSocket.init();
 
-		$scope.show = true;
+	$scope.stayConnected = false;
+	$scope.show = false;
 
-		$scope.header = {
-			back : {
-				text : "Back",
-				href : sitemap.lastLocation ? "#" + sitemap.lastLocation : "#/",
-				visible : sitemap.location !== ""
-			},
-			home : {
-				text : "Home",
-				visible : sitemap.location !== ""
-			},
-			title : {
-				text : data.id,
-				visible : true
-			}
-		};
+	var that = this;
 
-		// id of the currently displayed widget root
-		$scope.id = data.id;
-		$scope.style = {
-			display : "block"
-		};
-		$scope.label = data.id;
-		$scope.data = data;
+
+	var parseValue = function(value){
+		if (value.valueType == "datetime") {
+			return new Date(value.value);
+		}
+		return value.value;
 	};
+
+	var formatted = function(widget, data) {
+		if(angular.isDefined(data.value) && data.value != 'Uninitialized' && widget.valuePattern) {
+			return mdgw.format(widget.valuePattern,  parseValue(data));
+		}
+	};
+
+
+	var processUpdate = function(widget, item) {
+		// $log.debug("processing update for " + item.id);
+
+		var value = parseValue(item);
+		var iconPrefix = item.icon != "none" ? item.icon : widget.type;
+
+		widget.formattedValue = formatted(widget, item);
+
+		if (widget.type === "text" || widget.type === "text_link") {
+			// or simply widget.value = value.toLowerCase();
+			widget.icon = item.icon;
+		} else {
+			if (widget.type === "switch") {
+				widget.value = value;
+			} else if (widget.type === "slider") {
+				widget.value = value;
+				if(value instanceof String) {
+					value = value.toLowerCase();
+				}
+				widget.icon = iconPrefix + "-" + value;
+
+			} else if (widget.type === "chart") {
+				// nothing to do
+			} else {
+				console.log("Unhandled data for: " + JSON.stringify(widget));
+			}
+
+			if (angular.isDefined(widget.value)) {
+				if (iconPrefix.indexOf("-") == -1) {
+					if (typeof widget.value === "string") {
+						widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
+					} else if (typeof value === "string") {
+						widget.icon = iconPrefix + "-" + value.toLowerCase();
+					}
+				} else {
+					widget.icon = iconPrefix;
+				}
+			}
+		}
+	};
+
+	var processWidget = function (element) {
+
+		if(angular.isUndefined(element.formattedValue)) {
+			element.formattedValue = formatted(element, element);
+		}
+
+	//	if(element.processUpdate) {
+	//		return;
+	//	}
+	//
+	//	if(!element.item){
+	//		return;
+	//	}
+
+		//console.debug("Registering processUpdate() at " + element.item);
+
+		// add function to process update data (from websocket)
+		//element.processUpdate = processUpdate;
+	};
+
+	// process an item being shown
+	var process = function(element) {
+		// console.debug("Processing element " + JSON.stringify(element));
+		if (element.children) {
+			for (var int = 0; int < element.children.length; int++) {
+				var child = element.children[int];
+				// don't follow links
+				if (!/_link$/.test(child.type)) {
+					process(child);
+				}
+
+				processWidget(child);
+			}
+		}
+
+		processWidget(element);
+	};
+
+
 
 	// watch change of the location
 	$scope.$watch(function() {
@@ -48,23 +117,115 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		if (oldPath === path && sitemap.location !== undefined) {
 			return;
 		}
-		// animate
-		$scope.show = false;
 		$log.debug("location path changed to '" + path + "'");
+
 		sitemap.lastLocation = sitemap.location;
 		sitemap.location = path === "/" ? "" : path;
 
-		var widget = path.substring(1);
-		$scope.root = widget;
+		var widgetId = path.substring(1);
 
-		if (!sitemap.fetching) {
-			// $interval(function(){
-			sitemap.fetch("default", widget, setupModel);
-			// }, 500, 1);
+		var setupModel = function(data, widgetId) {
+			$log.debug("Sitemap loaded: " + data.label);
+			data.id = widgetId;
+
+			var oldSitemap = $scope.sitemap;
+			if (angular.isDefined(oldSitemap)) {
+				// merge the two sitemap partials if possible
+
+				var getWidget = function(root, id) {
+					for (var int = 0; root.children && int < root.children.length; int++) {
+						var child = root.children[int];
+						if (child.id == id) {
+							return child;
+						}
+						if (child.children) {
+							var candidate = getWidget(child, id);
+							if (!angular.isUndefined(candidate)) {
+								return candidate;
+							}
+						}
+					}
+				};
+
+				var widget = getWidget(oldSitemap, data.id);
+				if (angular.isUndefined(widget)) {
+					widget = getWidget(data, oldSitemap.id);
+					if (angular.isDefined(widget)) {
+						// old sitemap appended as children
+						// in case of navigating a level up
+						widget.parentId = oldSitemap.parentId;
+						widget.children = oldSitemap.children;
+						$scope.sitemap = data;
+					}
+				} else {
+					// new sitemap appended as children of old one
+					// in case of navigating by clicking an item (level down)
+					widget.parentId = data.parentId;
+					widget.children = data.children;
+				}
+			} else {
+				$scope.sitemap = data;
+			}
+
+			$scope.nav = {
+				back : {
+					text : "Back",
+					href : data.parentId ? "#" + data.parentId : "#/",
+					visible : sitemap.location !== ""
+				},
+				home : {
+					text : "Home",
+					visible : sitemap.location !== ""
+				},
+				title : {
+					text : data.label,
+					visible : true
+				}
+			};
+			$scope.show = true;
+
+			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
+			if (angular.isUndefined($scope.viewItem)) {
+				$scope.viewItem = $scope.sitemap;
+			}
+
+			process($scope.viewItem);
+
+		};
+
+		if (angular.isUndefined($scope.sitemap)) {
+			sitemap.fetch("default", widgetId, setupModel);
+		} else {
+			$scope.viewItem.selected = false;
+			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
+
+			if (angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
+				// we need to load the sitemap data for the page shown
+				sitemap.fetch("default", widgetId, setupModel);
+			} else {
+				process($scope.viewItem);
+			}
+
+			if (angular.isDefined($scope.nav)) {
+				$scope.nav.back.visible = sitemap.location !== "";
+				$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
+
+				$scope.nav.home.visible = sitemap.location !== "";
+				if (angular.isDefined($scope.viewItem)) {
+					$scope.nav.title.text = $scope.viewItem.label;
+					if (angular.isDefined($scope.viewItem.formattedValue)) {
+						$scope.nav.title.text += " " + $scope.viewItem.formattedValue;
+					}
+				}
+			}
+
 		}
 	});
 
-	var getWidgets = function(root, id) {
+	this.getWidgets = function(root, id) {
+		if (angular.isUndefined(root)) {
+			return;
+		}
 		var addIfNotExistent = function(arr, el) {
 			var found = false;
 			for (var j = 0; j < arr.length; j++) {
@@ -86,7 +247,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 				addIfNotExistent(items, widget);
 			}
 			if (widget.children) {
-				var it = getWidgets(widget, id);
+				var it = this.getWidgets(widget, id);
 				if (it) {
 					for (var j = 0; j < it.length; j++) {
 						addIfNotExistent(items, it[j]);
@@ -104,74 +265,115 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		return items;
 	};
 
-	var handleUpdate = function(item) {
-		$scope.$apply(function() {
-			(function(item) {
-				var widgets = getWidgets($scope.data, item.id);
-				if (!widgets || widgets.length == 0 || !item.values) {
-					return;
-				}
+	this.handleUpdate = function(item) {
+		$scope.$apply(function () {
+			// console.debug("Received " + item.id);
+			var widgets = that.getWidgets($scope.sitemap, item.id);
+			if (!widgets || widgets.length == 0 || angular.isUndefined(item.value)) {
+				//console.debug("No widget found for " + item.id);
+				return;
+			}
 
-				for (var int = 0; int < widgets.length; int++) {
-					widgets[int].processUpdate(item);
-				}
-			}(item));
-
+			// console.debug(widgets.length + " widgets found for " + item.id);
+			angular.forEach(widgets, function(widget){
+				//console.log("red: " + widget.item)
+				widget.styleClass = "red";
+				var w = widget;
+				$timeout(function() {
+					//console.log("whi: " + w.item)
+					w.styleClass = "inherit";
+					$timeout(function() {
+						//console.log("whi: " + w.item)
+						w.styleClass = "";
+					}, 3000);
+				}, 2000);
+				processUpdate(widget, item);
+			});
 		});
 	};
 
-	webSocket.subscribe(handleUpdate);
+	webSocket.subscribe(this.handleUpdate);
 
-	reconnect = function(){
-		webSocket.init();
-		webSocket.subscribe(handleUpdate);
-		$log.info("Reconnected");
+	this.reconnect = function() {
+		if (webSocket.isClosed()) {
+			webSocket.reconnect();
+			//webSocket.subscribe(that.handleUpdate);
+			$log.info("Reconnected");
+		}
 	};
 
-	disconnect = function(){
-		webSocket.unsubscribe(handleUpdate);
-		webSocket.close();
-		$log.info("Disconnected");
+	this.disconnect = function() {
+		if (!$scope.stayConnected) {
+			//webSocket.unsubscribe(that.handleUpdate);
+			webSocket.close();
+			$log.info("Disconnected");
+		}
 	};
 
 	// event handling
-	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent)  {
-		console.log("onFocus");
-		reconnect();
+	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent) {
+		// works when entering window
+		that.reconnect();
 	});
 
 	// event handling
-	$scope.$on('$windowShow', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowShow', function(broadcastEvent, browserEvent) {
 		console.log("onShow");
-		reconnect();
+		that.reconnect();
 	});
 
-	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent)  {
-		console.log("onBlur");
-		disconnect();			
+	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent) {
+		// works when leaving window
+		that.disconnect();
 	});
 
-	$scope.$on('$windowHide', function(broadcastEvent, browserEvent)  {
+	$scope.$on('$windowHide', function(broadcastEvent, browserEvent) {
 		console.log("onHide");
-		disconnect();			
+		that.disconnect();
 	});
-	
-	$scope.$on("onpagehide", function(event){
-		console.log("onPageHide");
-	});
-	
-	$scope.$on("onpageshow", function(event){
-		console.log("onPageShow");
-	});
-
-
 
 	// scope functions
 
+	// sets the widget to show
 	$scope.load = function(widget) {
-		// sitemap.fetch("default", widget, setupModel);
-		$location.path(widget);
+		widget.selected = true;
+
+		$timeout(function() {
+			$scope.viewItem = widget;
+			$location.path(widget.id);
+			widget.selected = false;
+		});
+
 	};
+
+	$scope.getWidgets = this.getWidgets();
+
+	// I hold the current count of watchers in the current page. This extends
+	// beyond the current scope, and will hold the count for all scopes on 
+	// the entire page.
+	$scope.watchCount = 0;
+
+	// I hold the bookmarkletized version of the function to provide a take-
+	// away feature that can be used on any AngularJS page.
+	$scope.bookmarklet = getWatchCount.bookmarklet;
+
+
+	// Every time the digest runs, it's possible that we'll change the number
+	// of $watch() bindings on the current page. 
+	$scope.$watch(
+		function watchCountExpression() {
+
+			return( getWatchCount() );
+
+		},
+		function handleWatchCountChange( newValue ) {
+
+			$scope.watchCount = newValue;
+
+		}
+	);
+
+	
 
 	$scope.changeState = function(widget, state) {
 		$log.debug("changeState invoked: " + widget + ": " + state);
@@ -195,12 +397,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 	$scope.stopRepeatedRequest = function(item, cmd) {
 		$log.debug("stopRepeatedRequest invoked: " + item + ": " + cmd);
-
 	};
 
 });
 
-appControllers.controller('ChartCtrl', [ '$scope', '$log', 'webSocket', function($scope, $log, webSocket) {
-	$log.debug("Chart initializing");
-
-} ]);

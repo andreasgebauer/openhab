@@ -3,13 +3,17 @@ package org.openhab.ui.webapp.angular.internal.servlet;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,16 +21,22 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.openhab.core.items.GenericItem;
 import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
-import org.openhab.core.items.ItemRegistry;
+import org.openhab.core.library.items.RollershutterItem;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.types.State;
 import org.openhab.model.sitemap.Chart;
+import org.openhab.model.sitemap.Frame;
 import org.openhab.model.sitemap.LinkableWidget;
+import org.openhab.model.sitemap.Mapping;
 import org.openhab.model.sitemap.Setpoint;
 import org.openhab.model.sitemap.Sitemap;
 import org.openhab.model.sitemap.SitemapProvider;
+import org.openhab.model.sitemap.Switch;
 import org.openhab.model.sitemap.Text;
 import org.openhab.model.sitemap.Widget;
 import org.openhab.ui.items.ItemUIRegistry;
@@ -64,6 +74,7 @@ public class WebAppServlet extends BaseServlet {
 	this.sitemapProvider = null;
     }
 
+    @Override
     protected void activate() {
 	super.activate();
 	try {
@@ -76,12 +87,13 @@ public class WebAppServlet extends BaseServlet {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
 	LOG.debug("Servlet request received!");
 
 	// read request parameters
-	String sitemapName = (String) req.getParameter("sitemap");
-	String widgetId = (String) req.getParameter("w");
+	String sitemapName = req.getParameter("sitemap");
+	String widgetId = req.getParameter("w");
 
 	// if there are no parameters, display the "default" sitemap
 	if (sitemapName == null)
@@ -100,7 +112,8 @@ public class WebAppServlet extends BaseServlet {
 		String label = sitemap.getLabel() != null ? sitemap.getLabel() : sitemapName;
 
 		JsonObjectBuilder sitemapBuilder = Json.createObjectBuilder();
-		sitemapBuilder.add("id", label);
+		// sitemapBuilder.add("id", label);
+		sitemapBuilder.add("label", label);
 		sitemapBuilder.add("children", render(sitemap.getChildren()));
 		writer.writeObject(sitemapBuilder.build());
 
@@ -117,20 +130,59 @@ public class WebAppServlet extends BaseServlet {
 			label = "undefined";
 
 		    JsonObjectBuilder sitemapBuilder = Json.createObjectBuilder();
-		    sitemapBuilder.add("id", label);
+		    String id = getItemUIRegistry().getWidgetId(w);
+		    String parentWidgetId = getParentWidgetId(sitemap, w);
+		    sitemapBuilder.add("id", id);
+		    sitemapBuilder.add("parentId", parentWidgetId);
+		    sitemapBuilder.add("label", label);
 		    sitemapBuilder.add("children", render(children));
 		    writer.writeObject(sitemapBuilder.build());
 		}
 	    }
 	} catch (Exception e) {
 	    throw new ServletException(e.getMessage(), e);
-	} finally {
-	    writer.close();
 	}
+
+	writer.close();
 	res.setContentType("application/xml;charset=UTF-8");
     }
 
-    private JsonArrayBuilder render(EList<Widget> children) {
+    private String getParentWidgetId(Sitemap sitemap, Widget w) {
+	EList<Widget> children = sitemap.getChildren();
+
+	for (Widget widget : children) {
+	    if (widget.equals(w)) {
+		return "";
+	    } else if (widget instanceof LinkableWidget) {
+
+		Widget parent = null;
+		Widget current = w;
+		while (parent == null) {
+		    EObject eContainer = current.eContainer();
+		    if (eContainer instanceof Widget) {
+			if (eContainer instanceof Frame) {
+			    current = (Widget) eContainer;
+			} else {
+			    parent = (Widget) eContainer;
+			}
+		    } else if (eContainer instanceof Sitemap) {
+			return "";
+		    }
+		}
+
+		return getItemUIRegistry().getWidgetId(parent);
+
+		// String widgetId = getParentWidgetId((LinkableWidget) widget, w);
+		// if (widgetId != null) {
+		// return widgetId;
+		// }
+	    }
+	}
+
+	return null;
+    }
+
+    private JsonArrayBuilder render(EList<Widget> children) throws ItemNotFoundException {
 	JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 	for (Iterator<Widget> iterator = children.iterator(); iterator.hasNext();) {
 	    Widget widget = iterator.next();
@@ -139,7 +191,7 @@ public class WebAppServlet extends BaseServlet {
 	return arrayBuilder;
     }
 
-    private JsonObjectBuilder render(Widget widget) {
+    private JsonObjectBuilder render(Widget widget) throws ItemNotFoundException {
 
 	String simpleName = widget.getClass().getSimpleName();
 	String type = simpleName.substring(0, simpleName.length() - "Impl".length()).toLowerCase();
@@ -149,27 +201,77 @@ public class WebAppServlet extends BaseServlet {
 	    type += "_link";
 	}
 
-	String id = itemUIRegistry.getWidgetId(widget);
-	String label = itemUIRegistry.getLabel(widget);
-	String value = null;
-	if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
-	    value = label.substring(label.indexOf('[') + 1, label.indexOf(']'));
-	    label = label.substring(0, label.indexOf('[') - 1);
+	String id = getItemUIRegistry().getWidgetId(widget);
+	String labelPattern = widget.getLabel();
+	String valuePattern = null;
+	if (labelPattern == null) {
+	    labelPattern = getItemUIRegistry().getLabel(widget.getItem());
 	}
-	String icon = itemUIRegistry.getIcon(widget);
-	String labelColor = itemUIRegistry.getLabelColor(widget);
-	String valueColor = itemUIRegistry.getValueColor(widget);
+	if (labelPattern != null) {
+	    Matcher matcher = Pattern.compile(".*\\[(.*)\\].*").matcher(labelPattern);
+	    if (matcher.matches()) {
+		valuePattern = matcher.group(1);
+	    }
+	}
+
+	String label = getItemUIRegistry().getLabel(widget);
+	JsonValue valueJson = null;
+	if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
+	    final String value = label.substring(label.indexOf('[') + 1, label.indexOf(']'));
+	    label = label.substring(0, label.indexOf('[') - 1).trim();
+	    valueJson = new JsonString() {
+
+		@Override
+		public ValueType getValueType() {
+		    return ValueType.STRING;
+		}
+
+		@Override
+		public String getString() {
+		    return value;
+		}
+
+		@Override
+		public CharSequence getChars() {
+		    return value;
+		}
+
+	    };
+	} else {
+	    State state = getItemUIRegistry().getState(widget);
+	    if (state instanceof OnOffType) {
+		valueJson = ((OnOffType) state) == OnOffType.ON ? JsonValue.TRUE : JsonValue.FALSE;
+	    }
+	}
+
+	
+	String icon = getItemUIRegistry().getIcon(widget);
+	String labelColor = getItemUIRegistry().getLabelColor(widget);
+	String valueColor = getItemUIRegistry().getValueColor(widget);
 	String itemName = widget.getItem();
+
+	Item item = null;
+
+	try {
+	    item = itemRegistry.getItem(itemName);
+	} catch (ItemNotFoundException e) {
+	    // do nothing
+	}
 
 	JsonObjectBuilder widgetBuilder = Json.createObjectBuilder();
 	widgetBuilder.add("id", id);
 	widgetBuilder.add("type", type);
-	widgetBuilder.add("label", label);
-	if (value != null) {
-	    widgetBuilder.add("value", value);
+
+	if (item != null) {
+	    //String itemType = item.getClass().getSimpleName();
+	    //widgetBuilder.add("type", itemType.substring(0, itemType.length() - 4).toLowerCase());
+	    DataServlet.addValue(new Date(),item.getState(), widgetBuilder);
 	}
-	if (icon != null) {
-	    widgetBuilder.add("icon", icon);
+	if (labelPattern != null) {
+	    widgetBuilder.add("labelPattern", labelPattern);
+	}
+	if (valuePattern != null) {
+	    widgetBuilder.add("valuePattern", valuePattern);
 	}
 	if (null != labelColor) {
 	    widgetBuilder.add("labelColor", labelColor);
@@ -177,36 +279,46 @@ public class WebAppServlet extends BaseServlet {
 	if (null != valueColor) {
 	    widgetBuilder.add("valueColor", valueColor);
 	}
+	
+	if(valueJson != null){
+	    widgetBuilder.add("formattedValue", valueJson);
+	}
+	if (label != null) {
+	    widgetBuilder.add("label", label);
+	}
+	if (icon != null) {
+	    widgetBuilder.add("icon", icon);
+	}
 	if (itemName != null) {
 	    widgetBuilder.add("item", itemName);
 	}
+	
 
-	if (widget instanceof LinkableWidget && !(widget instanceof Text)) {
+	if (widget instanceof LinkableWidget) {
 	    LinkableWidget link = (LinkableWidget) widget;
-	    if (!link.getChildren().isEmpty()) {
+	    if (!(link instanceof Text) && !link.getChildren().isEmpty()) {
 		widgetBuilder.add("children", render(link.getChildren()));
 	    }
-	} else if (widget instanceof Chart) {
-	    try {
-		Item item = this.itemRegistry.getItem(itemName);
+	}
 
-		String period = ((Chart) widget).getPeriod();
-		widgetBuilder.add("period", periodToTimespan(period));
+	//
+	if (widget instanceof Chart) {
+	    String period = ((Chart) widget).getPeriod();
+	    widgetBuilder.add("period", periodToTimespan(period));
 
-		JsonArrayBuilder arrBldr = Json.createArrayBuilder();
-		if (item instanceof GroupItem) {
-		    for (Item chartItem : ((GroupItem) item).getAllMembers()) {
-			GenericItem genItem = (GenericItem) chartItem;
-			arrBldr.add(genItem.getName());
-		    }
+	    JsonArrayBuilder arrBldr = Json.createArrayBuilder();
+
+	    if (item instanceof GroupItem) {
+			List<Item> allMembers = ((GroupItem) item).getAllMembers();
+			for (Item chartItem : allMembers) {
+				GenericItem genItem = (GenericItem) chartItem;
+				arrBldr.add(genItem.getName());
+			}
 		} else {
-		    arrBldr.add(item.getName());
+			arrBldr.add(item.getName());
 		}
-		widgetBuilder.add("items", arrBldr);
-		
-	    } catch (ItemNotFoundException e) {
-		// ignore
-	    }
+
+	    widgetBuilder.add("items", arrBldr);
 
 	} else if (widget instanceof Setpoint) {
 	    Setpoint setPoint = ((Setpoint) widget);
@@ -214,8 +326,39 @@ public class WebAppServlet extends BaseServlet {
 	    BigDecimal minValue = setPoint.getMinValue();
 	    BigDecimal step = setPoint.getStep();
 
+	    widgetBuilder.add("min", minValue);
 	    widgetBuilder.add("max", maxValue);
+	    widgetBuilder.add("step", step);
 
+	} else if (widget instanceof Switch) {
+	    Switch sw = (Switch) widget;
+	    EList<Mapping> mappings = sw.getMappings();
+
+	    String subType;
+	    if (mappings.size() == 0) {
+		if (widget instanceof RollershutterItem) {
+		    subType = "rollerblind";
+		} else if (widget instanceof GroupItem && ((GroupItem) widget).getBaseItem() instanceof RollershutterItem) {
+		    subType = "rollerblind";
+		} else {
+		    subType = "switch";
+		}
+	    } else {
+		subType = "buttons";
+	    }
+
+	    widgetBuilder.add("type", subType);
+
+	    if (!mappings.isEmpty()) {
+		JsonArrayBuilder arr = Json.createArrayBuilder();
+		for (Mapping mapping : mappings) {
+		    JsonObjectBuilder mappingJson = Json.createObjectBuilder();
+		    mappingJson.add("label", mapping.getLabel());
+		    mappingJson.add("cmd", mapping.getCmd());
+		    arr.add(mappingJson);
+		}
+		widgetBuilder.add("mappings", arr);
+	    }
 	}
 
 	return widgetBuilder;
@@ -263,24 +406,8 @@ public class WebAppServlet extends BaseServlet {
 	    ctor.setAccessible(true);
 	    Object newInstance = ctor.newInstance(config);
 	    new WebAppActivator().start((BundleContext) newInstance);
-
-	    forName = Class.forName("org.openhab.mock.MockItemUIRegistry");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemUIRegistry = (ItemUIRegistry) ctor.newInstance();
-
-	    forName = Class.forName("org.openhab.mock.model.sitemap.SitemapProviderImpl");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.sitemapProvider = (SitemapProvider) ctor.newInstance();
-
-	    forName = Class.forName("org.openhab.mock.MockItemRegistryImpl");
-	    ctor = forName.getConstructor();
-	    ctor.setAccessible(true);
-	    this.itemRegistry = (ItemRegistry) ctor.newInstance();
-
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    // nothing to do
 	}
     }
 

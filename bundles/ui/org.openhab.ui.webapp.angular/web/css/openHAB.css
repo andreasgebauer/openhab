@@ -1,12 +1,136 @@
-b.iToggle{margin-left:8px;}
-.options img { margin-right:0px !important; margin-left:8px !important;}
+b.iToggle{margin-left:8px;/* height: 24px; */}
+.options img, .options span.val { margin-right:0px !important; margin-left:8px !important;}
 
 
-.show-hide .iMenu{
-  -webkit-transition:all linear 20.5s;
-  transition:all linear 20.5s;
+/*
+  We're using CSS transitions for when
+  the enter and move events are triggered
+  for the element that has the .iMenu
+  class
+*/
+.iMenu.ng-enter, .iMenu.ng-move {
+  -webkit-transition:5s linear all;
+  -moz-transition:5s linear all;
+  -o-transition:5s linear all;
+  transition:5s linear all;
+  opacity:0;
 }
 
-.show-hide.ng-hide .iMenu{
-  opacity:0;
+/*
+ The ng-enter-active and ng-move-active
+ are where the transition destination properties
+ are set so that the animation knows what to
+ animate.
+*/
+.iMenu.ng-enter.ng-enter-active,
+.iMenu.ng-move.ng-move-active {
+  opacity:1;
+}
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .iMenu class
+*/
+.iMenu.ng-leave {
+  -webkit-animation:5s my_animation;
+  -moz-animation:5s my_animation;
+  -o-animation:5s my_animation;
+  animation:5s my_animation;
+}
+
+@keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+/*
+  Unfortunately each browser vendor requires
+  its own definition of keyframe animation code...
+*/
+@-webkit-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@-moz-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@-o-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .iMenu class
+*/
+.iLayer span.red {
+  -webkit-animation:2s to_red;
+  -moz-animation:2s to_red;
+  -o-animation:2s to_red;
+  animation:2s to_red;
+}
+
+@-webkit-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@-moz-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@-o-keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+@keyframes to_red {
+  from { color: inherit; }
+  to { color: red; }
+}
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .iMenu class
+*/
+.iLayer span.inherit {
+  -webkit-animation:3s to_inh;
+  -moz-animation:3s to_inh;
+  -o-animation:3s to_inh;
+  animation: 3s to_inh;
+}
+
+@-webkit-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@-moz-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@-o-keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+@keyframes to_inh {
+  from { color: red; }
+  to { color: inherit; }
+}
+
+
+
+
+label {
+  margin-bottom: 0px;
 }

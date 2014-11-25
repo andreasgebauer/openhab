@@ -19,8 +19,8 @@
 		<servlet-name>CommandServlet</servlet-name>
 		<url-pattern>/angular/cmd/*</url-pattern>
 	</servlet-mapping>
-	
-	
+
+
 	<servlet>
 		<servlet-name>ChartDataServlet</servlet-name>
 		<servlet-class>org.openhab.ui.webapp.angular.internal.servlet.ChartDataServlet</servlet-class>
@@ -30,4 +30,8 @@
 		<url-pattern>/angular/websocket</url-pattern>
 	</servlet-mapping>
 
+	<welcome-file-list>
+		<welcome-file>web/index.html</welcome-file>
+		<welcome-file>angular/index.html</welcome-file>
+	</welcome-file-list>
 </web-app>
