@@ -40,82 +40,82 @@ import de.gebauer.homematic.msg.Message;
  */
 public class HMHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HMHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(HMHandler.class);
 
-    private HomematicCULBinding homematicCULBinding;
+	private HomematicCULBinding homematicCULBinding;
 
-    public HMHandler(HomematicCULBinding homematicCULBinding) {
-	this.homematicCULBinding = homematicCULBinding;
-    }
+	public HMHandler(HomematicCULBinding homematicCULBinding) {
+		this.homematicCULBinding = homematicCULBinding;
+	}
 
-    /**
-     * Method handling the event.
-     *
-     * @throws
-     */
-    protected void receivedMessage(final Message message) {
+	/**
+	 * Method handling the event.
+	 *
+	 * @throws
+	 */
+	protected void receivedMessage(final Message message) {
 
-	updateIfExists(message.getSource(), "ACTIVE_TIMESTAMP", new DateTimeType(Calendar.getInstance()));
-	updateIfExists(message.getSource(), "MESSAGE_COUNT", new DecimalType(message.getCount()));
-	updateIfExists(message.getSource(), "RSSI", new DecimalType(message.getRSSI()));
+		updateIfExists(message.getSource(), "ACTIVE_TIMESTAMP", new DateTimeType(Calendar.getInstance()));
+		updateIfExists(message.getSource(), "MESSAGE_COUNT", new DecimalType(message.getCount()));
+		updateIfExists(message.getSource(), "RSSI", new DecimalType(message.getRSSI()));
 
-	if (message instanceof WeatherEvent) {
-	    final BigDecimal temperature = ((WeatherEvent) message).getTemperature();
-	    final int humidity = ((WeatherEvent) message).getHumidity();
-	    updateIfExists(message.getSource(), "TEMPERATURE", new DecimalType(temperature));
-	    updateIfExists(message.getSource(), "HUMIDITY", new PercentType(humidity));
-	} else if (message instanceof ClimateMessage) {
-	    final int command = ((ClimateMessage) message).getValvePos();
-	    updateIfExists(message.getDestination(), "DESIRED_POSITION", new PercentType(command));
-	} else if (message instanceof AckStatusEvent) {
-	    DeviceState deviceState = ((AckStatusEvent) message).getDeviceState();
-	    if (deviceState instanceof ValveStateData) {
-		ValveStateData state = (ValveStateData) deviceState;
-		updateIfExists(message.getSource(), "POSITION", new PercentType(state.getPosition()));
-		updateIfExists(message.getSource(), "BATTERY", new StringType(state.getBatteryStatus().name()));
-		updateIfExists(message.getSource(), "MOTOR_ERROR", new StringType(state.getMotorError().name()));
-		updateIfExists(message.getSource(), "MOTOR_STATE", new StringType(state.getMotorState().name()));
-	    } else if (deviceState instanceof ValveConfigData) {
-		ValveConfigData state = (ValveConfigData) deviceState;
-		updateIfExists(message.getDestination(), "ERROR_POSITION", new PercentType(state.getErrorPosition()));
-		updateIfExists(message.getDestination(), "OFFSET", new PercentType(state.getOffset()));
-	    } else if (deviceState instanceof HMLCSW1PBUFMInterpreter.SwitchState) {
-		SwitchState state = (HMLCSW1PBUFMInterpreter.SwitchState) deviceState;
-		updateIfExists(message.getSource(), "STATE", state.isOn() ? OnOffType.ON : OnOffType.OFF);
-	    } else if (deviceState == null) {
-		// if ack status us successful then command succeeded
-		if (Boolean.TRUE.equals(((AckStatusEvent) message).getSuccess())) {
-		    Message request = message.getRequest();
-		    if (request instanceof DimMessage) {
-			DimMessage dim = (DimMessage) request;
-			updateIfExists(message.getSource(), "STATE", new PercentType(dim.getValue()));
-		    }
+		if (message instanceof WeatherEvent) {
+			final BigDecimal temperature = ((WeatherEvent) message).getTemperature();
+			final int humidity = ((WeatherEvent) message).getHumidity();
+			updateIfExists(message.getSource(), "TEMPERATURE", new DecimalType(temperature));
+			updateIfExists(message.getSource(), "HUMIDITY", new PercentType(humidity));
+		} else if (message instanceof ClimateMessage) {
+			final int command = ((ClimateMessage) message).getValvePos();
+			updateIfExists(message.getDestination(), "DESIRED_POSITION", new PercentType(command));
+		} else if (message instanceof AckStatusEvent) {
+			DeviceState deviceState = ((AckStatusEvent) message).getDeviceState();
+			if (deviceState instanceof ValveStateData) {
+				ValveStateData state = (ValveStateData) deviceState;
+				updateIfExists(message.getSource(), "POSITION", new PercentType(state.getPosition()));
+				updateIfExists(message.getSource(), "BATTERY", new StringType(state.getBatteryStatus().name()));
+				updateIfExists(message.getSource(), "MOTOR_ERROR", new StringType(state.getMotorError().name()));
+				updateIfExists(message.getSource(), "MOTOR_STATE", new StringType(state.getMotorState().name()));
+			} else if (deviceState instanceof ValveConfigData) {
+				ValveConfigData state = (ValveConfigData) deviceState;
+				updateIfExists(message.getDestination(), "ERROR_POSITION", new PercentType(state.getErrorPosition()));
+				updateIfExists(message.getDestination(), "OFFSET", new PercentType(state.getOffset()));
+			} else if (deviceState instanceof HMLCSW1PBUFMInterpreter.SwitchState) {
+				SwitchState state = (HMLCSW1PBUFMInterpreter.SwitchState) deviceState;
+				updateIfExists(message.getSource(), "STATE", state.isOn() ? OnOffType.ON : OnOffType.OFF);
+			} else if (deviceState == null) {
+				// if ack status us successful then command succeeded
+				if (Boolean.TRUE.equals(((AckStatusEvent) message).getSuccess())) {
+					Message request = message.getRequest();
+					if (request instanceof DimMessage) {
+						DimMessage dim = (DimMessage) request;
+						updateIfExists(message.getSource(), "STATE", new PercentType(dim.getValue()));
+					}
+				}
+			}
+		} else if (message instanceof ShutterStateEvent) {
+			ShutterStateEvent state = (ShutterStateEvent) message;
+			updateIfExists(message.getSource(), "STATE", state.isClosed() ? OpenClosedType.CLOSED : OpenClosedType.OPEN);
+		} else if (message instanceof SwitchStateMessage) {
+			SwitchState state = ((SwitchStateMessage) message).getState();
+			updateIfExists(message.getSource(), "STATE", state.isOn() ? OnOffType.ON : OnOffType.OFF);
+		} else if (message instanceof DimmerStateChangeEvent) {
+			DimmerState state = ((DimmerStateChangeEvent) message).getState();
+			updateIfExists(message.getSource(), "STATE", new PercentType(state.getVal()));
+			updateIfExists(message.getSource(), "OVERLOAD", state.isOverload() ? OnOffType.ON : OnOffType.OFF);
+			updateIfExists(message.getSource(), "OVERHEAT", state.isOverheat() ? OnOffType.ON : OnOffType.OFF);
+			updateIfExists(message.getSource(), "REDUCED", state.isReduced() ? OnOffType.ON : OnOffType.OFF);
+		} else if (message instanceof TemperaturePeriodEvent) {
+
+		} else if (message instanceof DesiredTemperatureSetMessage) {
+			updateIfExists(message.getSource(), "DESIRED_TEMPERATURE", new DecimalType(((DesiredTemperatureSetMessage) message).getDesiredTemp()));
 		}
-	    }
-	} else if (message instanceof ShutterStateEvent) {
-	    ShutterStateEvent state = (ShutterStateEvent) message;
-	    updateIfExists(message.getSource(), "STATE", state.isClosed() ? OpenClosedType.CLOSED : OpenClosedType.OPEN);
-	} else if (message instanceof SwitchStateMessage) {
-	    SwitchState state = ((SwitchStateMessage) message).getState();
-	    updateIfExists(message.getSource(), "STATE", state.isOn() ? OnOffType.ON : OnOffType.OFF);
-	} else if (message instanceof DimmerStateChangeEvent) {
-	    DimmerState state = ((DimmerStateChangeEvent) message).getState();
-	    updateIfExists(message.getSource(), "STATE", new PercentType(state.getVal()));
-	    updateIfExists(message.getSource(), "OVERLOAD", state.isOverload() ? OnOffType.ON : OnOffType.OFF);
-	    updateIfExists(message.getSource(), "OVERHEAT", state.isOverheat() ? OnOffType.ON : OnOffType.OFF);
-	    updateIfExists(message.getSource(), "REDUCED", state.isReduced() ? OnOffType.ON : OnOffType.OFF);
-	} else if (message instanceof TemperaturePeriodEvent) {
-
-	} else if (message instanceof DesiredTemperatureSetMessage) {
-	    updateIfExists(message.getSource(), "DESIRED_TEMPERATURE", new DecimalType(((DesiredTemperatureSetMessage) message).getDesiredTemp()));
 	}
-    }
 
-    private void updateIfExists(AbstractDevice device, String parameter, State state) {
-	HomeMaticBindingConfig config = this.homematicCULBinding.getBindingForAddress(device.getName(), parameter);
-	if (config != null) {
-	    this.homematicCULBinding.postUpdate(config.getItem().getName(), state);
+	private void updateIfExists(AbstractDevice device, String parameter, State state) {
+		HomeMaticBindingConfig config = this.homematicCULBinding.getBindingForAddress(device.getName(), parameter);
+		if (config != null) {
+			this.homematicCULBinding.postUpdate(config.getItem().getName(), state);
+		}
 	}
-    }
 
 }
