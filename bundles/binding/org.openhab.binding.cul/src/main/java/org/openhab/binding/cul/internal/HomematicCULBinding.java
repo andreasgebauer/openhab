@@ -155,7 +155,7 @@ public class HomematicCULBinding extends AbstractActiveBinding<HomematicCULBindi
     private void bindCULHandler() {
 	if (!StringUtils.isEmpty(this.deviceName)) {
 	    try {
-		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN2);
+		this.cul = CULManager.getOpenCULHandler(this.deviceName, CULMode.ASK_SIN);
 		this.messageSender = new MessageSenderImpl(this.cul);
 		this.cul.registerListener(this);
 	    } catch (final CULDeviceException e) {
