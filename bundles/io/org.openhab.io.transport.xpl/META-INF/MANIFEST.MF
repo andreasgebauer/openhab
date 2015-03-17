@@ -11,14 +11,10 @@ Import-Package: org.cdp1802.xpl,
  org.osgi.framework;version="1.7.0",
  org.osgi.service.cm;version="1.4.0",
  org.slf4j;version="1.6.4"
-Export-Package: org.cdp1802.xpl;
-  uses:="org.cdp1802.xpl.tracker,
-   org.cdp1802.xpl.ethernet,
-   org.cdp1802.xpl.plugins,
-   org.apache.log4j,
-   org.cdp1802.xpl.device",
- org.cdp1802.xpl.device,
- org.openhab.io.transport.xpl;uses:="org.cdp1802.xpl,org.osgi.service.cm,org.cdp1802.xpl.device"
+Export-Package: org.cdp1802.xpl; uses:="org.cdp1802.xpl.tracker,  org.
+ cdp1802.xpl.ethernet,  org.cdp1802.xpl.plugins,  org.apache.log4j,  o
+ rg.cdp1802.xpl.device",org.openhab.io.transport.xpl;uses:="org.cdp180
+ 2.xpl,org.osgi.service.cm,org.cdp1802.xpl.device"
 Service-Component: OSGI-INF/xpl-*.xml
 Bundle-ClassPath: .,
  lib/xPL4Java.jar
