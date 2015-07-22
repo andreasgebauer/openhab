@@ -257,6 +257,10 @@ app.directive('chart', function($interval, $log, $rootScope) {
 
 				var table = widget.data.table;
 				
+				// delete all rows
+				widget.data.table.removeRows(0, table.getNumberOfRows() - 1);
+				widget.data.timestampToRowIndex = {};
+
 				for(var k=0; k < data.length; k++){
 					var item = data[k];
 
