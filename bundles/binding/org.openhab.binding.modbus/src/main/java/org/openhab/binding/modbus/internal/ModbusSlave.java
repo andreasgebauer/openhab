@@ -8,92 +8,6 @@
  */
 package org.openhab.binding.modbus.internal;
 
-import java.util.Collection;
-
-import net.wimpi.modbus.io.ModbusTransaction;
-import net.wimpi.modbus.msg.ModbusRequest;
-import net.wimpi.modbus.msg.ModbusResponse;
-import net.wimpi.modbus.msg.ReadCoilsRequest;
-import net.wimpi.modbus.msg.ReadCoilsResponse;
-import net.wimpi.modbus.msg.ReadInputDiscretesRequest;
-import net.wimpi.modbus.msg.ReadInputDiscretesResponse;
-import net.wimpi.modbus.msg.ReadInputRegistersRequest;
-import net.wimpi.modbus.msg.ReadInputRegistersResponse;
-import net.wimpi.modbus.msg.ReadMultipleRegistersRequest;
-import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
-import net.wimpi.modbus.msg.WriteCoilRequest;
-import net.wimpi.modbus.msg.WriteMultipleRegistersRequest;
-import net.wimpi.modbus.msg.WriteSingleRegisterRequest;
-import net.wimpi.modbus.procimg.InputRegister;
-import net.wimpi.modbus.procimg.Register;
-import net.wimpi.modbus.util.BitVector;
-
-import org.openhab.binding.modbus.ModbusBindingProvider;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.IncreaseDecreaseType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.OpenClosedType;
-import org.openhab.core.library.types.UpDownType;
-import org.openhab.core.types.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/**
- * ModbusSlave class is an abstract class that server as a base class for
- * MobvusTCPSlave and ModbusSerialSlave instantiates physical Modbus slave. 
- * It is responsible for polling data from physical device using appropriate connection.
- * It is also responsible for updating physical devices according to OpenHAB commands  
- *
- * @author Dmitry Krasnov
- * @since 1.1.0
- */
-public abstract class ModbusSlave implements ModbusSlaveConnection {
-
-	private static final Logger logger = LoggerFactory.getLogger(ModbusSlave.class);
-
-	/** name - slave name from cfg file, used for items binding */
-	protected String name = null;
-	
-	private static boolean writeMultipleRegisters = false;
-	
-	public static void setWriteMultipleRegisters(boolean setwmr) {
-		writeMultipleRegisters = setwmr;
-	}
-
-	/**
-	 * Type of data provided by the physical device
-	 * "coil" and "discrete" use boolean (bit) values
-	 * "input" and "holding" use byte values
-	 */
-	private String type;
-
-	/** Modbus slave id */
-	private int id = 1;
-
-	/** starting reference and number of item to fetch from the device */
-	private int start = 0;
-
-	private int length = 0;
-
-	/**
-	 * How to interpret Modbus register values. 
-	 * Examples: 
-	 *   uint16 - one register - one unsigned integer value (default)
-	 *   int32  - every two registers will be interpreted as single 32-bit integer value
-	 *   bit    - every register will be interpreted as 16 independent 1-bit values  
-	 */
-	private String valueType = ModbusBindingProvider.VALUE_TYPE_UINT16;
-
-	/**
-	 * A multiplier for the raw incoming data
-	 * @note rawMultiplier can also be used for divisions, by simply
-	 * setting the value smaller than zero.
-	 * 
-	 * E.g.:
-	 * - data/100 ... rawDataMultiplier=0.01
-	 */
-	private double rawDataMultiplier = 1.0;
-
 	private Object storage;
 	protected ModbusTransaction transaction = null; 
 
@@ -213,10 +127,11 @@ public abstract class ModbusSlave implements ModbusSlaveConnection {
 		transaction.setRequest(request);
 
 		try {
-			logger.debug("ModbusSlave: FC" +request.getFunctionCode()+" ref=" + writeRegister + " value=" + newValue.getValue());				
+			logger.debug("ModbusSlave: FC{} ref={} value={}", 
+					request.getFunctionCode(), writeRegister, newValue.getValue());
 			transaction.execute();
 		} catch (Exception e) {
-			logger.debug("ModbusSlave:" + e.getMessage());
+			logger.debug("ModbusSlave: {}", e.getMessage());
 			return;
 		}
 	}
@@ -242,10 +157,10 @@ public abstract class ModbusSlave implements ModbusSlaveConnection {
 		request.setUnitID(getId());
 		transaction.setRequest(request);
 		try {
-			logger.debug("ModbusSlave: FC05 ref=" + writeRegister + " value=" + b);				
+			logger.debug("ModbusSlave: FC05 ref={} value={}", writeRegister, b);
 			transaction.execute();
 		} catch (Exception e) {
-			logger.debug("ModbusSlave:" + e.getMessage());
+			logger.debug("ModbusSlave:{}", e.getMessage());
 			return;
 		}
 	}
@@ -333,7 +248,7 @@ public abstract class ModbusSlave implements ModbusSlaveConnection {
 		try {
 			transaction.execute();
 		} catch (Exception e) {
-			logger.debug("ModbusSlave:" + e.getMessage());
+			logger.debug("ModbusSlave:{}", e.getMessage());
 			return null;
 		}
 

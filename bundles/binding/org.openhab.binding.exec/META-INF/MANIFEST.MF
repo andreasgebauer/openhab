@@ -3,7 +3,7 @@ Private-Package: org.openhab.binding.exec.internal
 Ignore-Package: org.openhab.binding.exec.internal
 Bundle-Name: openHAB Exec Binding
 Bundle-Vendor: openHAB.org
-Bundle-Version: 1.7.0.qualifier
+Bundle-Version: 1.8.0.qualifier
 Bundle-Activator: org.openhab.binding.exec.internal.ExecActivator
 Bundle-ManifestVersion: 2
 Bundle-License: http://www.eclipse.org/legal/epl-v10.html
@@ -30,4 +30,3 @@ Bundle-ClassPath: lib/commons-exec-1.1.jar,
  .
 Export-Package: org.openhab.binding.exec
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-
