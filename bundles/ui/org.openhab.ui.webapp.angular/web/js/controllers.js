@@ -1,9 +1,5 @@
-var url = "/angular/sitemap/";
-var commandUrl = "/angular/cmd/";
-var chartDataUrl = "/angular/chartdata/";
 
-var appControllers = angular.module('app.controllers', [ 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
-
+var appControllers = angular.module('app.controllers', [ 'app.factories', 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
 
 appControllers.controller('HomeController', function($scope, sitemap, $log, $location, $http, webSocket, $interval, $timeout, getWatchCount) {
 
@@ -53,7 +49,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			} else if (widget.type === "chart") {
 				// nothing to do
 			} else {
-				console.log("Unhandled data for: " + JSON.stringify(widget));
+				$log.warn("Unhandled data for: " + JSON.stringify(widget));
 			}
 
 			if (angular.isDefined(widget.value)) {
@@ -124,8 +120,8 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 		var widgetId = path.substring(1);
 
-		var setupModel = function(data, widgetId) {
-			$log.debug("Sitemap loaded: " + data.label);
+		var setupModel = function(data) {
+			$log.debug("Sitemap for widget " + data.id + " loaded: " + data.label);
 			data.id = widgetId;
 
 			var oldSitemap = $scope.sitemap;
@@ -184,7 +180,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			};
 			$scope.show = true;
 
-			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
+			$scope.viewItem = sitemap.pageItem($scope.sitemap, data.id);
 			if (angular.isUndefined($scope.viewItem)) {
 				$scope.viewItem = $scope.sitemap;
 			}
@@ -196,22 +192,27 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		if (angular.isUndefined($scope.sitemap)) {
 			sitemap.fetch("default", widgetId, setupModel);
 		} else {
-			$scope.viewItem.selected = false;
+
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
 			if (angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
 				// we need to load the sitemap data for the page shown
 				sitemap.fetch("default", widgetId, setupModel);
 			} else {
-				process($scope.viewItem);
+				
+				if(angular.isUndefined($scope.viewItem)){
+					sitemap.fetch("default", widgetId, setupModel);
+				} else {
+					$scope.viewItem.selected = false;
+					process($scope.viewItem);
+				}
 			}
 
 			if (angular.isDefined($scope.nav)) {
-				$scope.nav.back.visible = sitemap.location !== "";
-				$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
+				$scope.nav.home.visible = $scope.nav.back.visible = sitemap.location !== "";
 
-				$scope.nav.home.visible = sitemap.location !== "";
 				if (angular.isDefined($scope.viewItem)) {
+					$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
 					$scope.nav.title.text = $scope.viewItem.label;
 					if (angular.isDefined($scope.viewItem.formattedValue)) {
 						$scope.nav.title.text += " " + $scope.viewItem.formattedValue;

@@ -1,3 +1,15 @@
-<chart id="{{widget.id}}" item="{{widget.item}}" ng-controller="ChartCtrl" >
-	A Chart
-</chart>
+<div>
+	<chart ng-attr-widget-data="{{widget}}" widget="widget"  id="{{widget.id}}" item="{{widget.item}}">
+		<div class="row">
+			<div class="col-md-6">
+				<button scale expand="100">---</button>
+				<button scale expand="10">--</button>
+				<button scale expand="1">-</button>
+
+				<button scale narrow="1">+</button>
+				<button scale narrow="10">++</button>
+				<button scale narrow="50">+++</button>
+			</div>
+		</div>
+	</chart>
+</div>

@@ -1,8 +1,8 @@
 'use strict';
 
-var app = angular.module('app.directives', ['app.controllers']);
+var directives = angular.module('app.directives', ['app.controllers']);
 
-app.directive('chart', function($interval, $log, $rootScope) {
+directives.directive('chart', function($interval, $log, $rootScope) {
 	return {
 		template : '<div><div ng-transclude></div><div class="ng-chart"></div></div>',
 		scope : {
@@ -16,8 +16,8 @@ app.directive('chart', function($interval, $log, $rootScope) {
 		transclude: true,
 		link : function postLink($scope, element, attrs, ctrl) {
 			//$scope.widget = $scope.$parent.$parent.widget;
-			console.log($scope.widget);
-
+			$log.debug("Linking chart " + $scope.widget);
+			
 			//$rootScope.getWidgets($scope.widget.item);
 
 			var chartDiv = angular.element(".ng-chart", element);
@@ -28,7 +28,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 
 		},
 		controller: function($scope, $log, $http, $interval, webSocket){
-			console.log("Chart Controller initializing");
+			$log.debug("Chart Controller initializing");
 
 			var view = null;
 			var that = this;
@@ -56,7 +56,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 			};
 
 			var updateData = function(timespan) {
-				console.log("updating data");
+				$log.debug("updating data");
 				var now = new Date().getTime();
 				var ts = timespan || {
 					begin : now - widget.period,
@@ -86,7 +86,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 			var updateChart = function(newValue, oldValue) {
 				if (newValue !== oldValue) {
 					if (widget.data) {
-						console.log("Updating chart");
+						$log.debug("Updating chart");
 						var data = widget.data.table;
 						var viewData = widget.data.viewData;
 
@@ -200,7 +200,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 			};
 
 			this.draw = function (table, viewData) {
-				console.log("Drawing chart");
+				$log.debug("Drawing chart");
 				var start = new Date().getTime();
 
 				view = new google.visualization.DataView(table);
@@ -239,7 +239,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 				//$scope.lineChart.draw();
 
 				var took = new Date().getTime() - start;
-				console.log("Drawing chart done in " + took +"ms");
+				$log.debug("Drawing chart done in " + took +"ms");
 
 			};
 			
@@ -253,7 +253,7 @@ app.directive('chart', function($interval, $log, $rootScope) {
 			
 			this.processChartData = function(data) {
 				//initTable(widget);
-				console.log("Processing chart data");
+				$log.debug("Processing chart data");
 
 				var table = widget.data.table;
 				

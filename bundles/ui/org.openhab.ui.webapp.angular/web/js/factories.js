@@ -1,16 +1,17 @@
-var appModule = angular.module('app');
+var appModule = angular.module('app.factories', []);
 
 appModule.factory('sitemap', function($http, $log) {
+	$log.debug("Initializing Sitemap-Factory")
 	return {
 		fetch : function(sitemap, widget, callback) {
 			$log.info("Fetching sitemap '" + sitemap + "', widget:" + widget);
-			$http.get(url, {
+			$http.get(sitemapUrl, {
 				params : {
 					sitemap : sitemap,
 					w : widget
 				}
 			}).success(function(data) {
-				callback(data, widget);
+				callback(data);
 			}).error(function() {
 				alert("Unable to fetch sitemap");
 			});

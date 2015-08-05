@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('app').provider('webSocket', function() {
+var app = angular.module('app');
+
+app.provider('webSocket', function() {
 
 	var webSocketURL;
 	var webSocketObject; // for testing only
@@ -19,18 +21,19 @@ angular.module('app').provider('webSocket', function() {
 			var socket;
 
 			function onopen(){
-				console.log("onopen");
+				$log.debug("onopen");
 				opened = true;
 				closed = false;
 			}
 
 			function onmessage(e) {
+				$log.debug("received message " + e.data);
 				var data = JSON.parse(e.data);
 				callbacks.fire(data);
 			}
 
 			function onclose(m){
-				console.log("onclose");
+				$log.debug("onclose");
 				closed = true;
 				opened = false;
 
@@ -51,12 +54,14 @@ angular.module('app').provider('webSocket', function() {
 				},
 				
 				close : function(){
+					$log.debug("close");
 					//callbacks.disable();
 					socket.close();
 					closeForced = true;
 				},
 				
 				init: function(){
+					$log.debug("init");
 					socket = !webSocketObject ? new WebSocket(webSocketURL) : webSocketObject;
 					socket.onopen = onopen;
 					socket.onmessage = onmessage;
