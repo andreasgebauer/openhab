@@ -282,20 +282,22 @@ directives.directive('chart', function($interval, $log, $rootScope) {
 				}
 			};
 
-			this.narrow = function(value) {
+			this.narrow = function(factor) {
+				this.scale(factor);
+			};
+
+			this.expand = function(factor) {
+				this.scale(factor);
+			};
+			
+			this.scale = function(factor) {
+
 				var begin = $scope.widget.data.viewData.begin;
 				var end = $scope.widget.data.viewData.end;
 				var timespan = end - begin;
-				var decrease = value * timespan / 100;
+				var increase = Math.abs(timespan * factor);
 
-				updateData({begin: begin + decrease, end: end});
-			};
-
-			this.expand = function(value) {
-				var timespan = $scope.widget.data.viewData.end - $scope.widget.data.viewData.begin;
-				var increase = value * timespan / 100;
-
-				updateData({begin: $scope.widget.data.viewData.begin - increase, end: $scope.widget.data.viewData.end});
+				updateData({begin: end - increase, end: end});
 			};
 		
 		}

@@ -4,7 +4,7 @@ appModule.factory('sitemap', function($http, $log) {
 	$log.debug("Initializing Sitemap-Factory")
 	return {
 		fetch : function(sitemap, widget, callback) {
-			$log.info("Fetching sitemap '" + sitemap + "', widget:" + widget);
+			$log.info("Fetching sitemap '" + sitemap + "', widget: '" + widget + "'");
 			$http.get(sitemapUrl, {
 				params : {
 					sitemap : sitemap,
