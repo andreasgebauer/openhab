@@ -22,7 +22,7 @@ import java.util.ArrayList;
 @SuppressWarnings("all")
 public class InternalItemsParser extends AbstractInternalContentAssistParser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_STRING", "RULE_INT", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "RULE_WS", "RULE_ANY_OTHER", "'Switch'", "'Rollershutter'", "'Number'", "'String'", "'Dimmer'", "'Contact'", "'DateTime'", "'Color'", "'Point'", "'AND'", "'OR'", "'NAND'", "'NOR'", "'AVG'", "'SUM'", "'MAX'", "'MIN'", "'COUNT'", "'<'", "'>'", "'('", "')'", "','", "'{'", "'}'", "'Group'", "':'", "'='"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_STRING", "RULE_INT", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "RULE_WS", "RULE_ANY_OTHER", "'Switch'", "'Rollershutter'", "'Number'", "'String'", "'Dimmer'", "'Contact'", "'DateTime'", "'Color'", "'Location'", "'AND'", "'OR'", "'NAND'", "'NOR'", "'AVG'", "'SUM'", "'MAX'", "'MIN'", "'COUNT'", "'<'", "'>'", "'('", "')'", "','", "'{'", "'}'", "'Group'", "':'", "'='"
     };
     public static final int RULE_STRING=5;
     public static final int RULE_SL_COMMENT=8;
@@ -900,13 +900,13 @@ public class InternalItemsParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ModelItemType__Alternatives"
-    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:335:1: rule__ModelItemType__Alternatives : ( ( 'Switch' ) | ( 'Rollershutter' ) | ( 'Number' ) | ( 'String' ) | ( 'Dimmer' ) | ( 'Contact' ) | ( 'DateTime' ) | ( 'Color' ) | ( 'Point' ) | ( RULE_ID ) );
+    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:335:1: rule__ModelItemType__Alternatives : ( ( 'Switch' ) | ( 'Rollershutter' ) | ( 'Number' ) | ( 'String' ) | ( 'Dimmer' ) | ( 'Contact' ) | ( 'DateTime' ) | ( 'Color' ) | ( 'Location' ) | ( RULE_ID ) );
     public final void rule__ModelItemType__Alternatives() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:339:1: ( ( 'Switch' ) | ( 'Rollershutter' ) | ( 'Number' ) | ( 'String' ) | ( 'Dimmer' ) | ( 'Contact' ) | ( 'DateTime' ) | ( 'Color' ) | ( 'Point' ) | ( RULE_ID ) )
+            // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:339:1: ( ( 'Switch' ) | ( 'Rollershutter' ) | ( 'Number' ) | ( 'String' ) | ( 'Dimmer' ) | ( 'Contact' ) | ( 'DateTime' ) | ( 'Color' ) | ( 'Location' ) | ( RULE_ID ) )
             int alt5=10;
             switch ( input.LA(1) ) {
             case 11:
@@ -1088,14 +1088,14 @@ public class InternalItemsParser extends AbstractInternalContentAssistParser {
                     }
                     break;
                 case 9 :
-                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:404:6: ( 'Point' )
+                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:404:6: ( 'Location' )
                     {
-                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:404:6: ( 'Point' )
-                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:405:1: 'Point'
+                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:404:6: ( 'Location' )
+                    // ../org.openhab.model.item.ui/src-gen/org/openhab/model/ui/contentassist/antlr/internal/InternalItems.g:405:1: 'Location'
                     {
-                     before(grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); 
+                     before(grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); 
                     match(input,19,FOLLOW_19_in_rule__ModelItemType__Alternatives823); 
-                     after(grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); 
+                     after(grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); 
 
                     }
 

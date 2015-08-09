@@ -594,10 +594,10 @@ ruleModelItemType returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleT
     }
 
     |
-	kw='Point' 
+	kw='Location' 
     {
         $current.merge(kw);
-        newLeafNode(kw, grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); 
+        newLeafNode(kw, grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); 
     }
 
     |    this_ID_9=RULE_ID    {

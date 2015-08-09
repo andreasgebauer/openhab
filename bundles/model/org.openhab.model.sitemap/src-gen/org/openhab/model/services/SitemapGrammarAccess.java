@@ -139,12 +139,13 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cChartParserRuleCall_6 = (RuleCall)cAlternatives.eContents().get(6);
 		private final RuleCall cWebviewParserRuleCall_7 = (RuleCall)cAlternatives.eContents().get(7);
 		private final RuleCall cColorpickerParserRuleCall_8 = (RuleCall)cAlternatives.eContents().get(8);
+		private final RuleCall cMapviewParserRuleCall_9 = (RuleCall)cAlternatives.eContents().get(9);
 		
 		//NonLinkableWidget:
-		//	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker;
+		//	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker | Mapview;
 		public ParserRule getRule() { return rule; }
 
-		//Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker
+		//Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker | Mapview
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//Switch
@@ -173,6 +174,9 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 
 		//Colorpicker
 		public RuleCall getColorpickerParserRuleCall_8() { return cColorpickerParserRuleCall_8; }
+
+		//Mapview
+		public RuleCall getMapviewParserRuleCall_9() { return cMapviewParserRuleCall_9; }
 	}
 
 	public class LinkableWidgetElements extends AbstractParserRuleElementFinder {
@@ -1850,6 +1854,227 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 		public Keyword getRightSquareBracketKeyword_1_7_1_2() { return cRightSquareBracketKeyword_1_7_1_2; }
 	}
 
+	public class MapviewElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Mapview");
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final Keyword cMapviewKeyword_0 = (Keyword)cGroup.eContents().get(0);
+		private final UnorderedGroup cUnorderedGroup_1 = (UnorderedGroup)cGroup.eContents().get(1);
+		private final Group cGroup_1_0 = (Group)cUnorderedGroup_1.eContents().get(0);
+		private final Keyword cItemKeyword_1_0_0 = (Keyword)cGroup_1_0.eContents().get(0);
+		private final Assignment cItemAssignment_1_0_1 = (Assignment)cGroup_1_0.eContents().get(1);
+		private final RuleCall cItemItemRefParserRuleCall_1_0_1_0 = (RuleCall)cItemAssignment_1_0_1.eContents().get(0);
+		private final Group cGroup_1_1 = (Group)cUnorderedGroup_1.eContents().get(1);
+		private final Keyword cLabelKeyword_1_1_0 = (Keyword)cGroup_1_1.eContents().get(0);
+		private final Assignment cLabelAssignment_1_1_1 = (Assignment)cGroup_1_1.eContents().get(1);
+		private final Alternatives cLabelAlternatives_1_1_1_0 = (Alternatives)cLabelAssignment_1_1_1.eContents().get(0);
+		private final RuleCall cLabelIDTerminalRuleCall_1_1_1_0_0 = (RuleCall)cLabelAlternatives_1_1_1_0.eContents().get(0);
+		private final RuleCall cLabelSTRINGTerminalRuleCall_1_1_1_0_1 = (RuleCall)cLabelAlternatives_1_1_1_0.eContents().get(1);
+		private final Group cGroup_1_2 = (Group)cUnorderedGroup_1.eContents().get(2);
+		private final Keyword cIconKeyword_1_2_0 = (Keyword)cGroup_1_2.eContents().get(0);
+		private final Assignment cIconAssignment_1_2_1 = (Assignment)cGroup_1_2.eContents().get(1);
+		private final RuleCall cIconIconParserRuleCall_1_2_1_0 = (RuleCall)cIconAssignment_1_2_1.eContents().get(0);
+		private final Group cGroup_1_3 = (Group)cUnorderedGroup_1.eContents().get(3);
+		private final Keyword cHeightKeyword_1_3_0 = (Keyword)cGroup_1_3.eContents().get(0);
+		private final Assignment cHeightAssignment_1_3_1 = (Assignment)cGroup_1_3.eContents().get(1);
+		private final RuleCall cHeightINTTerminalRuleCall_1_3_1_0 = (RuleCall)cHeightAssignment_1_3_1.eContents().get(0);
+		private final Group cGroup_1_4 = (Group)cUnorderedGroup_1.eContents().get(4);
+		private final Keyword cLabelcolorKeyword_1_4_0 = (Keyword)cGroup_1_4.eContents().get(0);
+		private final Group cGroup_1_4_1 = (Group)cGroup_1_4.eContents().get(1);
+		private final Assignment cLabelColorAssignment_1_4_1_0 = (Assignment)cGroup_1_4_1.eContents().get(0);
+		private final RuleCall cLabelColorColorArrayParserRuleCall_1_4_1_0_0 = (RuleCall)cLabelColorAssignment_1_4_1_0.eContents().get(0);
+		private final Group cGroup_1_4_1_1 = (Group)cGroup_1_4_1.eContents().get(1);
+		private final Keyword cCommaKeyword_1_4_1_1_0 = (Keyword)cGroup_1_4_1_1.eContents().get(0);
+		private final Assignment cLabelColorAssignment_1_4_1_1_1 = (Assignment)cGroup_1_4_1_1.eContents().get(1);
+		private final RuleCall cLabelColorColorArrayParserRuleCall_1_4_1_1_1_0 = (RuleCall)cLabelColorAssignment_1_4_1_1_1.eContents().get(0);
+		private final Keyword cRightSquareBracketKeyword_1_4_1_2 = (Keyword)cGroup_1_4_1.eContents().get(2);
+		private final Group cGroup_1_5 = (Group)cUnorderedGroup_1.eContents().get(5);
+		private final Keyword cValuecolorKeyword_1_5_0 = (Keyword)cGroup_1_5.eContents().get(0);
+		private final Group cGroup_1_5_1 = (Group)cGroup_1_5.eContents().get(1);
+		private final Assignment cValueColorAssignment_1_5_1_0 = (Assignment)cGroup_1_5_1.eContents().get(0);
+		private final RuleCall cValueColorColorArrayParserRuleCall_1_5_1_0_0 = (RuleCall)cValueColorAssignment_1_5_1_0.eContents().get(0);
+		private final Group cGroup_1_5_1_1 = (Group)cGroup_1_5_1.eContents().get(1);
+		private final Keyword cCommaKeyword_1_5_1_1_0 = (Keyword)cGroup_1_5_1_1.eContents().get(0);
+		private final Assignment cValueColorAssignment_1_5_1_1_1 = (Assignment)cGroup_1_5_1_1.eContents().get(1);
+		private final RuleCall cValueColorColorArrayParserRuleCall_1_5_1_1_1_0 = (RuleCall)cValueColorAssignment_1_5_1_1_1.eContents().get(0);
+		private final Keyword cRightSquareBracketKeyword_1_5_1_2 = (Keyword)cGroup_1_5_1.eContents().get(2);
+		private final Group cGroup_1_6 = (Group)cUnorderedGroup_1.eContents().get(6);
+		private final Keyword cVisibilityKeyword_1_6_0 = (Keyword)cGroup_1_6.eContents().get(0);
+		private final Group cGroup_1_6_1 = (Group)cGroup_1_6.eContents().get(1);
+		private final Assignment cVisibilityAssignment_1_6_1_0 = (Assignment)cGroup_1_6_1.eContents().get(0);
+		private final RuleCall cVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0 = (RuleCall)cVisibilityAssignment_1_6_1_0.eContents().get(0);
+		private final Group cGroup_1_6_1_1 = (Group)cGroup_1_6_1.eContents().get(1);
+		private final Keyword cCommaKeyword_1_6_1_1_0 = (Keyword)cGroup_1_6_1_1.eContents().get(0);
+		private final Assignment cVisibilityAssignment_1_6_1_1_1 = (Assignment)cGroup_1_6_1_1.eContents().get(1);
+		private final RuleCall cVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0 = (RuleCall)cVisibilityAssignment_1_6_1_1_1.eContents().get(0);
+		private final Keyword cRightSquareBracketKeyword_1_6_1_2 = (Keyword)cGroup_1_6_1.eContents().get(2);
+		
+		//Mapview:
+		//	"Mapview" ("item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+		//	("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+		//	("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+		//	"]"))?);
+		public ParserRule getRule() { return rule; }
+
+		//"Mapview" ("item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+		//("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+		//("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+		//"]"))?)
+		public Group getGroup() { return cGroup; }
+
+		//"Mapview"
+		public Keyword getMapviewKeyword_0() { return cMapviewKeyword_0; }
+
+		//"item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+		//("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+		//("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+		//"]"))?
+		public UnorderedGroup getUnorderedGroup_1() { return cUnorderedGroup_1; }
+
+		//"item=" item=ItemRef
+		public Group getGroup_1_0() { return cGroup_1_0; }
+
+		//"item="
+		public Keyword getItemKeyword_1_0_0() { return cItemKeyword_1_0_0; }
+
+		//item=ItemRef
+		public Assignment getItemAssignment_1_0_1() { return cItemAssignment_1_0_1; }
+
+		//ItemRef
+		public RuleCall getItemItemRefParserRuleCall_1_0_1_0() { return cItemItemRefParserRuleCall_1_0_1_0; }
+
+		//("label=" label=(ID | STRING))?
+		public Group getGroup_1_1() { return cGroup_1_1; }
+
+		//"label="
+		public Keyword getLabelKeyword_1_1_0() { return cLabelKeyword_1_1_0; }
+
+		//label=(ID | STRING)
+		public Assignment getLabelAssignment_1_1_1() { return cLabelAssignment_1_1_1; }
+
+		//ID | STRING
+		public Alternatives getLabelAlternatives_1_1_1_0() { return cLabelAlternatives_1_1_1_0; }
+
+		//ID
+		public RuleCall getLabelIDTerminalRuleCall_1_1_1_0_0() { return cLabelIDTerminalRuleCall_1_1_1_0_0; }
+
+		//STRING
+		public RuleCall getLabelSTRINGTerminalRuleCall_1_1_1_0_1() { return cLabelSTRINGTerminalRuleCall_1_1_1_0_1; }
+
+		//("icon=" icon=Icon)?
+		public Group getGroup_1_2() { return cGroup_1_2; }
+
+		//"icon="
+		public Keyword getIconKeyword_1_2_0() { return cIconKeyword_1_2_0; }
+
+		//icon=Icon
+		public Assignment getIconAssignment_1_2_1() { return cIconAssignment_1_2_1; }
+
+		//Icon
+		public RuleCall getIconIconParserRuleCall_1_2_1_0() { return cIconIconParserRuleCall_1_2_1_0; }
+
+		//("height=" height=INT)?
+		public Group getGroup_1_3() { return cGroup_1_3; }
+
+		//"height="
+		public Keyword getHeightKeyword_1_3_0() { return cHeightKeyword_1_3_0; }
+
+		//height=INT
+		public Assignment getHeightAssignment_1_3_1() { return cHeightAssignment_1_3_1; }
+
+		//INT
+		public RuleCall getHeightINTTerminalRuleCall_1_3_1_0() { return cHeightINTTerminalRuleCall_1_3_1_0; }
+
+		//("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))?
+		public Group getGroup_1_4() { return cGroup_1_4; }
+
+		//"labelcolor=["
+		public Keyword getLabelcolorKeyword_1_4_0() { return cLabelcolorKeyword_1_4_0; }
+
+		//LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"
+		public Group getGroup_1_4_1() { return cGroup_1_4_1; }
+
+		//LabelColor+=ColorArray
+		public Assignment getLabelColorAssignment_1_4_1_0() { return cLabelColorAssignment_1_4_1_0; }
+
+		//ColorArray
+		public RuleCall getLabelColorColorArrayParserRuleCall_1_4_1_0_0() { return cLabelColorColorArrayParserRuleCall_1_4_1_0_0; }
+
+		//("," LabelColor+=ColorArray)*
+		public Group getGroup_1_4_1_1() { return cGroup_1_4_1_1; }
+
+		//","
+		public Keyword getCommaKeyword_1_4_1_1_0() { return cCommaKeyword_1_4_1_1_0; }
+
+		//LabelColor+=ColorArray
+		public Assignment getLabelColorAssignment_1_4_1_1_1() { return cLabelColorAssignment_1_4_1_1_1; }
+
+		//ColorArray
+		public RuleCall getLabelColorColorArrayParserRuleCall_1_4_1_1_1_0() { return cLabelColorColorArrayParserRuleCall_1_4_1_1_1_0; }
+
+		//"]"
+		public Keyword getRightSquareBracketKeyword_1_4_1_2() { return cRightSquareBracketKeyword_1_4_1_2; }
+
+		//("valuecolor=[" (ValueColor+=ColorArray ("," ValueColor+=ColorArray)* "]"))?
+		public Group getGroup_1_5() { return cGroup_1_5; }
+
+		//"valuecolor=["
+		public Keyword getValuecolorKeyword_1_5_0() { return cValuecolorKeyword_1_5_0; }
+
+		//ValueColor+=ColorArray ("," ValueColor+=ColorArray)* "]"
+		public Group getGroup_1_5_1() { return cGroup_1_5_1; }
+
+		//ValueColor+=ColorArray
+		public Assignment getValueColorAssignment_1_5_1_0() { return cValueColorAssignment_1_5_1_0; }
+
+		//ColorArray
+		public RuleCall getValueColorColorArrayParserRuleCall_1_5_1_0_0() { return cValueColorColorArrayParserRuleCall_1_5_1_0_0; }
+
+		//("," ValueColor+=ColorArray)*
+		public Group getGroup_1_5_1_1() { return cGroup_1_5_1_1; }
+
+		//","
+		public Keyword getCommaKeyword_1_5_1_1_0() { return cCommaKeyword_1_5_1_1_0; }
+
+		//ValueColor+=ColorArray
+		public Assignment getValueColorAssignment_1_5_1_1_1() { return cValueColorAssignment_1_5_1_1_1; }
+
+		//ColorArray
+		public RuleCall getValueColorColorArrayParserRuleCall_1_5_1_1_1_0() { return cValueColorColorArrayParserRuleCall_1_5_1_1_1_0; }
+
+		//"]"
+		public Keyword getRightSquareBracketKeyword_1_5_1_2() { return cRightSquareBracketKeyword_1_5_1_2; }
+
+		//("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)* "]"))?
+		public Group getGroup_1_6() { return cGroup_1_6; }
+
+		//"visibility=["
+		public Keyword getVisibilityKeyword_1_6_0() { return cVisibilityKeyword_1_6_0; }
+
+		//Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)* "]"
+		public Group getGroup_1_6_1() { return cGroup_1_6_1; }
+
+		//Visibility+=VisibilityRule
+		public Assignment getVisibilityAssignment_1_6_1_0() { return cVisibilityAssignment_1_6_1_0; }
+
+		//VisibilityRule
+		public RuleCall getVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0() { return cVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0; }
+
+		//("," Visibility+=VisibilityRule)*
+		public Group getGroup_1_6_1_1() { return cGroup_1_6_1_1; }
+
+		//","
+		public Keyword getCommaKeyword_1_6_1_1_0() { return cCommaKeyword_1_6_1_1_0; }
+
+		//Visibility+=VisibilityRule
+		public Assignment getVisibilityAssignment_1_6_1_1_1() { return cVisibilityAssignment_1_6_1_1_1; }
+
+		//VisibilityRule
+		public RuleCall getVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0() { return cVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0; }
+
+		//"]"
+		public Keyword getRightSquareBracketKeyword_1_6_1_2() { return cRightSquareBracketKeyword_1_6_1_2; }
+	}
+
 	public class SwitchElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Switch");
 		private final Group cGroup = (Group)rule.eContents().get(1);
@@ -3507,19 +3732,19 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	public class CommandElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Command");
 		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
-		private final RuleCall cINTTerminalRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
+		private final RuleCall cNumberParserRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
 		private final RuleCall cIDTerminalRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
 		private final RuleCall cSTRINGTerminalRuleCall_2 = (RuleCall)cAlternatives.eContents().get(2);
 		
 		//Command returns ecore::EString:
-		//	INT | ID | STRING;
+		//	Number | ID | STRING;
 		public ParserRule getRule() { return rule; }
 
-		//INT | ID | STRING
+		//Number | ID | STRING
 		public Alternatives getAlternatives() { return cAlternatives; }
 
-		//INT
-		public RuleCall getINTTerminalRuleCall_0() { return cINTTerminalRuleCall_0; }
+		//Number
+		public RuleCall getNumberParserRuleCall_0() { return cNumberParserRuleCall_0; }
 
 		//ID
 		public RuleCall getIDTerminalRuleCall_1() { return cIDTerminalRuleCall_1; }
@@ -3530,22 +3755,30 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 
 	public class NumberElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Number");
-		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
-		private final RuleCall cINTTerminalRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
-		private final RuleCall cFLOATTerminalRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final Keyword cHyphenMinusKeyword_0 = (Keyword)cGroup.eContents().get(0);
+		private final Alternatives cAlternatives_1 = (Alternatives)cGroup.eContents().get(1);
+		private final RuleCall cINTTerminalRuleCall_1_0 = (RuleCall)cAlternatives_1.eContents().get(0);
+		private final RuleCall cFLOATTerminalRuleCall_1_1 = (RuleCall)cAlternatives_1.eContents().get(1);
 		
 		//Number returns ecore::EBigDecimal:
-		//	INT | FLOAT;
+		//	"-"? (INT | FLOAT);
 		public ParserRule getRule() { return rule; }
 
+		//"-"? (INT | FLOAT)
+		public Group getGroup() { return cGroup; }
+
+		//"-"?
+		public Keyword getHyphenMinusKeyword_0() { return cHyphenMinusKeyword_0; }
+
 		//INT | FLOAT
-		public Alternatives getAlternatives() { return cAlternatives; }
+		public Alternatives getAlternatives_1() { return cAlternatives_1; }
 
 		//INT
-		public RuleCall getINTTerminalRuleCall_0() { return cINTTerminalRuleCall_0; }
+		public RuleCall getINTTerminalRuleCall_1_0() { return cINTTerminalRuleCall_1_0; }
 
 		//FLOAT
-		public RuleCall getFLOATTerminalRuleCall_1() { return cFLOATTerminalRuleCall_1; }
+		public RuleCall getFLOATTerminalRuleCall_1_1() { return cFLOATTerminalRuleCall_1_1; }
 	}
 
 	public class XStateElements extends AbstractParserRuleElementFinder {
@@ -3589,6 +3822,7 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	private VideoElements pVideo;
 	private ChartElements pChart;
 	private WebviewElements pWebview;
+	private MapviewElements pMapview;
 	private SwitchElements pSwitch;
 	private SliderElements pSlider;
 	private SelectionElements pSelection;
@@ -3676,7 +3910,7 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//NonLinkableWidget:
-	//	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker;
+	//	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker | Mapview;
 	public NonLinkableWidgetElements getNonLinkableWidgetAccess() {
 		return (pNonLinkableWidget != null) ? pNonLinkableWidget : (pNonLinkableWidget = new NonLinkableWidgetElements());
 	}
@@ -3785,6 +4019,19 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	
 	public ParserRule getWebviewRule() {
 		return getWebviewAccess().getRule();
+	}
+
+	//Mapview:
+	//	"Mapview" ("item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+	//	("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+	//	("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+	//	"]"))?);
+	public MapviewElements getMapviewAccess() {
+		return (pMapview != null) ? pMapview : (pMapview = new MapviewElements());
+	}
+	
+	public ParserRule getMapviewRule() {
+		return getMapviewAccess().getRule();
 	}
 
 	//Switch:
@@ -3926,7 +4173,7 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//Command returns ecore::EString:
-	//	INT | ID | STRING;
+	//	Number | ID | STRING;
 	public CommandElements getCommandAccess() {
 		return (pCommand != null) ? pCommand : (pCommand = new CommandElements());
 	}
@@ -3936,7 +4183,7 @@ public class SitemapGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//Number returns ecore::EBigDecimal:
-	//	INT | FLOAT;
+	//	"-"? (INT | FLOAT);
 	public NumberElements getNumberAccess() {
 		return (pNumber != null) ? pNumber : (pNumber = new NumberElements());
 	}

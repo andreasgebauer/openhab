@@ -173,6 +173,15 @@ public class SitemapSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
+      case SitemapPackage.MAPVIEW:
+      {
+        Mapview mapview = (Mapview)theEObject;
+        T result = caseMapview(mapview);
+        if (result == null) result = caseNonLinkableWidget(mapview);
+        if (result == null) result = caseWidget(mapview);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
       case SitemapPackage.SWITCH:
       {
         org.openhab.model.sitemap.Switch switch_ = (org.openhab.model.sitemap.Switch)theEObject;
@@ -440,6 +449,22 @@ public class SitemapSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseWebview(Webview object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Mapview</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Mapview</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseMapview(Mapview object)
   {
     return null;
   }

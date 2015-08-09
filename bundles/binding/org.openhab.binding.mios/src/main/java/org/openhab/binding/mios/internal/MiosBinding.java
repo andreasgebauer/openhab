@@ -402,7 +402,7 @@ public class MiosBinding extends AbstractBinding<MiosBindingProvider> implements
 	 * 
 	 * @param property
 	 *            the MiOS Property name
-	 * @param value
+	 * @param valuem
 	 *            the value to push, per the supported types.
 	 * @exception IllegalArgumentException
 	 *                thrown if the value isn't one of the supported types.

@@ -996,6 +996,88 @@ public interface SitemapPackage extends EPackage
   int WEBVIEW_FEATURE_COUNT = NON_LINKABLE_WIDGET_FEATURE_COUNT + 2;
 
   /**
+   * The meta object id for the '{@link org.openhab.model.sitemap.impl.MapviewImpl <em>Mapview</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see org.openhab.model.sitemap.impl.MapviewImpl
+   * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getMapview()
+   * @generated
+   */
+  int MAPVIEW = 12;
+
+  /**
+   * The feature id for the '<em><b>Item</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__ITEM = NON_LINKABLE_WIDGET__ITEM;
+
+  /**
+   * The feature id for the '<em><b>Label</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__LABEL = NON_LINKABLE_WIDGET__LABEL;
+
+  /**
+   * The feature id for the '<em><b>Icon</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__ICON = NON_LINKABLE_WIDGET__ICON;
+
+  /**
+   * The feature id for the '<em><b>Label Color</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__LABEL_COLOR = NON_LINKABLE_WIDGET__LABEL_COLOR;
+
+  /**
+   * The feature id for the '<em><b>Value Color</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__VALUE_COLOR = NON_LINKABLE_WIDGET__VALUE_COLOR;
+
+  /**
+   * The feature id for the '<em><b>Visibility</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__VISIBILITY = NON_LINKABLE_WIDGET__VISIBILITY;
+
+  /**
+   * The feature id for the '<em><b>Height</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW__HEIGHT = NON_LINKABLE_WIDGET_FEATURE_COUNT + 0;
+
+  /**
+   * The number of structural features of the '<em>Mapview</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MAPVIEW_FEATURE_COUNT = NON_LINKABLE_WIDGET_FEATURE_COUNT + 1;
+
+  /**
    * The meta object id for the '{@link org.openhab.model.sitemap.impl.SwitchImpl <em>Switch</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -1003,7 +1085,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getSwitch()
    * @generated
    */
-  int SWITCH = 12;
+  int SWITCH = 13;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1085,7 +1167,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getSlider()
    * @generated
    */
-  int SLIDER = 13;
+  int SLIDER = 14;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1176,7 +1258,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getSelection()
    * @generated
    */
-  int SELECTION = 14;
+  int SELECTION = 15;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1258,7 +1340,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getList()
    * @generated
    */
-  int LIST = 15;
+  int LIST = 16;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1340,7 +1422,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getSetpoint()
    * @generated
    */
-  int SETPOINT = 16;
+  int SETPOINT = 17;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1440,7 +1522,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getColorpicker()
    * @generated
    */
-  int COLORPICKER = 17;
+  int COLORPICKER = 18;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1522,7 +1604,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getMapping()
    * @generated
    */
-  int MAPPING = 18;
+  int MAPPING = 19;
 
   /**
    * The feature id for the '<em><b>Cmd</b></em>' attribute.
@@ -1559,7 +1641,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getVisibilityRule()
    * @generated
    */
-  int VISIBILITY_RULE = 19;
+  int VISIBILITY_RULE = 20;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -1614,7 +1696,7 @@ public interface SitemapPackage extends EPackage
    * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getColorArray()
    * @generated
    */
-  int COLOR_ARRAY = 20;
+  int COLOR_ARRAY = 21;
 
   /**
    * The feature id for the '<em><b>Item</b></em>' attribute.
@@ -2021,6 +2103,27 @@ public interface SitemapPackage extends EPackage
    * @generated
    */
   EAttribute getWebview_Url();
+
+  /**
+   * Returns the meta object for class '{@link org.openhab.model.sitemap.Mapview <em>Mapview</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Mapview</em>'.
+   * @see org.openhab.model.sitemap.Mapview
+   * @generated
+   */
+  EClass getMapview();
+
+  /**
+   * Returns the meta object for the attribute '{@link org.openhab.model.sitemap.Mapview#getHeight <em>Height</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Height</em>'.
+   * @see org.openhab.model.sitemap.Mapview#getHeight()
+   * @see #getMapview()
+   * @generated
+   */
+  EAttribute getMapview_Height();
 
   /**
    * Returns the meta object for class '{@link org.openhab.model.sitemap.Switch <em>Switch</em>}'.
@@ -2642,6 +2745,24 @@ public interface SitemapPackage extends EPackage
      * @generated
      */
     EAttribute WEBVIEW__URL = eINSTANCE.getWebview_Url();
+
+    /**
+     * The meta object literal for the '{@link org.openhab.model.sitemap.impl.MapviewImpl <em>Mapview</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see org.openhab.model.sitemap.impl.MapviewImpl
+     * @see org.openhab.model.sitemap.impl.SitemapPackageImpl#getMapview()
+     * @generated
+     */
+    EClass MAPVIEW = eINSTANCE.getMapview();
+
+    /**
+     * The meta object literal for the '<em><b>Height</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute MAPVIEW__HEIGHT = eINSTANCE.getMapview_Height();
 
     /**
      * The meta object literal for the '{@link org.openhab.model.sitemap.impl.SwitchImpl <em>Switch</em>}' class.

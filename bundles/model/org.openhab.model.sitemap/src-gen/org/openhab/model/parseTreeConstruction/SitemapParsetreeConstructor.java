@@ -43,15 +43,16 @@ protected class ThisRootNode extends RootToken {
 			case 9: return new Video_Group(this, this, 9, inst);
 			case 10: return new Chart_Group(this, this, 10, inst);
 			case 11: return new Webview_Group(this, this, 11, inst);
-			case 12: return new Switch_Group(this, this, 12, inst);
-			case 13: return new Slider_Group(this, this, 13, inst);
-			case 14: return new Selection_Group(this, this, 14, inst);
-			case 15: return new List_Group(this, this, 15, inst);
-			case 16: return new Setpoint_Group(this, this, 16, inst);
-			case 17: return new Colorpicker_Group(this, this, 17, inst);
-			case 18: return new Mapping_Group(this, this, 18, inst);
-			case 19: return new VisibilityRule_Group(this, this, 19, inst);
-			case 20: return new ColorArray_Group(this, this, 20, inst);
+			case 12: return new Mapview_Group(this, this, 12, inst);
+			case 13: return new Switch_Group(this, this, 13, inst);
+			case 14: return new Slider_Group(this, this, 14, inst);
+			case 15: return new Selection_Group(this, this, 15, inst);
+			case 16: return new List_Group(this, this, 16, inst);
+			case 17: return new Setpoint_Group(this, this, 17, inst);
+			case 18: return new Colorpicker_Group(this, this, 18, inst);
+			case 19: return new Mapping_Group(this, this, 19, inst);
+			case 20: return new VisibilityRule_Group(this, this, 20, inst);
+			case 21: return new ColorArray_Group(this, this, 21, inst);
 			default: return null;
 		}	
 	}	
@@ -515,6 +516,7 @@ protected class Widget_Alternatives extends AlternativesToken {
 		   getEObject().eClass() != grammarAccess.getGroupRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getImageRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getListRule().getType().getClassifier() && 
+		   getEObject().eClass() != grammarAccess.getMapviewRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSelectionRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSetpointRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSliderRule().getType().getClassifier() && 
@@ -592,6 +594,7 @@ protected class Widget_NonLinkableWidgetParserRuleCall_1 extends RuleCallToken {
 		if(getEObject().eClass() != grammarAccess.getChartRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getColorpickerRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getListRule().getType().getClassifier() && 
+		   getEObject().eClass() != grammarAccess.getMapviewRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSelectionRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSetpointRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSliderRule().getType().getClassifier() && 
@@ -618,11 +621,11 @@ protected class Widget_NonLinkableWidgetParserRuleCall_1 extends RuleCallToken {
 /************ begin Rule NonLinkableWidget ****************
  *
  * NonLinkableWidget:
- * 	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker;
+ * 	Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker | Mapview;
  *
  **/
 
-// Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker
+// Switch | Selection | Slider | List | Setpoint | Video | Chart | Webview | Colorpicker | Mapview
 protected class NonLinkableWidget_Alternatives extends AlternativesToken {
 
 	public NonLinkableWidget_Alternatives(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
@@ -646,6 +649,7 @@ protected class NonLinkableWidget_Alternatives extends AlternativesToken {
 			case 6: return new NonLinkableWidget_ChartParserRuleCall_6(lastRuleCallOrigin, this, 6, inst);
 			case 7: return new NonLinkableWidget_WebviewParserRuleCall_7(lastRuleCallOrigin, this, 7, inst);
 			case 8: return new NonLinkableWidget_ColorpickerParserRuleCall_8(lastRuleCallOrigin, this, 8, inst);
+			case 9: return new NonLinkableWidget_MapviewParserRuleCall_9(lastRuleCallOrigin, this, 9, inst);
 			default: return null;
 		}	
 	}
@@ -655,6 +659,7 @@ protected class NonLinkableWidget_Alternatives extends AlternativesToken {
 		if(getEObject().eClass() != grammarAccess.getChartRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getColorpickerRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getListRule().getType().getClassifier() && 
+		   getEObject().eClass() != grammarAccess.getMapviewRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSelectionRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSetpointRule().getType().getClassifier() && 
 		   getEObject().eClass() != grammarAccess.getSliderRule().getType().getClassifier() && 
@@ -980,6 +985,42 @@ protected class NonLinkableWidget_ColorpickerParserRuleCall_8 extends RuleCallTo
 		if(getEObject().eClass() != grammarAccess.getColorpickerRule().getType().getClassifier())
 			return null;
 		if(checkForRecursion(Colorpicker_Group.class, eObjectConsumer)) return null;
+		return eObjectConsumer;
+	}
+	
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		switch(index) {
+			default: return lastRuleCallOrigin.createFollowerAfterReturn(next, actIndex , index, inst);
+		}	
+	}	
+}
+
+// Mapview
+protected class NonLinkableWidget_MapviewParserRuleCall_9 extends RuleCallToken {
+	
+	public NonLinkableWidget_MapviewParserRuleCall_9(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public RuleCall getGrammarElement() {
+		return grammarAccess.getNonLinkableWidgetAccess().getMapviewParserRuleCall_9();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override
+	public IEObjectConsumer tryConsume() {
+		if(getEObject().eClass() != grammarAccess.getMapviewRule().getType().getClassifier())
+			return null;
+		if(checkForRecursion(Mapview_Group.class, eObjectConsumer)) return null;
 		return eObjectConsumer;
 	}
 	
@@ -9591,6 +9632,1128 @@ protected class Webview_RightSquareBracketKeyword_1_7_1_2 extends KeywordToken  
 
 
 /************ end Rule Webview ****************/
+
+
+/************ begin Rule Mapview ****************
+ *
+ * Mapview:
+ * 	"Mapview" ("item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+ * 	("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+ * 	("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+ * 	"]"))?);
+ *
+ **/
+
+// "Mapview" ("item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+// ("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+// ("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+// "]"))?)
+protected class Mapview_Group extends GroupToken {
+	
+	public Mapview_Group(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_UnorderedGroup_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override
+	public IEObjectConsumer tryConsume() {
+		if(getEObject().eClass() != grammarAccess.getMapviewRule().getType().getClassifier())
+			return null;
+		return eObjectConsumer;
+	}
+
+}
+
+// "Mapview"
+protected class Mapview_MapviewKeyword_0 extends KeywordToken  {
+	
+	public Mapview_MapviewKeyword_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getMapviewKeyword_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			default: return lastRuleCallOrigin.createFollowerAfterReturn(this, index, index, inst);
+		}	
+	}
+
+}
+
+// "item=" item=ItemRef & ("label=" label=(ID | STRING))? & ("icon=" icon=Icon)? & ("height=" height=INT)? &
+// ("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))? & ("valuecolor=[" (ValueColor+=ColorArray
+// ("," ValueColor+=ColorArray)* "]"))? & ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)*
+// "]"))?
+protected class Mapview_UnorderedGroup_1 extends UnorderedGroupToken {
+	
+	public Mapview_UnorderedGroup_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public UnorderedGroup getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getUnorderedGroup_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_6(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_5(lastRuleCallOrigin, this, 1, inst);
+			case 2: return new Mapview_Group_1_4(lastRuleCallOrigin, this, 2, inst);
+			case 3: return new Mapview_Group_1_3(lastRuleCallOrigin, this, 3, inst);
+			case 4: return new Mapview_Group_1_2(lastRuleCallOrigin, this, 4, inst);
+			case 5: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 5, inst);
+			case 6: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 6, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "item=" item=ItemRef
+protected class Mapview_Group_1_0 extends GroupToken {
+	
+	public Mapview_Group_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_ItemAssignment_1_0_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "item="
+protected class Mapview_ItemKeyword_1_0_0 extends KeywordToken  {
+	
+	public Mapview_ItemKeyword_1_0_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getItemKeyword_1_0_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_MapviewKeyword_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// item=ItemRef
+protected class Mapview_ItemAssignment_1_0_1 extends AssignmentToken  {
+	
+	public Mapview_ItemAssignment_1_0_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getItemAssignment_1_0_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_ItemKeyword_1_0_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("item",true)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("item");
+		if(valueSerializer.isValid(obj.getEObject(), grammarAccess.getMapviewAccess().getItemItemRefParserRuleCall_1_0_1_0(), value, null)) {
+			type = AssignmentType.DATATYPE_RULE_CALL;
+			element = grammarAccess.getMapviewAccess().getItemItemRefParserRuleCall_1_0_1_0();
+			return obj;
+		}
+		return null;
+	}
+
+}
+
+
+// ("label=" label=(ID | STRING))?
+protected class Mapview_Group_1_1 extends GroupToken {
+	
+	public Mapview_Group_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_LabelAssignment_1_1_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "label="
+protected class Mapview_LabelKeyword_1_1_0 extends KeywordToken  {
+	
+	public Mapview_LabelKeyword_1_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getLabelKeyword_1_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// label=(ID | STRING)
+protected class Mapview_LabelAssignment_1_1_1 extends AssignmentToken  {
+	
+	public Mapview_LabelAssignment_1_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getLabelAssignment_1_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_LabelKeyword_1_1_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("label",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("label");
+		if(valueSerializer.isValid(obj.getEObject(), grammarAccess.getMapviewAccess().getLabelIDTerminalRuleCall_1_1_1_0_0(), value, null)) {
+			type = AssignmentType.TERMINAL_RULE_CALL;
+			element = grammarAccess.getMapviewAccess().getLabelIDTerminalRuleCall_1_1_1_0_0();
+			return obj;
+		}
+		if(valueSerializer.isValid(obj.getEObject(), grammarAccess.getMapviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1(), value, null)) {
+			type = AssignmentType.TERMINAL_RULE_CALL;
+			element = grammarAccess.getMapviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1();
+			return obj;
+		}
+		return null;
+	}
+
+}
+
+
+// ("icon=" icon=Icon)?
+protected class Mapview_Group_1_2 extends GroupToken {
+	
+	public Mapview_Group_1_2(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_2();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_IconAssignment_1_2_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "icon="
+protected class Mapview_IconKeyword_1_2_0 extends KeywordToken  {
+	
+	public Mapview_IconKeyword_1_2_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getIconKeyword_1_2_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// icon=Icon
+protected class Mapview_IconAssignment_1_2_1 extends AssignmentToken  {
+	
+	public Mapview_IconAssignment_1_2_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getIconAssignment_1_2_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_IconKeyword_1_2_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("icon",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("icon");
+		if(valueSerializer.isValid(obj.getEObject(), grammarAccess.getMapviewAccess().getIconIconParserRuleCall_1_2_1_0(), value, null)) {
+			type = AssignmentType.DATATYPE_RULE_CALL;
+			element = grammarAccess.getMapviewAccess().getIconIconParserRuleCall_1_2_1_0();
+			return obj;
+		}
+		return null;
+	}
+
+}
+
+
+// ("height=" height=INT)?
+protected class Mapview_Group_1_3 extends GroupToken {
+	
+	public Mapview_Group_1_3(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_3();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_HeightAssignment_1_3_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "height="
+protected class Mapview_HeightKeyword_1_3_0 extends KeywordToken  {
+	
+	public Mapview_HeightKeyword_1_3_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getHeightKeyword_1_3_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_2(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 1, inst);
+			case 2: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 2, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// height=INT
+protected class Mapview_HeightAssignment_1_3_1 extends AssignmentToken  {
+	
+	public Mapview_HeightAssignment_1_3_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getHeightAssignment_1_3_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_HeightKeyword_1_3_0(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("height",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("height");
+		if(valueSerializer.isValid(obj.getEObject(), grammarAccess.getMapviewAccess().getHeightINTTerminalRuleCall_1_3_1_0(), value, null)) {
+			type = AssignmentType.TERMINAL_RULE_CALL;
+			element = grammarAccess.getMapviewAccess().getHeightINTTerminalRuleCall_1_3_1_0();
+			return obj;
+		}
+		return null;
+	}
+
+}
+
+
+// ("labelcolor=[" (LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"))?
+protected class Mapview_Group_1_4 extends GroupToken {
+	
+	public Mapview_Group_1_4(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_4();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_4_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "labelcolor=["
+protected class Mapview_LabelcolorKeyword_1_4_0 extends KeywordToken  {
+	
+	public Mapview_LabelcolorKeyword_1_4_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getLabelcolorKeyword_1_4_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_3(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_2(lastRuleCallOrigin, this, 1, inst);
+			case 2: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 2, inst);
+			case 3: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 3, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// LabelColor+=ColorArray ("," LabelColor+=ColorArray)* "]"
+protected class Mapview_Group_1_4_1 extends GroupToken {
+	
+	public Mapview_Group_1_4_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_4_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_RightSquareBracketKeyword_1_4_1_2(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// LabelColor+=ColorArray
+protected class Mapview_LabelColorAssignment_1_4_1_0 extends AssignmentToken  {
+	
+	public Mapview_LabelColorAssignment_1_4_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new ColorArray_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("LabelColor",true)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("LabelColor");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getColorArrayRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_0_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_LabelcolorKeyword_1_4_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+// ("," LabelColor+=ColorArray)*
+protected class Mapview_Group_1_4_1_1 extends GroupToken {
+	
+	public Mapview_Group_1_4_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_4_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_LabelColorAssignment_1_4_1_1_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ","
+protected class Mapview_CommaKeyword_1_4_1_1_0 extends KeywordToken  {
+	
+	public Mapview_CommaKeyword_1_4_1_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getCommaKeyword_1_4_1_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_4_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_LabelColorAssignment_1_4_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// LabelColor+=ColorArray
+protected class Mapview_LabelColorAssignment_1_4_1_1_1 extends AssignmentToken  {
+	
+	public Mapview_LabelColorAssignment_1_4_1_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new ColorArray_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("LabelColor",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("LabelColor");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getColorArrayRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_1_1_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_CommaKeyword_1_4_1_1_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+
+// "]"
+protected class Mapview_RightSquareBracketKeyword_1_4_1_2 extends KeywordToken  {
+	
+	public Mapview_RightSquareBracketKeyword_1_4_1_2(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_4_1_2();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_4_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_LabelColorAssignment_1_4_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+
+
+// ("valuecolor=[" (ValueColor+=ColorArray ("," ValueColor+=ColorArray)* "]"))?
+protected class Mapview_Group_1_5 extends GroupToken {
+	
+	public Mapview_Group_1_5(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_5();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_5_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "valuecolor=["
+protected class Mapview_ValuecolorKeyword_1_5_0 extends KeywordToken  {
+	
+	public Mapview_ValuecolorKeyword_1_5_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getValuecolorKeyword_1_5_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_4(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_3(lastRuleCallOrigin, this, 1, inst);
+			case 2: return new Mapview_Group_1_2(lastRuleCallOrigin, this, 2, inst);
+			case 3: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 3, inst);
+			case 4: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 4, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ValueColor+=ColorArray ("," ValueColor+=ColorArray)* "]"
+protected class Mapview_Group_1_5_1 extends GroupToken {
+	
+	public Mapview_Group_1_5_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_5_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_RightSquareBracketKeyword_1_5_1_2(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ValueColor+=ColorArray
+protected class Mapview_ValueColorAssignment_1_5_1_0 extends AssignmentToken  {
+	
+	public Mapview_ValueColorAssignment_1_5_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new ColorArray_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("ValueColor",true)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("ValueColor");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getColorArrayRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_0_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_ValuecolorKeyword_1_5_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+// ("," ValueColor+=ColorArray)*
+protected class Mapview_Group_1_5_1_1 extends GroupToken {
+	
+	public Mapview_Group_1_5_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_5_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_ValueColorAssignment_1_5_1_1_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ","
+protected class Mapview_CommaKeyword_1_5_1_1_0 extends KeywordToken  {
+	
+	public Mapview_CommaKeyword_1_5_1_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getCommaKeyword_1_5_1_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_5_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_ValueColorAssignment_1_5_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ValueColor+=ColorArray
+protected class Mapview_ValueColorAssignment_1_5_1_1_1 extends AssignmentToken  {
+	
+	public Mapview_ValueColorAssignment_1_5_1_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new ColorArray_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("ValueColor",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("ValueColor");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getColorArrayRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_1_1_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_CommaKeyword_1_5_1_1_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+
+// "]"
+protected class Mapview_RightSquareBracketKeyword_1_5_1_2 extends KeywordToken  {
+	
+	public Mapview_RightSquareBracketKeyword_1_5_1_2(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_5_1_2();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_5_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_ValueColorAssignment_1_5_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+
+
+// ("visibility=[" (Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)* "]"))?
+protected class Mapview_Group_1_6 extends GroupToken {
+	
+	public Mapview_Group_1_6(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_6();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_6_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// "visibility=["
+protected class Mapview_VisibilityKeyword_1_6_0 extends KeywordToken  {
+	
+	public Mapview_VisibilityKeyword_1_6_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getVisibilityKeyword_1_6_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_5(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_Group_1_4(lastRuleCallOrigin, this, 1, inst);
+			case 2: return new Mapview_Group_1_3(lastRuleCallOrigin, this, 2, inst);
+			case 3: return new Mapview_Group_1_2(lastRuleCallOrigin, this, 3, inst);
+			case 4: return new Mapview_Group_1_1(lastRuleCallOrigin, this, 4, inst);
+			case 5: return new Mapview_Group_1_0(lastRuleCallOrigin, this, 5, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// Visibility+=VisibilityRule ("," Visibility+=VisibilityRule)* "]"
+protected class Mapview_Group_1_6_1 extends GroupToken {
+	
+	public Mapview_Group_1_6_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_6_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_RightSquareBracketKeyword_1_6_1_2(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// Visibility+=VisibilityRule
+protected class Mapview_VisibilityAssignment_1_6_1_0 extends AssignmentToken  {
+	
+	public Mapview_VisibilityAssignment_1_6_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new VisibilityRule_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("Visibility",true)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("Visibility");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getVisibilityRuleRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_VisibilityKeyword_1_6_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+// ("," Visibility+=VisibilityRule)*
+protected class Mapview_Group_1_6_1_1 extends GroupToken {
+	
+	public Mapview_Group_1_6_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Group getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getGroup_1_6_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_VisibilityAssignment_1_6_1_1_1(lastRuleCallOrigin, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// ","
+protected class Mapview_CommaKeyword_1_6_1_1_0 extends KeywordToken  {
+	
+	public Mapview_CommaKeyword_1_6_1_1_0(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getCommaKeyword_1_6_1_1_0();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_6_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_VisibilityAssignment_1_6_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+// Visibility+=VisibilityRule
+protected class Mapview_VisibilityAssignment_1_6_1_1_1 extends AssignmentToken  {
+	
+	public Mapview_VisibilityAssignment_1_6_1_1_1(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Assignment getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_1_1();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new VisibilityRule_Group(this, this, 0, inst);
+			default: return null;
+		}	
+	}
+
+    @Override	
+	public IEObjectConsumer tryConsume() {
+		if((value = eObjectConsumer.getConsumable("Visibility",false)) == null) return null;
+		IEObjectConsumer obj = eObjectConsumer.cloneAndConsume("Visibility");
+		if(value instanceof EObject) { // org::eclipse::xtext::impl::RuleCallImpl
+			IEObjectConsumer param = createEObjectConsumer((EObject)value);
+			if(param.isInstanceOf(grammarAccess.getVisibilityRuleRule().getType().getClassifier())) {
+				type = AssignmentType.PARSER_RULE_CALL;
+				element = grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0(); 
+				consumed = obj;
+				return param;
+			}
+		}
+		return null;
+	}
+
+    @Override
+	public AbstractToken createFollowerAfterReturn(AbstractToken next,	int actIndex, int index, IEObjectConsumer inst) {
+		if(value == inst.getEObject() && !inst.isConsumed()) return null;
+		switch(index) {
+			case 0: return new Mapview_CommaKeyword_1_6_1_1_0(lastRuleCallOrigin, next, actIndex, consumed);
+			default: return null;
+		}	
+	}	
+}
+
+
+// "]"
+protected class Mapview_RightSquareBracketKeyword_1_6_1_2 extends KeywordToken  {
+	
+	public Mapview_RightSquareBracketKeyword_1_6_1_2(AbstractToken lastRuleCallOrigin, AbstractToken next, int transitionIndex, IEObjectConsumer eObjectConsumer) {
+		super(lastRuleCallOrigin, next, transitionIndex, eObjectConsumer);
+	}
+	
+	@Override
+	public Keyword getGrammarElement() {
+		return grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_6_1_2();
+	}
+
+    @Override
+	public AbstractToken createFollower(int index, IEObjectConsumer inst) {
+		switch(index) {
+			case 0: return new Mapview_Group_1_6_1_1(lastRuleCallOrigin, this, 0, inst);
+			case 1: return new Mapview_VisibilityAssignment_1_6_1_0(lastRuleCallOrigin, this, 1, inst);
+			default: return null;
+		}	
+	}
+
+}
+
+
+
+
+
+/************ end Rule Mapview ****************/
 
 
 /************ begin Rule Switch ****************

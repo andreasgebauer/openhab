@@ -76,6 +76,7 @@ public class SitemapFactoryImpl extends EFactoryImpl implements SitemapFactory
       case SitemapPackage.VIDEO: return createVideo();
       case SitemapPackage.CHART: return createChart();
       case SitemapPackage.WEBVIEW: return createWebview();
+      case SitemapPackage.MAPVIEW: return createMapview();
       case SitemapPackage.SWITCH: return createSwitch();
       case SitemapPackage.SLIDER: return createSlider();
       case SitemapPackage.SELECTION: return createSelection();
@@ -220,6 +221,17 @@ public class SitemapFactoryImpl extends EFactoryImpl implements SitemapFactory
   {
     WebviewImpl webview = new WebviewImpl();
     return webview;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Mapview createMapview()
+  {
+    MapviewImpl mapview = new MapviewImpl();
+    return mapview;
   }
 
   /**

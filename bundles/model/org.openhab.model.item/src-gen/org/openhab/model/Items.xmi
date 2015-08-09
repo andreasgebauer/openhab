@@ -180,7 +180,7 @@
         <elements xsi:type="xtext:Keyword" value="Contact"/>
         <elements xsi:type="xtext:Keyword" value="DateTime"/>
         <elements xsi:type="xtext:Keyword" value="Color"/>
-        <elements xsi:type="xtext:Keyword" value="Point"/>
+        <elements xsi:type="xtext:Keyword" value="Location"/>
         <elements xsi:type="xtext:RuleCall" rule="/1/@rules.0"/>
       </alternatives>
     </rules>

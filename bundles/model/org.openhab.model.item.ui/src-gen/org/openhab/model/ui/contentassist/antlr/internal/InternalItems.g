@@ -402,11 +402,11 @@ rule__ModelItemType__Alternatives
 )
 
     |(
-{ before(grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); }
+{ before(grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); }
 
-	'Point' 
+	'Location' 
 
-{ after(grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); }
+{ after(grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); }
 )
 
     |(

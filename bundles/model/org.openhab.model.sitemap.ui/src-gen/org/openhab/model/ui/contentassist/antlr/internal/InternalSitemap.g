@@ -392,6 +392,34 @@ finally {
 
 
 
+// Entry rule entryRuleMapview
+entryRuleMapview 
+:
+{ before(grammarAccess.getMapviewRule()); }
+	 ruleMapview
+{ after(grammarAccess.getMapviewRule()); } 
+	 EOF 
+;
+
+// Rule Mapview
+ruleMapview
+    @init {
+		int stackSize = keepStackSize();
+    }
+	:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup()); }
+(rule__Mapview__Group__0)
+{ after(grammarAccess.getMapviewAccess().getGroup()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
 // Entry rule entryRuleSwitch
 entryRuleSwitch 
 :
@@ -772,9 +800,9 @@ ruleNumber
     }
 	:
 (
-{ before(grammarAccess.getNumberAccess().getAlternatives()); }
-(rule__Number__Alternatives)
-{ after(grammarAccess.getNumberAccess().getAlternatives()); }
+{ before(grammarAccess.getNumberAccess().getGroup()); }
+(rule__Number__Group__0)
+{ after(grammarAccess.getNumberAccess().getGroup()); }
 )
 
 ;
@@ -892,6 +920,12 @@ rule__NonLinkableWidget__Alternatives
 { before(grammarAccess.getNonLinkableWidgetAccess().getColorpickerParserRuleCall_8()); }
 	ruleColorpicker
 { after(grammarAccess.getNonLinkableWidgetAccess().getColorpickerParserRuleCall_8()); }
+)
+
+    |(
+{ before(grammarAccess.getNonLinkableWidgetAccess().getMapviewParserRuleCall_9()); }
+	ruleMapview
+{ after(grammarAccess.getNonLinkableWidgetAccess().getMapviewParserRuleCall_9()); }
 )
 
 ;
@@ -1080,6 +1114,28 @@ rule__Webview__LabelAlternatives_1_1_1_0
 { before(grammarAccess.getWebviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1()); }
 	RULE_STRING
 { after(grammarAccess.getWebviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__LabelAlternatives_1_1_1_0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelIDTerminalRuleCall_1_1_1_0_0()); }
+	RULE_ID
+{ after(grammarAccess.getMapviewAccess().getLabelIDTerminalRuleCall_1_1_1_0_0()); }
+)
+
+    |(
+{ before(grammarAccess.getMapviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1()); }
+	RULE_STRING
+{ after(grammarAccess.getMapviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1()); }
 )
 
 ;
@@ -1415,9 +1471,9 @@ rule__Command__Alternatives
     }
 :
 (
-{ before(grammarAccess.getCommandAccess().getINTTerminalRuleCall_0()); }
-	RULE_INT
-{ after(grammarAccess.getCommandAccess().getINTTerminalRuleCall_0()); }
+{ before(grammarAccess.getCommandAccess().getNumberParserRuleCall_0()); }
+	ruleNumber
+{ after(grammarAccess.getCommandAccess().getNumberParserRuleCall_0()); }
 )
 
     |(
@@ -1437,21 +1493,21 @@ finally {
 	restoreStackSize(stackSize);
 }
 
-rule__Number__Alternatives
+rule__Number__Alternatives_1
     @init {
 		int stackSize = keepStackSize();
     }
 :
 (
-{ before(grammarAccess.getNumberAccess().getINTTerminalRuleCall_0()); }
+{ before(grammarAccess.getNumberAccess().getINTTerminalRuleCall_1_0()); }
 	RULE_INT
-{ after(grammarAccess.getNumberAccess().getINTTerminalRuleCall_0()); }
+{ after(grammarAccess.getNumberAccess().getINTTerminalRuleCall_1_0()); }
 )
 
     |(
-{ before(grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1()); }
+{ before(grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1_1()); }
 	RULE_FLOAT
-{ after(grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1()); }
+{ after(grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1_1()); }
 )
 
 ;
@@ -9281,6 +9337,981 @@ finally {
 
 
 
+rule__Mapview__Group__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group__0__Impl
+	rule__Mapview__Group__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getMapviewKeyword_0()); }
+
+	'Mapview' 
+
+{ after(grammarAccess.getMapviewAccess().getMapviewKeyword_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getUnorderedGroup_1()); }
+(rule__Mapview__UnorderedGroup_1)
+{ after(grammarAccess.getMapviewAccess().getUnorderedGroup_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_0__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_0__0__Impl
+	rule__Mapview__Group_1_0__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_0__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getItemKeyword_1_0_0()); }
+
+	'item=' 
+
+{ after(grammarAccess.getMapviewAccess().getItemKeyword_1_0_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_0__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_0__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_0__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getItemAssignment_1_0_1()); }
+(rule__Mapview__ItemAssignment_1_0_1)
+{ after(grammarAccess.getMapviewAccess().getItemAssignment_1_0_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_1__0__Impl
+	rule__Mapview__Group_1_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelKeyword_1_1_0()); }
+
+	'label=' 
+
+{ after(grammarAccess.getMapviewAccess().getLabelKeyword_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_1__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelAssignment_1_1_1()); }
+(rule__Mapview__LabelAssignment_1_1_1)
+{ after(grammarAccess.getMapviewAccess().getLabelAssignment_1_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_2__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_2__0__Impl
+	rule__Mapview__Group_1_2__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_2__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getIconKeyword_1_2_0()); }
+
+	'icon=' 
+
+{ after(grammarAccess.getMapviewAccess().getIconKeyword_1_2_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_2__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_2__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_2__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getIconAssignment_1_2_1()); }
+(rule__Mapview__IconAssignment_1_2_1)
+{ after(grammarAccess.getMapviewAccess().getIconAssignment_1_2_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_3__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_3__0__Impl
+	rule__Mapview__Group_1_3__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_3__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getHeightKeyword_1_3_0()); }
+
+	'height=' 
+
+{ after(grammarAccess.getMapviewAccess().getHeightKeyword_1_3_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_3__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_3__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_3__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getHeightAssignment_1_3_1()); }
+(rule__Mapview__HeightAssignment_1_3_1)
+{ after(grammarAccess.getMapviewAccess().getHeightAssignment_1_3_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_4__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4__0__Impl
+	rule__Mapview__Group_1_4__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelcolorKeyword_1_4_0()); }
+
+	'labelcolor=[' 
+
+{ after(grammarAccess.getMapviewAccess().getLabelcolorKeyword_1_4_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_4__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_4_1()); }
+(rule__Mapview__Group_1_4_1__0)
+{ after(grammarAccess.getMapviewAccess().getGroup_1_4_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_4_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4_1__0__Impl
+	rule__Mapview__Group_1_4_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_0()); }
+(rule__Mapview__LabelColorAssignment_1_4_1_0)
+{ after(grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_4_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4_1__1__Impl
+	rule__Mapview__Group_1_4_1__2
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_4_1_1()); }
+(rule__Mapview__Group_1_4_1_1__0)*
+{ after(grammarAccess.getMapviewAccess().getGroup_1_4_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_4_1__2
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4_1__2__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4_1__2__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_4_1_2()); }
+
+	']' 
+
+{ after(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_4_1_2()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+
+
+rule__Mapview__Group_1_4_1_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4_1_1__0__Impl
+	rule__Mapview__Group_1_4_1_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4_1_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getCommaKeyword_1_4_1_1_0()); }
+
+	',' 
+
+{ after(grammarAccess.getMapviewAccess().getCommaKeyword_1_4_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_4_1_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_4_1_1__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_4_1_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_1_1()); }
+(rule__Mapview__LabelColorAssignment_1_4_1_1_1)
+{ after(grammarAccess.getMapviewAccess().getLabelColorAssignment_1_4_1_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_5__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5__0__Impl
+	rule__Mapview__Group_1_5__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getValuecolorKeyword_1_5_0()); }
+
+	'valuecolor=[' 
+
+{ after(grammarAccess.getMapviewAccess().getValuecolorKeyword_1_5_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_5__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_5_1()); }
+(rule__Mapview__Group_1_5_1__0)
+{ after(grammarAccess.getMapviewAccess().getGroup_1_5_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_5_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5_1__0__Impl
+	rule__Mapview__Group_1_5_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_0()); }
+(rule__Mapview__ValueColorAssignment_1_5_1_0)
+{ after(grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_5_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5_1__1__Impl
+	rule__Mapview__Group_1_5_1__2
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_5_1_1()); }
+(rule__Mapview__Group_1_5_1_1__0)*
+{ after(grammarAccess.getMapviewAccess().getGroup_1_5_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_5_1__2
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5_1__2__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5_1__2__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_5_1_2()); }
+
+	']' 
+
+{ after(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_5_1_2()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+
+
+rule__Mapview__Group_1_5_1_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5_1_1__0__Impl
+	rule__Mapview__Group_1_5_1_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5_1_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getCommaKeyword_1_5_1_1_0()); }
+
+	',' 
+
+{ after(grammarAccess.getMapviewAccess().getCommaKeyword_1_5_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_5_1_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_5_1_1__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_5_1_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_1_1()); }
+(rule__Mapview__ValueColorAssignment_1_5_1_1_1)
+{ after(grammarAccess.getMapviewAccess().getValueColorAssignment_1_5_1_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_6__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6__0__Impl
+	rule__Mapview__Group_1_6__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getVisibilityKeyword_1_6_0()); }
+
+	'visibility=[' 
+
+{ after(grammarAccess.getMapviewAccess().getVisibilityKeyword_1_6_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_6__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_6_1()); }
+(rule__Mapview__Group_1_6_1__0)
+{ after(grammarAccess.getMapviewAccess().getGroup_1_6_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+rule__Mapview__Group_1_6_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6_1__0__Impl
+	rule__Mapview__Group_1_6_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_0()); }
+(rule__Mapview__VisibilityAssignment_1_6_1_0)
+{ after(grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_6_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6_1__1__Impl
+	rule__Mapview__Group_1_6_1__2
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getGroup_1_6_1_1()); }
+(rule__Mapview__Group_1_6_1_1__0)*
+{ after(grammarAccess.getMapviewAccess().getGroup_1_6_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_6_1__2
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6_1__2__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6_1__2__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_6_1_2()); }
+
+	']' 
+
+{ after(grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_6_1_2()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
+
+
+rule__Mapview__Group_1_6_1_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6_1_1__0__Impl
+	rule__Mapview__Group_1_6_1_1__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6_1_1__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getCommaKeyword_1_6_1_1_0()); }
+
+	',' 
+
+{ after(grammarAccess.getMapviewAccess().getCommaKeyword_1_6_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__Group_1_6_1_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__Group_1_6_1_1__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__Group_1_6_1_1__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_1_1()); }
+(rule__Mapview__VisibilityAssignment_1_6_1_1_1)
+{ after(grammarAccess.getMapviewAccess().getVisibilityAssignment_1_6_1_1_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
 rule__Switch__Group__0
     @init {
 		int stackSize = keepStackSize();
@@ -16006,6 +17037,69 @@ finally {
 
 
 
+rule__Number__Group__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Number__Group__0__Impl
+	rule__Number__Group__1
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Number__Group__0__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getNumberAccess().getHyphenMinusKeyword_0()); }
+(
+	'-' 
+)?
+{ after(grammarAccess.getNumberAccess().getHyphenMinusKeyword_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Number__Group__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Number__Group__1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Number__Group__1__Impl
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getNumberAccess().getAlternatives_1()); }
+(rule__Number__Alternatives_1)
+{ after(grammarAccess.getNumberAccess().getAlternatives_1()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+
+
+
+
 
 rule__Frame__UnorderedGroup_2
     @init {
@@ -17884,6 +18978,263 @@ finally {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule__Mapview__UnorderedGroup_1
+    @init {
+    	int stackSize = keepStackSize();
+		getUnorderedGroupHelper().enter(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+    }
+:
+	rule__Mapview__UnorderedGroup_1__0
+	
+	{getUnorderedGroupHelper().canLeave(grammarAccess.getMapviewAccess().getUnorderedGroup_1())}?
+	
+;
+finally {
+	getUnorderedGroupHelper().leave(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__Impl
+	@init {
+		int stackSize = keepStackSize();
+		boolean selected = false;
+    }
+:
+		(
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 0)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 0);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_0()); }
+						(rule__Mapview__Group_1_0__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_0()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 1)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 1);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_1()); }
+						(rule__Mapview__Group_1_1__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_1()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 2)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 2);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_2()); }
+						(rule__Mapview__Group_1_2__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_2()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 3)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 3);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_3()); }
+						(rule__Mapview__Group_1_3__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_3()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 4)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 4);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_4()); }
+						(rule__Mapview__Group_1_4__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_4()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 5)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 5);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_5()); }
+						(rule__Mapview__Group_1_5__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_5()); }
+					)
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 6)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 6);
+	 				}
+	 				{
+	 				  selected = true;
+	 				}
+					(
+					
+						{ before(grammarAccess.getMapviewAccess().getGroup_1_6()); }
+						(rule__Mapview__Group_1_6__0)
+						{ after(grammarAccess.getMapviewAccess().getGroup_1_6()); }
+					)
+ 				)
+			)  
+
+		)
+;
+finally {
+	if (selected)
+		getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__1?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__2?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__2
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__3?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__3
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__4?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__4
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__5?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__5
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+	rule__Mapview__UnorderedGroup_1__6?
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+
+rule__Mapview__UnorderedGroup_1__6
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+	rule__Mapview__UnorderedGroup_1__Impl
+;
+finally {
+	restoreStackSize(stackSize);
+}
 
 
 
@@ -20691,6 +22042,157 @@ rule__Webview__VisibilityAssignment_1_7_1_1_1
 (
 { before(grammarAccess.getWebviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_7_1_1_1_0()); }
 	ruleVisibilityRule{ after(grammarAccess.getWebviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_7_1_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__ItemAssignment_1_0_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getItemItemRefParserRuleCall_1_0_1_0()); }
+	ruleItemRef{ after(grammarAccess.getMapviewAccess().getItemItemRefParserRuleCall_1_0_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__LabelAssignment_1_1_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelAlternatives_1_1_1_0()); }
+(rule__Mapview__LabelAlternatives_1_1_1_0)
+{ after(grammarAccess.getMapviewAccess().getLabelAlternatives_1_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__IconAssignment_1_2_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getIconIconParserRuleCall_1_2_1_0()); }
+	ruleIcon{ after(grammarAccess.getMapviewAccess().getIconIconParserRuleCall_1_2_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__HeightAssignment_1_3_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getHeightINTTerminalRuleCall_1_3_1_0()); }
+	RULE_INT{ after(grammarAccess.getMapviewAccess().getHeightINTTerminalRuleCall_1_3_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__LabelColorAssignment_1_4_1_0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_0_0()); }
+	ruleColorArray{ after(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_0_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__LabelColorAssignment_1_4_1_1_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_1_1_0()); }
+	ruleColorArray{ after(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__ValueColorAssignment_1_5_1_0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_0_0()); }
+	ruleColorArray{ after(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_0_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__ValueColorAssignment_1_5_1_1_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_1_1_0()); }
+	ruleColorArray{ after(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_1_1_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__VisibilityAssignment_1_6_1_0
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0()); }
+	ruleVisibilityRule{ after(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0()); }
+)
+
+;
+finally {
+	restoreStackSize(stackSize);
+}
+
+rule__Mapview__VisibilityAssignment_1_6_1_1_1
+    @init {
+		int stackSize = keepStackSize();
+    }
+:
+(
+{ before(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0()); }
+	ruleVisibilityRule{ after(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0()); }
 )
 
 ;

@@ -318,14 +318,14 @@ public class ItemsGrammarAccess extends AbstractGrammarElementFinder {
 		private final Keyword cContactKeyword_5 = (Keyword)cAlternatives.eContents().get(5);
 		private final Keyword cDateTimeKeyword_6 = (Keyword)cAlternatives.eContents().get(6);
 		private final Keyword cColorKeyword_7 = (Keyword)cAlternatives.eContents().get(7);
-		private final Keyword cPointKeyword_8 = (Keyword)cAlternatives.eContents().get(8);
+		private final Keyword cLocationKeyword_8 = (Keyword)cAlternatives.eContents().get(8);
 		private final RuleCall cIDTerminalRuleCall_9 = (RuleCall)cAlternatives.eContents().get(9);
 		
 		//ModelItemType:
-		//	"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Point" | ID;
+		//	"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Location" | ID;
 		public ParserRule getRule() { return rule; }
 
-		//"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Point" | ID
+		//"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Location" | ID
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//"Switch"
@@ -352,8 +352,8 @@ public class ItemsGrammarAccess extends AbstractGrammarElementFinder {
 		//"Color"
 		public Keyword getColorKeyword_7() { return cColorKeyword_7; }
 
-		//"Point"
-		public Keyword getPointKeyword_8() { return cPointKeyword_8; }
+		//"Location"
+		public Keyword getLocationKeyword_8() { return cLocationKeyword_8; }
 
 		//ID
 		public RuleCall getIDTerminalRuleCall_9() { return cIDTerminalRuleCall_9; }
@@ -575,7 +575,7 @@ public class ItemsGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//ModelItemType:
-	//	"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Point" | ID;
+	//	"Switch" | "Rollershutter" | "Number" | "String" | "Dimmer" | "Contact" | "DateTime" | "Color" | "Location" | ID;
 	public ModelItemTypeElements getModelItemTypeAccess() {
 		return (pModelItemType != null) ? pModelItemType : (pModelItemType = new ModelItemTypeElements());
 	}

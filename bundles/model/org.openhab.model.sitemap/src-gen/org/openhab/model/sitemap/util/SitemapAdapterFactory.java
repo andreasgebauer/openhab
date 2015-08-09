@@ -135,6 +135,11 @@ public class SitemapAdapterFactory extends AdapterFactoryImpl
         return createWebviewAdapter();
       }
       @Override
+      public Adapter caseMapview(Mapview object)
+      {
+        return createMapviewAdapter();
+      }
+      @Override
       public Adapter caseSwitch(Switch object)
       {
         return createSwitchAdapter();
@@ -377,6 +382,21 @@ public class SitemapAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createWebviewAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link org.openhab.model.sitemap.Mapview <em>Mapview</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see org.openhab.model.sitemap.Mapview
+   * @generated
+   */
+  public Adapter createMapviewAdapter()
   {
     return null;
   }

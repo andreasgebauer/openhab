@@ -131,6 +131,15 @@ public interface SitemapFactory extends EFactory
   Webview createWebview();
 
   /**
+   * Returns a new object of class '<em>Mapview</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Mapview</em>'.
+   * @generated
+   */
+  Mapview createMapview();
+
+  /**
    * Returns a new object of class '<em>Switch</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

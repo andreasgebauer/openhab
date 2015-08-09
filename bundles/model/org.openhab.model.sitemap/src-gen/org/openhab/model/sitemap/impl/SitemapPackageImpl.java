@@ -18,6 +18,7 @@ import org.openhab.model.sitemap.Image;
 import org.openhab.model.sitemap.LinkableWidget;
 import org.openhab.model.sitemap.List;
 import org.openhab.model.sitemap.Mapping;
+import org.openhab.model.sitemap.Mapview;
 import org.openhab.model.sitemap.NonLinkableWidget;
 import org.openhab.model.sitemap.Selection;
 import org.openhab.model.sitemap.Setpoint;
@@ -124,6 +125,13 @@ public class SitemapPackageImpl extends EPackageImpl implements SitemapPackage
    * @generated
    */
   private EClass webviewEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass mapviewEClass = null;
 
   /**
    * <!-- begin-user-doc -->
@@ -586,6 +594,26 @@ public class SitemapPackageImpl extends EPackageImpl implements SitemapPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EClass getMapview()
+  {
+    return mapviewEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getMapview_Height()
+  {
+    return (EAttribute)mapviewEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EClass getSwitch()
   {
     return switchEClass;
@@ -946,6 +974,9 @@ public class SitemapPackageImpl extends EPackageImpl implements SitemapPackage
     createEAttribute(webviewEClass, WEBVIEW__HEIGHT);
     createEAttribute(webviewEClass, WEBVIEW__URL);
 
+    mapviewEClass = createEClass(MAPVIEW);
+    createEAttribute(mapviewEClass, MAPVIEW__HEIGHT);
+
     switchEClass = createEClass(SWITCH);
     createEReference(switchEClass, SWITCH__MAPPINGS);
 
@@ -1024,6 +1055,7 @@ public class SitemapPackageImpl extends EPackageImpl implements SitemapPackage
     videoEClass.getESuperTypes().add(this.getNonLinkableWidget());
     chartEClass.getESuperTypes().add(this.getNonLinkableWidget());
     webviewEClass.getESuperTypes().add(this.getNonLinkableWidget());
+    mapviewEClass.getESuperTypes().add(this.getNonLinkableWidget());
     switchEClass.getESuperTypes().add(this.getNonLinkableWidget());
     sliderEClass.getESuperTypes().add(this.getNonLinkableWidget());
     selectionEClass.getESuperTypes().add(this.getNonLinkableWidget());
@@ -1076,6 +1108,9 @@ public class SitemapPackageImpl extends EPackageImpl implements SitemapPackage
     initEClass(webviewEClass, Webview.class, "Webview", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getWebview_Height(), ecorePackage.getEInt(), "height", null, 0, 1, Webview.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getWebview_Url(), ecorePackage.getEString(), "url", null, 0, 1, Webview.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(mapviewEClass, Mapview.class, "Mapview", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getMapview_Height(), ecorePackage.getEInt(), "height", null, 0, 1, Mapview.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(switchEClass, Switch.class, "Switch", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEReference(getSwitch_Mappings(), this.getMapping(), null, "mappings", null, 0, -1, Switch.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

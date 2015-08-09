@@ -22,7 +22,7 @@ import java.util.ArrayList;
 @SuppressWarnings("all")
 public class InternalItemsParser extends AbstractInternalAntlrParser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_STRING", "RULE_INT", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "RULE_WS", "RULE_ANY_OTHER", "'<'", "'>'", "'('", "','", "')'", "'{'", "'}'", "'Group'", "':'", "'Switch'", "'Rollershutter'", "'Number'", "'String'", "'Dimmer'", "'Contact'", "'DateTime'", "'Color'", "'Point'", "'='", "'AND'", "'OR'", "'NAND'", "'NOR'", "'AVG'", "'SUM'", "'MAX'", "'MIN'", "'COUNT'"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_STRING", "RULE_INT", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "RULE_WS", "RULE_ANY_OTHER", "'<'", "'>'", "'('", "','", "')'", "'{'", "'}'", "'Group'", "':'", "'Switch'", "'Rollershutter'", "'Number'", "'String'", "'Dimmer'", "'Contact'", "'DateTime'", "'Color'", "'Location'", "'='", "'AND'", "'OR'", "'NAND'", "'NOR'", "'AVG'", "'SUM'", "'MAX'", "'MIN'", "'COUNT'"
     };
     public static final int RULE_STRING=5;
     public static final int RULE_SL_COMMENT=8;
@@ -1297,7 +1297,7 @@ public class InternalItemsParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleModelItemType"
-    // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:536:1: ruleModelItemType returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Point' | this_ID_9= RULE_ID ) ;
+    // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:536:1: ruleModelItemType returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Location' | this_ID_9= RULE_ID ) ;
     public final AntlrDatatypeRuleToken ruleModelItemType() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -1307,10 +1307,10 @@ public class InternalItemsParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:539:28: ( (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Point' | this_ID_9= RULE_ID ) )
-            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:540:1: (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Point' | this_ID_9= RULE_ID )
+            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:539:28: ( (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Location' | this_ID_9= RULE_ID ) )
+            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:540:1: (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Location' | this_ID_9= RULE_ID )
             {
-            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:540:1: (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Point' | this_ID_9= RULE_ID )
+            // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:540:1: (kw= 'Switch' | kw= 'Rollershutter' | kw= 'Number' | kw= 'String' | kw= 'Dimmer' | kw= 'Contact' | kw= 'DateTime' | kw= 'Color' | kw= 'Location' | this_ID_9= RULE_ID )
             int alt16=10;
             switch ( input.LA(1) ) {
             case 20:
@@ -1460,12 +1460,12 @@ public class InternalItemsParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 9 :
-                    // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:597:2: kw= 'Point'
+                    // ../org.openhab.model.item/src-gen/org/openhab/model/parser/antlr/internal/InternalItems.g:597:2: kw= 'Location'
                     {
                     kw=(Token)match(input,28,FOLLOW_28_in_ruleModelItemType1179); 
 
                             current.merge(kw);
-                            newLeafNode(kw, grammarAccess.getModelItemTypeAccess().getPointKeyword_8()); 
+                            newLeafNode(kw, grammarAccess.getModelItemTypeAccess().getLocationKeyword_8()); 
                         
 
                     }

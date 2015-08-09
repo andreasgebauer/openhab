@@ -349,6 +349,16 @@ ruleNonLinkableWidget returns [EObject current=null]
         $current = $this_Colorpicker_8.current; 
         afterParserOrEnumRuleCall();
     }
+
+    |
+    { 
+        newCompositeNode(grammarAccess.getNonLinkableWidgetAccess().getMapviewParserRuleCall_9()); 
+    }
+    this_Mapview_9=ruleMapview
+    { 
+        $current = $this_Mapview_9.current; 
+        afterParserOrEnumRuleCall();
+    }
 )
 ;
 
@@ -3203,6 +3213,382 @@ ruleWebview returns [EObject current=null]
 )
 	{ 
 	  getUnorderedGroupHelper().leave(grammarAccess.getWebviewAccess().getUnorderedGroup_1());
+	}
+
+))
+;
+
+
+
+
+
+// Entry rule entryRuleMapview
+entryRuleMapview returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getMapviewRule()); }
+	 iv_ruleMapview=ruleMapview 
+	 { $current=$iv_ruleMapview.current; } 
+	 EOF 
+;
+
+// Rule Mapview
+ruleMapview returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(	otherlv_0='Mapview' 
+    {
+    	newLeafNode(otherlv_0, grammarAccess.getMapviewAccess().getMapviewKeyword_0());
+    }
+(
+
+(
+	{ 
+	  getUnorderedGroupHelper().enter(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	}
+	(
+		(
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 0)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 0);
+	 				}
+					({true}?=>(	otherlv_2='item=' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getMapviewAccess().getItemKeyword_1_0_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getItemItemRefParserRuleCall_1_0_1_0()); 
+	    }
+		lv_item_3_0=ruleItemRef		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		set(
+       			$current, 
+       			"item",
+        		lv_item_3_0, 
+        		"ItemRef");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 1)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 1);
+	 				}
+					({true}?=>(	otherlv_4='label=' 
+    {
+    	newLeafNode(otherlv_4, grammarAccess.getMapviewAccess().getLabelKeyword_1_1_0());
+    }
+(
+(
+(
+		lv_label_5_1=RULE_ID
+		{
+			newLeafNode(lv_label_5_1, grammarAccess.getMapviewAccess().getLabelIDTerminalRuleCall_1_1_1_0_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getMapviewRule());
+	        }
+       		setWithLastConsumed(
+       			$current, 
+       			"label",
+        		lv_label_5_1, 
+        		"ID");
+	    }
+
+    |		lv_label_5_2=RULE_STRING
+		{
+			newLeafNode(lv_label_5_2, grammarAccess.getMapviewAccess().getLabelSTRINGTerminalRuleCall_1_1_1_0_1()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getMapviewRule());
+	        }
+       		setWithLastConsumed(
+       			$current, 
+       			"label",
+        		lv_label_5_2, 
+        		"STRING");
+	    }
+
+)
+
+)
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 2)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 2);
+	 				}
+					({true}?=>(	otherlv_6='icon=' 
+    {
+    	newLeafNode(otherlv_6, grammarAccess.getMapviewAccess().getIconKeyword_1_2_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getIconIconParserRuleCall_1_2_1_0()); 
+	    }
+		lv_icon_7_0=ruleIcon		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		set(
+       			$current, 
+       			"icon",
+        		lv_icon_7_0, 
+        		"Icon");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 3)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 3);
+	 				}
+					({true}?=>(	otherlv_8='height=' 
+    {
+    	newLeafNode(otherlv_8, grammarAccess.getMapviewAccess().getHeightKeyword_1_3_0());
+    }
+(
+(
+		lv_height_9_0=RULE_INT
+		{
+			newLeafNode(lv_height_9_0, grammarAccess.getMapviewAccess().getHeightINTTerminalRuleCall_1_3_1_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getMapviewRule());
+	        }
+       		setWithLastConsumed(
+       			$current, 
+       			"height",
+        		lv_height_9_0, 
+        		"INT");
+	    }
+
+)
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 4)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 4);
+	 				}
+					({true}?=>(	otherlv_10='labelcolor=[' 
+    {
+    	newLeafNode(otherlv_10, grammarAccess.getMapviewAccess().getLabelcolorKeyword_1_4_0());
+    }
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_0_0()); 
+	    }
+		lv_LabelColor_11_0=ruleColorArray		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"LabelColor",
+        		lv_LabelColor_11_0, 
+        		"ColorArray");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(	otherlv_12=',' 
+    {
+    	newLeafNode(otherlv_12, grammarAccess.getMapviewAccess().getCommaKeyword_1_4_1_1_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getLabelColorColorArrayParserRuleCall_1_4_1_1_1_0()); 
+	    }
+		lv_LabelColor_13_0=ruleColorArray		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"LabelColor",
+        		lv_LabelColor_13_0, 
+        		"ColorArray");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*	otherlv_14=']' 
+    {
+    	newLeafNode(otherlv_14, grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_4_1_2());
+    }
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 5)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 5);
+	 				}
+					({true}?=>(	otherlv_15='valuecolor=[' 
+    {
+    	newLeafNode(otherlv_15, grammarAccess.getMapviewAccess().getValuecolorKeyword_1_5_0());
+    }
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_0_0()); 
+	    }
+		lv_ValueColor_16_0=ruleColorArray		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"ValueColor",
+        		lv_ValueColor_16_0, 
+        		"ColorArray");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(	otherlv_17=',' 
+    {
+    	newLeafNode(otherlv_17, grammarAccess.getMapviewAccess().getCommaKeyword_1_5_1_1_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getValueColorColorArrayParserRuleCall_1_5_1_1_1_0()); 
+	    }
+		lv_ValueColor_18_0=ruleColorArray		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"ValueColor",
+        		lv_ValueColor_18_0, 
+        		"ColorArray");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*	otherlv_19=']' 
+    {
+    	newLeafNode(otherlv_19, grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_5_1_2());
+    }
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  |
+
+			( 
+				{getUnorderedGroupHelper().canSelect(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 6)}?=>(
+					{ 
+	 				  getUnorderedGroupHelper().select(grammarAccess.getMapviewAccess().getUnorderedGroup_1(), 6);
+	 				}
+					({true}?=>(	otherlv_20='visibility=[' 
+    {
+    	newLeafNode(otherlv_20, grammarAccess.getMapviewAccess().getVisibilityKeyword_1_6_0());
+    }
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_0_0()); 
+	    }
+		lv_Visibility_21_0=ruleVisibilityRule		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"Visibility",
+        		lv_Visibility_21_0, 
+        		"VisibilityRule");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(	otherlv_22=',' 
+    {
+    	newLeafNode(otherlv_22, grammarAccess.getMapviewAccess().getCommaKeyword_1_6_1_1_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMapviewAccess().getVisibilityVisibilityRuleParserRuleCall_1_6_1_1_1_0()); 
+	    }
+		lv_Visibility_23_0=ruleVisibilityRule		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMapviewRule());
+	        }
+       		add(
+       			$current, 
+       			"Visibility",
+        		lv_Visibility_23_0, 
+        		"VisibilityRule");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*	otherlv_24=']' 
+    {
+    	newLeafNode(otherlv_24, grammarAccess.getMapviewAccess().getRightSquareBracketKeyword_1_6_1_2());
+    }
+)))
+					{ 
+	 				  getUnorderedGroupHelper().returnFromSelection(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
+	 				}
+ 				)
+			)  
+
+		)+
+	  	{getUnorderedGroupHelper().canLeave(grammarAccess.getMapviewAccess().getUnorderedGroup_1())}?	
+	)
+)
+	{ 
+	  getUnorderedGroupHelper().leave(grammarAccess.getMapviewAccess().getUnorderedGroup_1());
 	}
 
 ))
@@ -6132,12 +6518,16 @@ ruleCommand returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
-(    this_INT_0=RULE_INT    {
-		$current.merge(this_INT_0);
+(
+    { 
+        newCompositeNode(grammarAccess.getCommandAccess().getNumberParserRuleCall_0()); 
+    }
+    this_Number_0=ruleNumber    {
+		$current.merge(this_Number_0);
     }
 
     { 
-    newLeafNode(this_INT_0, grammarAccess.getCommandAccess().getINTTerminalRuleCall_0()); 
+        afterParserOrEnumRuleCall();
     }
 
     |    this_ID_1=RULE_ID    {
@@ -6176,22 +6566,28 @@ ruleNumber returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()]
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
-(    this_INT_0=RULE_INT    {
-		$current.merge(this_INT_0);
+((
+	kw='-' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getNumberAccess().getHyphenMinusKeyword_0()); 
+    }
+)?(    this_INT_1=RULE_INT    {
+		$current.merge(this_INT_1);
     }
 
     { 
-    newLeafNode(this_INT_0, grammarAccess.getNumberAccess().getINTTerminalRuleCall_0()); 
+    newLeafNode(this_INT_1, grammarAccess.getNumberAccess().getINTTerminalRuleCall_1_0()); 
     }
 
-    |    this_FLOAT_1=RULE_FLOAT    {
-		$current.merge(this_FLOAT_1);
+    |    this_FLOAT_2=RULE_FLOAT    {
+		$current.merge(this_FLOAT_2);
     }
 
     { 
-    newLeafNode(this_FLOAT_1, grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1()); 
+    newLeafNode(this_FLOAT_2, grammarAccess.getNumberAccess().getFLOATTerminalRuleCall_1_1()); 
     }
-)
+))
     ;
 
 
