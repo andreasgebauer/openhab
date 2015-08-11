@@ -3,7 +3,7 @@ var appModule = angular.module('app.factories', []);
 appModule.factory('sitemap', function($http, $log) {
 	$log.debug("Initializing Sitemap-Factory")
 	return {
-		fetch : function(sitemap, widget, callback) {
+		fetch : function(sitemap, widget, callback, errorCallback) {
 			$log.info("Fetching sitemap '" + sitemap + "', widget: '" + widget + "'");
 			$http.get(sitemapUrl, {
 				params : {
@@ -12,8 +12,8 @@ appModule.factory('sitemap', function($http, $log) {
 				}
 			}).success(function(data) {
 				callback(data);
-			}).error(function() {
-				alert("Unable to fetch sitemap");
+			}).error(function(e) {
+				errorCallback(e);
 			});
 		},
 		pageItem: function(sitemap, widgetId){
@@ -38,8 +38,7 @@ appModule.factory('sitemap', function($http, $log) {
 			}
 			
 			if(angular.isDefined(sitemap)) {
-				var pageItem = getWidget(sitemap, widgetId);
-				return pageItem;
+				return getWidget(sitemap, widgetId);
 			}
 		}
 	};

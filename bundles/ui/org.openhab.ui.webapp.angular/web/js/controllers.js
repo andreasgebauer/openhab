@@ -6,7 +6,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	webSocket.init();
 
 	$scope.stayConnected = false;
-	$scope.show = false;
+	$scope.showLoader = false;
 
 	var that = this;
 
@@ -123,6 +123,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		var setupModel = function(data) {
 			$log.debug("Sitemap for widget " + data.id + " loaded: " + data.label);
 			data.id = widgetId;
+			//debugger;
 
 			var oldSitemap = $scope.sitemap;
 			if (angular.isDefined(oldSitemap)) {
@@ -178,7 +179,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 					visible : true
 				}
 			};
-			$scope.show = true;
 
 			$scope.viewItem = sitemap.pageItem($scope.sitemap, data.id);
 			if (angular.isUndefined($scope.viewItem)) {
@@ -187,35 +187,54 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 			process($scope.viewItem);
 
+			$timeout(function(){
+				$scope.showLoader = false;
+			});
+		};
+		
+		var fetchSitemap = function(widgetId, setupModel) {
+			//$scope.showLoader = true;
+			sitemap.fetch("default", widgetId, setupModel, function(){
+				$scope.showLoader = false;
+			});
 		};
 
 		if (angular.isUndefined($scope.sitemap)) {
-			sitemap.fetch("default", widgetId, setupModel);
+			fetchSitemap(widgetId, setupModel);
 		} else {
 
-			$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
+			var viewItem = sitemap.pageItem($scope.sitemap, widgetId);
+			//$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
-			if (angular.isUndefined($scope.viewItem) || angular.isUndefined($scope.viewItem.children)) {
+			if (angular.isUndefined(viewItem) || angular.isUndefined(viewItem.children)) {
 				// we need to load the sitemap data for the page shown
-				sitemap.fetch("default", widgetId, setupModel);
+				fetchSitemap(widgetId, setupModel);
 			} else {
 				
-				if(angular.isUndefined($scope.viewItem)){
-					sitemap.fetch("default", widgetId, setupModel);
+				if(angular.isUndefined(viewItem)){
+					fetchSitemap(widgetId, setupModel);
 				} else {
-					$scope.viewItem.selected = false;
-					process($scope.viewItem);
+					$scope.showLoader = false;
+
+					viewItem.selected = false;
+					process(viewItem);
+
+					$timeout(function(){
+						$scope.viewItem = viewItem;
+					});
+					//$timeout(function(){
+					//});
 				}
 			}
 
 			if (angular.isDefined($scope.nav)) {
 				$scope.nav.home.visible = $scope.nav.back.visible = sitemap.location !== "";
 
-				if (angular.isDefined($scope.viewItem)) {
-					$scope.nav.back.hef = $scope.viewItem.parentId ? "#" + $scope.viewItem.parentId : "#/";
-					$scope.nav.title.text = $scope.viewItem.label;
-					if (angular.isDefined($scope.viewItem.formattedValue)) {
-						$scope.nav.title.text += " " + $scope.viewItem.formattedValue;
+				if (angular.isDefined(viewItem)) {
+					$scope.nav.back.href = viewItem.parentId ? "#" + viewItem.parentId : "#/";
+					$scope.nav.title.text = viewItem.label;
+					if (angular.isDefined(viewItem.formattedValue)) {
+						$scope.nav.title.text += " " + viewItem.formattedValue;
 					}
 				}
 			}
@@ -340,11 +359,11 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		widget.selected = true;
 
 		$timeout(function() {
-			$scope.viewItem = widget;
+			//$scope.viewItem = widget;
 			$location.path(widget.id);
 			widget.selected = false;
+			//$scope.showLoader = true;
 		});
-
 	};
 
 	$scope.getWidgets = this.getWidgets();

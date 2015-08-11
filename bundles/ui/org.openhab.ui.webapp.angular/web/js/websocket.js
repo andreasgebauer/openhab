@@ -46,10 +46,12 @@ app.provider('webSocket', function() {
 			var webSocket = {
 
 				subscribe : function(callback) {
+					$log.info("Subscribing " + callback.name)
 					callbacks.add(callback);
 				},
 				
 				unsubscribe : function(callback) {
+					$log.info("Unsubscribing " + callback.name)
 					callbacks.remove(callback);
 				},
 				

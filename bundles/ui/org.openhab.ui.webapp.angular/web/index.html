@@ -28,7 +28,7 @@
 <body>
 	<div id="WebApp">
 		<div id="iPL"></div>
-		<div id="iLoader" ng-show="!show">
+		<div id="iLoader" ng-show="showLoader">
 			<span>Loading...</span>
 		</div>
 
@@ -44,8 +44,8 @@
 		</div>
 
 		<div id="iGroup">
-			<div class="iLayer ng-hide" id="wa{{viewItem.id}}" title="{{viewItem.label}}" ng-hide="!show" ng-show="show">
-				<filler ng-repeat="widget in viewItem.children" ng-include src="'pages/' + widget.type + '.html'" ng-show="show" class="show-hide ng-hide"></filler>
+			<div class="iLayer ng-hide" id="wa{{viewItem.id}}" title="{{viewItem.label}}" ng-hide="showLoader">
+				<filler ng-repeat="widget in viewItem.children" ng-include src="'pages/' + widget.type + '.html'" ng-hide="showLoader" class="show-hide ng-hide"></filler>
 				<div class="iFooter">&copy;2010-2014 openHAB.org</div>
 			</div>
 			<div class="iLayer ng-hide" id="waColorpicker" title="Color">
