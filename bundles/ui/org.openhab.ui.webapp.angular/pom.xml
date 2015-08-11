@@ -28,6 +28,7 @@
 					<execution>
 						<phase>generate-resources</phase>
 						<configuration>
+							<failOnError>true</failOnError>
 							<target>
 								<exec executable="bower">
 									<arg value="install" />
