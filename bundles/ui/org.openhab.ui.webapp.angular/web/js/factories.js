@@ -1,9 +1,16 @@
 var appModule = angular.module('app.factories', []);
 
 appModule.factory('sitemap', function($http, $log) {
-	$log.debug("Initializing Sitemap-Factory")
+	$log.debug("Initializing Sitemap-Factory");
+
+	var forEachChild = function(root, callback) {
+		for (var int = 0; root.children && int < root.children.length; int++) {
+			callback(root.children[int]);
+		}
+	};
+
 	return {
-		fetch : function(sitemap, widget, callback, errorCallback) {
+		fetch: function(sitemap, widget, callback, errorCallback) {
 			$log.info("Fetching sitemap '" + sitemap + "', widget: '" + widget + "'");
 			$http.get(sitemapUrl, {
 				params : {
@@ -11,10 +18,72 @@ appModule.factory('sitemap', function($http, $log) {
 					w : widget
 				}
 			}).success(function(data) {
+				data.id = widget;
+				$log.debug("Sitemap for widget " + data.id + " fetched: " + data.label);
 				callback(data);
 			}).error(function(e) {
 				errorCallback(e);
 			});
+		},
+		// get the widget for the widget id given
+		getWidget: function(root, id) {
+			$log.debug("getWidget: " + id);
+			for (var int = 0; root.children && int < root.children.length; int++) {
+				var child = root.children[int];
+				if (child.id == id) {
+					return child;
+				}
+				if (child.children) {
+					var candidate = this.getWidget(child, id);
+					if (!angular.isUndefined(candidate)) {
+						return candidate;
+					}
+				}
+			}
+		},
+		// get all widgets for the item id given
+		getWidgets: function(root, id) {
+			$log.debug("getWidgets: " + id);
+			if (angular.isUndefined(root)) {
+				return;
+			}
+			var addIfNotExistent = function(arr, el) {
+				var found = false;
+				for (var j = 0; j < arr.length; j++) {
+					var el2 = arr[j];
+					if (el2 === el) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					arr.push(el);
+				}
+			};
+
+			var items = new Array;
+			for (var int = 0; root.children && int < root.children.length; int++) {
+				var widget = root.children[int];
+				if (widget.item === id) {
+					addIfNotExistent(items, widget);
+				}
+				if (widget.children) {
+					var it = this.getWidgets(widget, id);
+					if (it) {
+						for (var j = 0; j < it.length; j++) {
+							addIfNotExistent(items, it[j]);
+						}
+					}
+				}
+				if (widget.items) {
+					for (var j = 0; j < widget.items.length; j++) {
+						if (widget.items[j] === id) {
+							addIfNotExistent(items, widget);
+						}
+					}
+				}
+			}
+			return items;
 		},
 		pageItem: function(sitemap, widgetId){
 			// returns the widget for the widget id
@@ -44,12 +113,28 @@ appModule.factory('sitemap', function($http, $log) {
 	};
 } )
 
+.factory("commandService", function($log, $http) {
+	var commandService = {
+		update : function(widget, state) {
+			$log.debug("commandService: update invoked: " + widget + ": " + state);
+	
+			var params = {};
+			params[widget] = state;
+	
+			$http.get(commandUrl, {
+				params : params
+			}).success(function(data) {
+				$log.debug("commandService: received: " + data);
+			}).error(function() {
+				$log.error("Command was not successful");
+			});	
+		}};
+	return commandService;
+})
 
 // I get a rough estimate of the number of watchers on the page. This assumes 
 // that the entire page is inside the same AngularJS application. 
-.factory(
-	"getWatchCount",
-	function() {
+.factory("getWatchCount", function() {
 
 		// I return the count of watchers on the current page.
 		function getWatchCount() {
