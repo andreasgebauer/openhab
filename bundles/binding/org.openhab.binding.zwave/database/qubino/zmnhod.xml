@@ -48,7 +48,7 @@
 			<Index>10</Index>
 			<Type>list</Type>
 			<Default>255</Default>
-			<Size>2</Size>
+			<Size>1</Size>
 			<Label>Activate/deactivate functions ALL ON / ALL OFF </Label>
 			<Help lang="en">Module responds to commands ALL ON / ALL OFF that may
 				be sent by the main controller or by other controller
@@ -196,17 +196,17 @@
 			<Default>0</Default>
 			<Size>1</Size>
 			<Label>Forced Shutter DC calibration</Label>
-			<Help lang="en">Setting value 0 or 1 a Shutter DC module enters the
-				calibration mode.</Help>
+			<Help lang="en"><![CDATA[Setting value 0 or 1 a Shutter DC module enters the
+				calibration mode.<br> 
+				When calibration process is finished, completing full cycle - up, down
+				and up, set parameter 78 back to default of 0.]]></Help>
 			<Item>
 				<Value>0</Value>
 				<Label lang="en">Default</Label>
 			</Item>
 			<Item>
 				<Value>1</Value>
-				<Label lang="en"><![CDATA[Start calibration process. <br> 
-				When calibration process is finished, completing full cycle - up, down
-				and up, set parameter 78 back to default of 0.]]></Label>
+				<Label lang="en">Start calibration proces.</Label>
 			</Item>
 		</Parameter>
 		<Parameter>
