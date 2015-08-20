@@ -158,5 +158,7 @@
     <module>org.openhab.binding.lightwaverf</module>
 	<module>org.openhab.binding.souliss</module>
     <module>org.openhab.binding.sagercaster</module>
+    <module>org.openhab.binding.cec</module>
+    <module>org.openhab.binding.cec.test</module>
   </modules>
 </project>
