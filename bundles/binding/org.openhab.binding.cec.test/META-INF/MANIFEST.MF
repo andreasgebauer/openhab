@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests for the CEC Binding
+Bundle-SymbolicName: org.openhab.binding.cec.test
+Bundle-Version: 1.8.0.qualifier
+Bundle-Vendor: openHAB.org
+Fragment-Host: org.openhab.binding.cec
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.junit;bundle-version="4.8.1"
+Import-Package: org.apache.commons.lang.reflect
+Bundle-ClassPath: .,
+ target/dependency/javassist-3.19.0-GA.jar,
+ target/dependency/mockito-all-1.10.19.jar,
+ target/dependency/objenesis-2.1.jar,
+ target/dependency/powermock-api-mockito-1.6.2.jar,
+ target/dependency/powermock-api-support-1.6.2.jar,
+ target/dependency/powermock-core-1.6.2.jar,
+ target/dependency/powermock-reflect-1.6.2.jar,
+ target/dependency/hamcrest-core-1.3.jar,
+ target/dependency/junit-4.12.jar,
+ target/dependency/powermock-module-junit4-1.6.2.jar,
+ target/dependency/powermock-module-junit4-common-1.6.2.jar

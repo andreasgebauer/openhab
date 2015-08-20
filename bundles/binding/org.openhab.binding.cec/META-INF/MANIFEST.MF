@@ -1,0 +1,32 @@
+Manifest-Version: 1.0
+Private-Package: org.openhab.binding.cec.internal
+Ignore-Package: org.openhab.binding.cec.internal
+Export-Package: org.openhab.binding.cec,org.openhab.binding.cec.intern
+ al.bus;x-internal:=true
+Bundle-Name: openHAB CEC Binding
+Bundle-Vendor: openHAB.org
+Bundle-Version: 1.8.0.qualifier
+Bundle-Activator: org.openhab.binding.cec.BindingActivator
+Bundle-ManifestVersion: 2
+Service-Component: OSGI-INF/genericbindingprovider.xml, OSGI-INF/cecbi
+ nding.xml
+Bundle-License: http://www.eclipse.org/legal/epl-v10.html
+Bundle-Description: This is the Cec binding of the open Home Aut
+ omation Bus (openHAB)
+Import-Package: org.apache.commons.io,
+ org.apache.commons.io.input,
+ org.apache.commons.lang,
+ org.openhab.core.binding,
+ org.openhab.core.events,
+ org.openhab.core.items,
+ org.openhab.core.library.types,
+ org.openhab.core.types,
+ org.openhab.model.item.binding,
+ org.osgi.framework,
+ org.osgi.service.cm,
+ org.slf4j
+Bundle-SymbolicName: org.openhab.binding.cec
+Bundle-DocURL: http://www.openhab.org
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: lib/xstream-1.4.6.jar,
+ .
