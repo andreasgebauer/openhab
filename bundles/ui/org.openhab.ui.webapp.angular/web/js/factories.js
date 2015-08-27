@@ -27,7 +27,7 @@ appModule.factory('sitemap', function($http, $log) {
 		},
 		// get the widget for the widget id given
 		getWidget: function(root, id) {
-			$log.debug("getWidget: " + id);
+			//$log.debug("getWidget: " + id);
 			for (var int = 0; root.children && int < root.children.length; int++) {
 				var child = root.children[int];
 				if (child.id == id) {
@@ -43,7 +43,7 @@ appModule.factory('sitemap', function($http, $log) {
 		},
 		// get all widgets for the item id given
 		getWidgets: function(root, id) {
-			$log.debug("getWidgets: " + id);
+			//$log.debug("getWidgets: " + id);
 			if (angular.isUndefined(root)) {
 				return;
 			}
