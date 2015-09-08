@@ -24,6 +24,8 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	};
 
 	var processUpdate = function(widget, item) {
+		$log.debug("Processing update for " + widget + ": " + JSON.stringify(widget));
+		
 		var value = parseValue(item);
 		var iconPrefix = item.icon != "none" ? item.icon : widget.type;
 
@@ -34,7 +36,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		} else {
 			if (widget.type === "switch") {
 				widget.value = value;
-			} else if (widget.type === "slider") {
+			} else if (widget.type === "slider" || widget.type == "setpoint") {
 				widget.value = value;
 				if(value instanceof String) {
 					value = value.toLowerCase();
