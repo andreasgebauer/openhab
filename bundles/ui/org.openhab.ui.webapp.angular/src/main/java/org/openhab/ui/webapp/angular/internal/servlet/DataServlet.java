@@ -9,7 +9,6 @@ import java.util.List;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,9 +21,6 @@ import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.types.State;
 import org.openhab.io.net.http.SecureHttpContext;
-import org.openhab.model.sitemap.Widget;
-import org.openhab.model.sitemap.impl.WidgetImpl;
-import org.openhab.ui.items.ItemUIRegistry;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
@@ -115,9 +111,9 @@ public class DataServlet extends WebSocketServlet {
 		public void stateChanged(final Item item, final State oldState, final State newState) {
 			// logger.debug("State of {} changed from {} to {}", item.getName(), oldState, newState);
 			final String name = item.getName();
-			String label = DataServlet.this.itemUIRegistry.getLabel(fakeWidget(name));
-			String icon = DataServlet.this.itemUIRegistry.getIcon(fakeWidget(name));
-			sendStateMessage(name, label, icon, newState);
+//			String label = DataServlet.this.itemUIRegistry.getLabel(fakeWidget(name));
+//			String icon = DataServlet.this.itemUIRegistry.getIcon(fakeWidget(name));
+			sendStateMessage(name, null, null, newState);
 		}
 
 		private void sendStateMessage(String name, String label, String icon, State state) {
@@ -144,7 +140,6 @@ public class DataServlet extends WebSocketServlet {
 
 	private HttpService httpService;
 	private ItemRegistry itemRegistry;
-	private ItemUIRegistry itemUIRegistry;
 
 	private final List<WebSocketImpl> sockets = new ArrayList<WebSocketImpl>();
 
@@ -162,14 +157,6 @@ public class DataServlet extends WebSocketServlet {
 
 	public void unsetItemRegistry(final ItemRegistry itemRegistry) {
 		this.itemRegistry = null;
-	}
-
-	public void setItemUIRegistry(final ItemUIRegistry itemUIRegistry) {
-		this.itemUIRegistry = itemUIRegistry;
-	}
-
-	public void unsetItemUIRegistry(final ItemUIRegistry itemUIRegistry) {
-		this.itemUIRegistry = null;
 	}
 
 	protected void activate() {
@@ -217,17 +204,5 @@ public class DataServlet extends WebSocketServlet {
 
 		return socket;
 	}
-
-	private Widget fakeWidget(final String name) {
-		Widget w = new WidgetImpl() {
-			@Override
-			public String getItem() {
-				return name;
-			}
-		};
-		return w;
-	}
-
-	
 
 }

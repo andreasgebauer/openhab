@@ -132,6 +132,101 @@ appModule.factory('sitemap', function($http, $log) {
 	return commandService;
 })
 
+.factory("transformService", function($log, $http){
+	return {
+		transform : function(transformType, transformParam, formattedValue) {
+			return $http.get(transformUrl + transformType + "/" + transformParam + "/" + formattedValue);
+		}
+	};
+})
+
+.factory("iconService", function($log, $http, $q) {
+	var getState = function(w) {
+		return w;
+	};
+	var iconExists = function(filename) {
+		return $http.get(imageUrl + filename + ".png");
+	};
+	return {
+		getIcon : function(w, value) {
+			return $q(function(resolve, reject){
+
+				$log.debug("iconService: getIcon invoked: " + w.type + ": " + value);
+
+				var icon = w.type;
+				if(w.icon!=null && w.icon != "none") {
+					icon = w.icon;
+				} else {
+					//var itemName = w.item;
+					//if(itemName!=null) {
+					//	iconExists(itemName).success(function(){
+					//		resolve(icon);
+					//	});
+					//}
+				}
+
+				$log.debug("iconService: icon: " + icon);
+
+				var resOrErr = function (icon, err) {
+					iconExists(icon)
+					.then(function(){
+						$log.debug("iconService: resolving because of success");
+						resolve(icon);
+					},err);				
+				};
+
+				var otherwise = function(icon){
+					resOrErr(icon, function(){
+						if(icon.indexOf("-") < 0) {
+							$log.debug("iconService: resolving because no '-' found");
+							resolve(icon);
+						}
+						iconExists(icon.substring(0, icon.indexOf("-")))
+						.then(function(data) {
+							resolve(icon);
+							$log.debug("iconService: resolving because of success with substring " + JSON.stringify(data));
+						}, function() {
+							resolve("none");
+						});
+					});
+				}
+
+
+				// now add the state, if the string does not already contain a state
+				// information
+				if(icon.indexOf("-") < 0) {
+					if(w.type == "percent") {
+						// we do a special treatment for percent types; we try to find the icon of the biggest value
+						// that is still smaller or equal to the current state. 
+						// Example: if there are icons *-0.png, *-50.png and *-100.png, we choose *-0.png, if the state
+						// is 40, and *-50.png, if the state is 70.
+						var iconState = value;
+						var testIcon = function (){
+							test = icon + "-" + (iconState--);
+
+							resOrErr(test, function() {
+								 if(iconState>=0){
+									testIcon();
+								 } else {
+									// TODO
+									$log.debug("iconService: no icon found by state");
+								 }
+							});
+						};
+						testIcon();
+					} else {
+						// for all other types, just add the string representation of the state
+						icon += "-" + value;
+						otherwise(icon);
+					}
+				} else {
+					otherwise(icon);
+				}
+			});
+		}
+	};
+})
+
 // I get a rough estimate of the number of watchers on the page. This assumes 
 // that the entire page is inside the same AngularJS application. 
 .factory("getWatchCount", function() {

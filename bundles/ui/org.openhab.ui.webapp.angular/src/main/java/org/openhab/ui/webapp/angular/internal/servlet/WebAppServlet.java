@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonString;
-import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -27,8 +25,6 @@ import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.library.items.RollershutterItem;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.types.State;
 import org.openhab.model.sitemap.Chart;
 import org.openhab.model.sitemap.Frame;
 import org.openhab.model.sitemap.LinkableWidget;
@@ -50,6 +46,9 @@ import org.slf4j.LoggerFactory;
 public class WebAppServlet extends BaseServlet {
 
 	private static final Logger LOG = LoggerFactory.getLogger(WebAppServlet.class);
+	/* RegEx to extract and parse a function String <code>'\[(.*?)\((.*)\):(.*)\]'</code> */
+	protected static final Pattern EXTRACT_TRANSFORMFUNCTION_PATTERN = Pattern.compile(".*?\\[(.*?)\\((.*)\\):(.*)\\]");
+	protected static final Pattern EXTRACT_LABEL_PATTERN = Pattern.compile("(.*?)\\s*\\[(.*?)\\]");
 
 	protected SitemapProvider sitemapProvider;
 	private ItemUIRegistry itemUIRegistry;
@@ -60,10 +59,6 @@ public class WebAppServlet extends BaseServlet {
 
 	public void unsetItemUIRegistry(ItemUIRegistry itemUIRegistry) {
 		this.itemUIRegistry = null;
-	}
-
-	public ItemUIRegistry getItemUIRegistry() {
-		return itemUIRegistry;
 	}
 
 	public void setSitemapProvider(final SitemapProvider sitemapProvider) {
@@ -114,23 +109,24 @@ public class WebAppServlet extends BaseServlet {
 				JsonObjectBuilder sitemapBuilder = Json.createObjectBuilder();
 				// sitemapBuilder.add("id", label);
 				sitemapBuilder.add("label", label);
+				sitemapBuilder.add("name", sitemapName);
 				sitemapBuilder.add("children", render(sitemap.getChildren()));
 				writer.writeObject(sitemapBuilder.build());
 
 			} else if (!widgetId.equals("Colorpicker")) {
 				// we are on some subpage, so we have to render the children of the widget that has been selected
-				Widget w = getItemUIRegistry().getWidget(sitemap, widgetId);
+				Widget w = itemUIRegistry.getWidget(sitemap, widgetId);
 				if (w != null) {
 					if (!(w instanceof LinkableWidget)) {
 						throw new RenderException("Widget '" + w + "' can not have any content");
 					}
-					EList<Widget> children = getItemUIRegistry().getChildren((LinkableWidget) w);
-					String label = getItemUIRegistry().getLabel(w);
+					EList<Widget> children = itemUIRegistry.getChildren((LinkableWidget) w);
+					String label = itemUIRegistry.getLabel(w);
 					if (label == null)
 						label = "undefined";
 
 					JsonObjectBuilder sitemapBuilder = Json.createObjectBuilder();
-					String id = getItemUIRegistry().getWidgetId(w);
+					String id = itemUIRegistry.getWidgetId(w);
 					String parentWidgetId = getParentWidgetId(sitemap, w);
 					sitemapBuilder.add("id", id);
 					sitemapBuilder.add("parentId", parentWidgetId);
@@ -170,7 +166,7 @@ public class WebAppServlet extends BaseServlet {
 					}
 				}
 
-				return getItemUIRegistry().getWidgetId(parent);
+				return itemUIRegistry.getWidgetId(parent);
 
 				// String widgetId = getParentWidgetId((LinkableWidget) widget, w);
 				// if (widgetId != null) {
@@ -194,6 +190,7 @@ public class WebAppServlet extends BaseServlet {
 	private JsonObjectBuilder render(Widget widget) throws ItemNotFoundException {
 
 		String simpleName = widget.getClass().getSimpleName();
+		
 		String type = simpleName.substring(0, simpleName.length() - "Impl".length()).toLowerCase();
 
 		if (widget instanceof Text && !((Text) widget).getChildren().isEmpty()) {
@@ -201,53 +198,24 @@ public class WebAppServlet extends BaseServlet {
 			type += "_link";
 		}
 
-		String id = getItemUIRegistry().getWidgetId(widget);
+		String id = itemUIRegistry.getWidgetId(widget);
 		String labelPattern = widget.getLabel();
-		String valuePattern = null;
 		if (labelPattern == null) {
-			labelPattern = getItemUIRegistry().getLabel(widget.getItem());
+			labelPattern = itemUIRegistry.getLabel(widget.getItem());
 		}
-		if (labelPattern != null) {
-			Matcher matcher = Pattern.compile(".*\\[(.*)\\].*").matcher(labelPattern);
+
+		String label = itemUIRegistry.getLabel(widget);
+		if (label != null) {
+			Matcher matcher = EXTRACT_LABEL_PATTERN.matcher(label);
 			if (matcher.matches()) {
-				valuePattern = matcher.group(1);
+				label = matcher.group(1);
 			}
 		}
 
-		String label = getItemUIRegistry().getLabel(widget);
-		JsonValue valueJson = null;
-		if (label.indexOf('[') != -1 && label.indexOf(']') != -1) {
-			final String value = label.substring(label.indexOf('[') + 1, label.indexOf(']'));
-			label = label.substring(0, label.indexOf('[') - 1).trim();
-			valueJson = new JsonString() {
-
-				@Override
-				public ValueType getValueType() {
-					return ValueType.STRING;
-				}
-
-				@Override
-				public String getString() {
-					return value;
-				}
-
-				@Override
-				public CharSequence getChars() {
-					return value;
-				}
-
-			};
-		} else {
-			State state = getItemUIRegistry().getState(widget);
-			if (state instanceof OnOffType) {
-				valueJson = ((OnOffType) state) == OnOffType.ON ? JsonValue.TRUE : JsonValue.FALSE;
-			}
-		}
-
-		String icon = getItemUIRegistry().getIcon(widget);
-		String labelColor = getItemUIRegistry().getLabelColor(widget);
-		String valueColor = getItemUIRegistry().getValueColor(widget);
 		String itemName = widget.getItem();
+		String icon = null; // itemUIRegistry.getIcon(widget);
+		String labelColor = itemUIRegistry.getLabelColor(widget);
+		String valueColor = itemUIRegistry.getValueColor(widget);
 
 		Item item = null;
 
@@ -258,7 +226,7 @@ public class WebAppServlet extends BaseServlet {
 		}
 
 		JSONDataBuilder dataBuilder = JSONDataBuilder.createStateMessage(id, label, icon);
-		
+
 		dataBuilder.add("type", type);
 
 		if (item != null) {
@@ -269,20 +237,30 @@ public class WebAppServlet extends BaseServlet {
 		if (labelPattern != null) {
 			dataBuilder.add("labelPattern", labelPattern);
 		}
-		if (valuePattern != null) {
-			dataBuilder.add("valuePattern", valuePattern);
-		}
 		if (null != labelColor) {
 			dataBuilder.add("labelColor", labelColor);
 		}
 		if (null != valueColor) {
 			dataBuilder.add("valueColor", valueColor);
 		}
-		if (valueJson != null) {
-			dataBuilder.add("formattedValue", valueJson);
-		}
 		if (itemName != null) {
 			dataBuilder.add("item", itemName);
+		}
+		
+		if (labelPattern != null) {
+			Matcher matcher = EXTRACT_TRANSFORMFUNCTION_PATTERN.matcher(labelPattern);
+			if (matcher.matches()) {
+				String transformType = matcher.group(1);
+				String pattern = matcher.group(2);
+				String valuePattern = matcher.group(3);
+
+				JsonObjectBuilder transform = Json.createObjectBuilder();
+				transform.add("type", transformType);
+				transform.add("param", pattern);
+				transform.add("valuePattern", valuePattern);
+
+				dataBuilder.add("transform", transform.build());
+			}
 		}
 
 		if (widget instanceof LinkableWidget) {
@@ -329,7 +307,8 @@ public class WebAppServlet extends BaseServlet {
 			if (mappings.size() == 0) {
 				if (widget instanceof RollershutterItem) {
 					subType = "rollerblind";
-				} else if (widget instanceof GroupItem && ((GroupItem) widget).getBaseItem() instanceof RollershutterItem) {
+				} else if (widget instanceof GroupItem
+						&& ((GroupItem) widget).getBaseItem() instanceof RollershutterItem) {
 					subType = "rollerblind";
 				} else {
 					subType = "switch";

@@ -42,7 +42,7 @@ public abstract class BaseServlet implements Servlet {
 
 	protected void activate() {
 		try {
-			String mapping = WEBAPP_ALIAS + "/" + getServletName();
+			String mapping = getMapping();
 			logger.debug("Starting up " + this.getClass().getSimpleName() + " at " + mapping);
 
 			Hashtable<String, String> props = new Hashtable<String, String>();
@@ -53,6 +53,10 @@ public abstract class BaseServlet implements Servlet {
 		} catch (ServletException e) {
 			logger.error("Error during servlet startup", e);
 		}
+	}
+
+	protected String getMapping() {
+		return WEBAPP_ALIAS + "/" + getServletName();
 	}
 
 	protected abstract String getServletName();

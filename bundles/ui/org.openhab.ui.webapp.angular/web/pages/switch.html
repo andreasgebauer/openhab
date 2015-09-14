@@ -5,6 +5,6 @@
 
 <input type="checkbox" id="{{widget.item}}" class="iToggle" title="I|O"
 	{{widget.checked}} ng-click="ctrl.changeState(widget.item, 'TOGGLE')" />
-<img ng-src="/images/{{widget.icon}}.png" width=29 height=29
+<img ng-src="{{widget.icon}}" width=29 height=29
 	class="iFull" />
 <label style="{{widget.labelStyle}}">{{widget.label}}</label>

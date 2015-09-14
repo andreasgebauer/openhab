@@ -1,5 +1,5 @@
 <a ng-click="ctrl.load(widget)" ng-controller="LinkController as ctrl">
-	<img ng-src="/images/{{widget.icon}}.png" width=29 height=29 />
+	<img ng-src="{{widget.icon}}" width=29 height=29 />
 	{{widget.label}}
 	<span style="{{widget.valueStyle}}" class="{{widget.styleClass}}">{{widget.formattedValue}}</span>
 </a>

@@ -38,7 +38,8 @@ Bundle-SymbolicName: org.openhab.ui.webapp.angular
 Bundle-DocURL: http://www.openhab.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Service-Component: OSGI-INF/webappservlet.xml, OSGI-INF/dataservlet.xml,
- OSGI-INF/cmdservlet.xml, OSGI-INF/chartdataservlet.xml
+ OSGI-INF/cmdservlet.xml, OSGI-INF/chartdataservlet.xml,
+ OSGI-INF/iconservlet.xml, OSGI-INF/transformservlet.xml
 Export-Package: org.openhab.ui.webapp.angular.internal.render
 Require-Bundle: javax.servlet
 Bundle-ClassPath: lib/javax.json-1.0.4.jar,

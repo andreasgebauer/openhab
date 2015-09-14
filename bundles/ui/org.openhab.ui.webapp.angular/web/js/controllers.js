@@ -1,7 +1,7 @@
 
 var appControllers = angular.module('app.controllers', [ 'app.factories', 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
 
-appControllers.controller('HomeController', function($scope, sitemap, $log, $location, commandService, webSocket, $interval, $timeout, getWatchCount) {
+appControllers.controller('HomeController', function($scope, sitemap, $log, $location, commandService, iconService, transformService, webSocket, $timeout, getWatchCount) {
 
 	webSocket.init();
 
@@ -17,71 +17,111 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		return value.value;
 	};
 
-	var formatted = function(widget, data) {
-		if(angular.isDefined(data.value) && data.value != 'Uninitialized' && widget.valuePattern) {
-			return mdgw.format(widget.valuePattern,  parseValue(data));
+	var formatValue = function(widget, data) {
+		if(angular.isDefined(data) && angular.isDefined(data.value) && data.value != 'Uninitialized' && widget.labelPattern) {
+			var labelPattern = widget.labelPattern;
+			var rx = /^(.*)? \[(.*)\]$/gm;
+			var result = rx.exec(labelPattern);
+			if(result != null){
+				var valuePattern = result[2];
+				var value = parseValue(data);
+
+				var rxTransform = /^(.*)\((.*)?\):(.*)$/gm;
+				var rxTransformResult = rxTransform.exec(valuePattern);
+				if(rxTransformResult != null){
+					var transformType = rxTransformResult[1];
+					var transformParam = rxTransformResult[2];
+					valuePattern = rxTransformResult[3];
+					var formattedValue = mdgw.format(valuePattern,  value);
+					$log.debug("formatValue: need to transform: " + transformType + " " + transformParam + " " + formattedValue);
+					transformService.transform(transformType, transformParam, formattedValue)
+					.then(function(transformed){
+						widget.formattedValue = transformed.data;
+					});
+				} else {
+					$log.debug("formatValue: pattern '" + valuePattern + "' value: " + value);
+					widget.formattedValue = mdgw.format(valuePattern,  value);
+				}
+			}
 		}
 	};
 
+	var styleUpdate = function (widget) {
+		widget.styleClass = "red";
+		$timeout(function() {
+			widget.styleClass = "inherit";
+			$timeout(function() {
+				widget.styleClass = "";
+			}, 1000);
+		}, 1000);	
+	};
+
 	var processUpdate = function(widget, item) {
-		$log.debug("Processing update for " + widget + ": " + JSON.stringify(widget));
+
+		styleUpdate(widget);
+
+		$log.debug("Processing update for widget " + widget.id);
 		
 		var value = parseValue(item);
 		var iconPrefix = item.icon != "none" ? item.icon : widget.type;
 
-		widget.formattedValue = formatted(widget, item);
+		formatValue(widget, item);
+		widget.icon = imageUrl + $scope.sitemapName + "/" + widget.id + "?state=" + encodeURIComponent(value);
+		$log.debug("Setting icon to " + widget.icon);
+		//iconService.getIcon(widget, value)
+		//.then(function(icon) {
+		//	$log.debug("processUpdate: resolved icon " + icon);
+		//	widget.icon = icon;
+		//});
 
 		if (widget.type === "text" || widget.type === "text_link") {
-			widget.icon = item.icon;
+			widget.value = value
+		} else if (widget.type === "switch") {
+			widget.value = value;
+		} else if (widget.type === "slider" || widget.type == "setpoint") {
+			if(value instanceof String) {
+				value = value.toLowerCase();
+			}
+			widget.value = value;
+		} else if (widget.type === "chart") {
+			// nothing to do
 		} else {
-			if (widget.type === "switch") {
-				widget.value = value;
-			} else if (widget.type === "slider" || widget.type == "setpoint") {
-				widget.value = value;
-				if(value instanceof String) {
-					value = value.toLowerCase();
-				}
-				widget.icon = iconPrefix + "-" + value;
-			} else if (widget.type === "chart") {
-				// nothing to do
-			} else {
-				$log.warn("Unhandled data for: " + JSON.stringify(widget));
-			}
-
-			if (angular.isDefined(widget.value)) {
-				if (iconPrefix.indexOf("-") == -1) {
-					if (typeof widget.value === "string") {
-						widget.icon = iconPrefix + "-" + widget.value.toLowerCase();
-					} else if (typeof value === "string") {
-						widget.icon = iconPrefix + "-" + value.toLowerCase();
-					}
-				} else {
-					widget.icon = iconPrefix;
-				}
-			}
+			$log.warn("Unhandled data for: " + JSON.stringify(widget));
 		}
 	};
 
 	// process a widget being shown
-	var process = function(widget) {
-		var formatValue= function (element) {
-			
+	var process = function(widget, isRoot) {
+		$log.debug("process: " + widget.id + ": " + widget.item  + " (" + widget.type + ")");
+
+		if(angular.isUndefined(widget.originalIcon)){
+			widget.originalIcon = widget.icon;
+		}
+		widget.icon = imageUrl + $scope.sitemapName +"/" + widget.id + "?state=" + encodeURIComponent(widget.value);
+
+		var formatValue_ = function (element) {
+			$log.debug("Formatter: " + element.item);
 			if(angular.isUndefined(element.formattedValue)) {
-				element.formattedValue = formatted(element, element);
+				formatValue(element, element);
+			} else {
+				$log.debug("Formatter: formatted value already defined: " + element.formattedValue);
 			}
 		};
+
+		if(widget.type != "frame" && angular.isDefined(widget.type)) {
+			formatValue_(widget);
+		}
+
+		// don't follow links
+		if (/_link$/.test(widget.type) && !isRoot) {
+			return;
+		}
+
 		if (widget.children) {
 			for (var int = 0; int < widget.children.length; int++) {
-				var child = widget.children[int];
-				// don't follow links
-				if (!/_link$/.test(child.type)) {
-					process(child);
-				}
-
-				formatValue(child);
+				process(widget.children[int], false);
 			}
 		}
-		formatValue(widget);
 	};
 
 	var setupModel = function(widgetId, data) {
@@ -132,16 +172,15 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 			$scope.viewItem = $scope.sitemap;
 		}
 
-		process($scope.viewItem);
-
-		$scope.showLoader = false;
+		process($scope.viewItem, true);
 	};
 
 	var fetchSitemap = function(widgetId, setupModel) {
 		//$scope.showLoader = true;
-		sitemap.fetch("default", widgetId, 
+		sitemap.fetch($scope.sitemapName, widgetId, 
 		function(data) {
-			setupModel(widgetId, data);	
+			setupModel(widgetId, data);
+			$scope.showLoader = false;
 		},
 		function(){
 			$scope.showLoader = false;
@@ -159,9 +198,9 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 		sitemap.lastLocation = sitemap.location;
 		sitemap.location = path === "/" ? "" : path;
+		$scope.sitemapName = "default";
 
 		var widgetId = path.substring(1);
-
 
 		if (angular.isUndefined($scope.sitemap)) {
 			fetchSitemap(widgetId, setupModel);
@@ -182,7 +221,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 					// sitemap already fetched
 					$scope.showLoader = false;
 					viewItem.selected = false;
-					process(viewItem);
+					process(viewItem, true);
 					$scope.viewItem = viewItem;
 				}
 			}
@@ -202,16 +241,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		}
 	});
 
-	this.styleUpdate = function (widget) {
-		widget.styleClass = "red";
-		$timeout(function() {
-			widget.styleClass = "inherit";
-			$timeout(function() {
-				widget.styleClass = "";
-			}, 1000);
-		}, 1000);	
-	};
-
 	// handles data from the websocket
 	this.handleUpdate = function(item) {
 		$scope.$apply(function () {
@@ -223,7 +252,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 			// update the data for each widget
 			angular.forEach(widgets, function(widget){
-				that.styleUpdate(widget);
 				processUpdate(widget, item);
 			});
 		});
@@ -234,25 +262,24 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	this.reconnect = function() {
 		if (webSocket.isClosed()) {
 			webSocket.reconnect();
-			//webSocket.subscribe(that.handleUpdate);
 			$log.info("Reconnected");
 			fetchSitemap($scope.viewItem.id, function(widgetId, data){
 
-				var procWidget = function(root) {
+				var mergeWidgetData = function(root) {
 					for (var int = 0; root.children && int < root.children.length; int++) {
 						var child = root.children[int];
 						var widget = sitemap.getWidget(data, child.id);
 						if(widget) {
-							that.styleUpdate(child);
+							styleUpdate(child);
 							child.value = widget.value;
 							child.icon = widget.icon;
 							child.label = widget.label;
-							child.formattedValue = widget.formattedValue;
-							procWidget(child);
+							formatValue(child, child);
+							mergeWidgetData(child);
 						}
 					}
 				}
-				procWidget($scope.viewItem);
+				mergeWidgetData($scope.viewItem);
 			});
 		}
 	};
@@ -329,7 +356,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 });
 
 appControllers.controller('ButtonController', function($scope, $log, commandService) {
-	$log.debug("[BTN] Init");
+	//$log.debug("[BTN] Init");
 	$scope.changeState = function(item, state) {
 		$log.debug("[BTN] changeState invoked: " + item + ": " + state);
 		commandService.update(item, state);
@@ -340,7 +367,7 @@ appControllers.controller('ButtonController', function($scope, $log, commandServ
 
 
 appControllers.controller("LinkController", function($scope, $log, $timeout, $location){
-	$log.debug("[LNK] Init");
+	//$log.debug("[LNK] Init");
 	// sets the widget to show
 	this.load = function(widget) {
 		widget.selected = true;
