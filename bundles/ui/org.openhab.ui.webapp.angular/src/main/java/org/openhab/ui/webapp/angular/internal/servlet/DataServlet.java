@@ -21,6 +21,7 @@ import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.types.State;
 import org.openhab.io.net.http.SecureHttpContext;
+import org.openhab.ui.webapp.angular.internal.servlet.DataServlet.UpdateMode;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
@@ -28,6 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DataServlet extends WebSocketServlet {
+
+	public enum UpdateMode {
+		UPDATED, CHANGED
+	}
 
 	private final class WebSocketImpl implements OnTextMessage {
 		private Connection connection;
@@ -40,7 +45,8 @@ public class DataServlet extends WebSocketServlet {
 
 		@Override
 		public void onOpen(final Connection connection) {
-			logger.debug("Client {}:{} connected", this.initiatingRequest.getRemoteAddr(), this.initiatingRequest.getRemotePort());
+			logger.debug("Client {}:{} connected", this.initiatingRequest.getRemoteAddr(),
+					this.initiatingRequest.getRemotePort());
 
 			this.connection = connection;
 			// this.connection.setMaxIdleTime(10000);
@@ -48,7 +54,8 @@ public class DataServlet extends WebSocketServlet {
 
 		@Override
 		public void onClose(final int closeCode, final String message) {
-			logger.debug("Client {}:{} disconnected", this.initiatingRequest.getRemoteAddr(), this.initiatingRequest.getRemotePort());
+			logger.debug("Client {}:{} disconnected", this.initiatingRequest.getRemoteAddr(),
+					this.initiatingRequest.getRemotePort());
 
 			close();
 		}
@@ -88,36 +95,31 @@ public class DataServlet extends WebSocketServlet {
 	private final class StateChangeListener implements org.openhab.core.items.StateChangeListener {
 
 		private WebSocketImpl socket;
+		private UpdateMode updateMode;
 
-		StateChangeListener(WebSocketImpl socket) {
+		StateChangeListener(WebSocketImpl socket, UpdateMode updateMode) {
 			this.socket = socket;
+			this.updateMode = updateMode;
 		}
 
 		@Override
 		public void stateUpdated(final Item item, final State state) {
 			// logger.debug("State of {} updated to {}", item, state);
-
-			// if (!(state instanceof UnDefType)) {
-			// final String name = item.getName();
-			// String icon = DataServlet.this.itemUIRegistry.getIcon(fakeWidget(name));
-			// sendStateMessage(name, null, icon, state);
-			// }
-			// else {
-			// logger.debug("not sending state {} to item {}", state, item);
-			// }
+			if (this.updateMode == UpdateMode.UPDATED) {
+				sendStateMessage(item.getName(), null, null, state);
+			}
 		}
 
 		@Override
 		public void stateChanged(final Item item, final State oldState, final State newState) {
 			// logger.debug("State of {} changed from {} to {}", item.getName(), oldState, newState);
-			final String name = item.getName();
-//			String label = DataServlet.this.itemUIRegistry.getLabel(fakeWidget(name));
-//			String icon = DataServlet.this.itemUIRegistry.getIcon(fakeWidget(name));
-			sendStateMessage(name, null, null, newState);
+			if (this.updateMode == UpdateMode.CHANGED) {
+				sendStateMessage(item.getName(), null, null, newState);
+			}
 		}
 
 		private void sendStateMessage(String name, String label, String icon, State state) {
-			logger.debug("Sending name:{} label:{} icon:{} state:{}", new String[] { name, label, icon, state.toString() });
+			logger.debug("Sending name:{} label:{} icon:{} state:{}", new Object[] { name, label, icon, state });
 			final JSONDataBuilder msg = JSONDataBuilder.createStateMessage(name, label, icon);
 			msg.addValue(new Date(), state);
 
@@ -133,8 +135,8 @@ public class DataServlet extends WebSocketServlet {
 	}
 
 	/**
-     *
-     */
+	 *
+	 */
 	private static final long serialVersionUID = -6844746825123187670L;
 	private static final Logger logger = LoggerFactory.getLogger(DataServlet.class);
 
@@ -194,7 +196,11 @@ public class DataServlet extends WebSocketServlet {
 	@Override
 	public WebSocket doWebSocketConnect(final HttpServletRequest req, final String arg1) {
 		WebSocketImpl socket = new WebSocketImpl(req);
-		StateChangeListener listener = new StateChangeListener(socket);
+		UpdateMode mode = UpdateMode.UPDATED;
+		if (req.getHeader("UpdateMode") != null) {
+			mode = UpdateMode.valueOf(req.getHeader("UpdateMode").toUpperCase());
+		}
+		StateChangeListener listener = new StateChangeListener(socket, mode);
 		socket.setListener(listener);
 		for (final Item item : this.itemRegistry.getItems()) {
 			if (item instanceof GenericItem) {
