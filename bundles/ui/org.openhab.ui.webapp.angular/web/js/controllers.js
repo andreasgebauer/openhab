@@ -1,7 +1,7 @@
 
-var appControllers = angular.module('app.controllers', [ 'app.factories', 'windowEventBroadcasts', 'ngAnimate', 'sprintf' ]);
+var appControllers = angular.module('app.controllers', [ 'app.factories', 'window-events', 'ngAnimate', 'sprintf' ]);
 
-appControllers.controller('HomeController', function($scope, sitemap, $log, $location, commandService, iconService, transformService, webSocket, $timeout, getWatchCount) {
+appControllers.controller('HomeController', function($scope, $log, $location, $timeout, sitemap, commandService, iconService, formatter, parser, webSocket, getWatchCount) {
 
 	webSocket.init();
 
@@ -9,42 +9,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	$scope.showLoader = false;
 
 	var that = this;
-
-	var parseValue = function(value){
-		if (value.valueType == "datetime") {
-			return new Date(value.value);
-		}
-		return value.value;
-	};
-
-	var formatValue = function(widget, data) {
-		if(angular.isDefined(data) && angular.isDefined(data.value) && data.value != 'Uninitialized' && widget.labelPattern) {
-			var labelPattern = widget.labelPattern;
-			var rx = /^(.*)? \[(.*)\]$/gm;
-			var result = rx.exec(labelPattern);
-			if(result != null){
-				var valuePattern = result[2];
-				var value = parseValue(data);
-
-				var rxTransform = /^(.*)\((.*)?\):(.*)$/gm;
-				var rxTransformResult = rxTransform.exec(valuePattern);
-				if(rxTransformResult != null){
-					var transformType = rxTransformResult[1];
-					var transformParam = rxTransformResult[2];
-					valuePattern = rxTransformResult[3];
-					var formattedValue = mdgw.format(valuePattern,  value);
-					$log.debug("formatValue: need to transform: " + transformType + " " + transformParam + " " + formattedValue);
-					transformService.transform(transformType, transformParam, formattedValue)
-					.then(function(transformed){
-						widget.formattedValue = transformed.data;
-					});
-				} else {
-					$log.debug("formatValue: pattern '" + valuePattern + "' value: " + value);
-					widget.formattedValue = mdgw.format(valuePattern,  value);
-				}
-			}
-		}
-	};
 
 	var styleUpdate = function (widget) {
 		widget.styleClass = "red";
@@ -62,10 +26,10 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 
 		$log.debug("Processing update for widget " + widget.id);
 		
-		var value = parseValue(item);
+		var value = parser.parseValue(item);
 		var iconPrefix = item.icon != "none" ? item.icon : widget.type;
 
-		formatValue(widget, item);
+		formatter.formatValue(widget, item);
 		widget.icon = imageUrl + $scope.sitemapName + "/" + widget.id + "?state=" + encodeURIComponent(value);
 		$log.debug("Setting icon to " + widget.icon);
 		//iconService.getIcon(widget, value)
@@ -102,7 +66,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 		var formatValue_ = function (element) {
 			$log.debug("Formatter: " + element.item);
 			if(angular.isUndefined(element.formattedValue)) {
-				formatValue(element, element);
+				formatter.formatValue(element, element);
 			} else {
 				$log.debug("Formatter: formatted value already defined: " + element.formattedValue);
 			}
@@ -274,7 +238,7 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 							child.value = widget.value;
 							child.icon = widget.icon;
 							child.label = widget.label;
-							formatValue(child, child);
+							formatter.formatValue(child, child);
 							mergeWidgetData(child);
 						}
 					}
@@ -293,23 +257,23 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	};
 
 	// event handling
-	$scope.$on('$windowFocus', function(broadcastEvent, browserEvent) {
+	$scope.$on('windowFocus', function(broadcastEvent, browserEvent) {
 		// works when entering window
 		that.reconnect();
 	});
 
 	// event handling
-	$scope.$on('$windowShow', function(broadcastEvent, browserEvent) {
+	$scope.$on('windowShow', function(broadcastEvent, browserEvent) {
 		console.log("onShow");
 		that.reconnect();
 	});
 
-	$scope.$on('$windowBlur', function(broadcastEvent, browserEvent) {
+	$scope.$on('windowBlur', function(broadcastEvent, browserEvent) {
 		// works when leaving window
 		that.disconnect();
 	});
 
-	$scope.$on('$windowHide', function(broadcastEvent, browserEvent) {
+	$scope.$on('windowHide', function(broadcastEvent, browserEvent) {
 		console.log("onHide");
 		that.disconnect();
 	});
@@ -352,7 +316,6 @@ appControllers.controller('HomeController', function($scope, sitemap, $log, $loc
 	$scope.stopRepeatedRequest = function(item, cmd) {
 		$log.debug("stopRepeatedRequest invoked: " + item + ": " + cmd);
 	};
-
 });
 
 appControllers.controller('ButtonController', function($scope, $log, commandService) {

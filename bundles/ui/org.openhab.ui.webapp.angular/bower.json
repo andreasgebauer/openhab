@@ -3,11 +3,12 @@
   "private": "true",
   "devDependencies": {},
   "dependencies": {
-    "sprintf": "~1.0.2",
-    "angular": "1.4.3",
-    "angular-animate": "1.4.3",
-    "angular-touch": "1.4.3",
+    "sprintf": "~1.0.3",
+    "angular": "1.4.8",
+    "angular-animate": "1.4.8",
+    "angular-touch": "1.4.8",
     "bootstrap": "3.2.0",
-    "angular-bootstrap": "0.13.3"
+    "angular-bootstrap": "0.14.3",
+    "angular-window-events": "1.0.0"
   }
 }

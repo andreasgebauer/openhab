@@ -1,6 +1,6 @@
 'use strict';
 
-var directives = angular.module('app.directives', ['app.controllers', 'windowEventBroadcasts']);
+var directives = angular.module('app.directives', ['app.controllers', 'window-events']);
 
 directives.directive('chart', function($timeout, $log, $rootScope) {
 	return {
@@ -143,12 +143,12 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 				return colIndex;
 			};
 			
-			// returns the row index for the 
-			var getRowIndex = function(value, table) {
-				var timestamp = (value.timestamp ? new Date(value.timestamp) : new Date());
+			// returns the row index for the timestamp (as millis since 01-01-1970) given
+			var getRowIndex = function(timestamp, table) {
+				var date = (timestamp ? new Date(timestamp) : new Date());
 
 				var index = table.addRow();
-				table.setCell(index, 0, timestamp);
+				table.setCell(index, 0, date);
 				
 				return index;
 			};
@@ -163,12 +163,8 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 				for (var j = 0; j < item.values.length; j++) {
 					var value = item.values[j];
 					
-					var index = getRowIndex(value, table);
-					
+					table.setCell(getRowIndex(value.timestamp, table), colIndex, parseFloat(value.value));
 					rowAdded = true;
-					
-					var val = parseFloat(value.value);
-					table.setCell(index, colIndex, val);
 				}
 				return rowAdded;
 			};
@@ -187,7 +183,7 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 				var colIndex = getColumnIndex(item, table);
 
 				var val = parseFloat(item.value);
-				var index = getRowIndex(item, widget.data.table);
+				var index = getRowIndex(item.timestamp, widget.data.table);
 
 				table.setCell(index, colIndex, val);
 
@@ -337,7 +333,7 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 			};
 		
 			// update data when chart is shown
-			$scope.$on('$windowShow', function(broadcastEvent, browserEvent) {
+			$scope.$on('windowShow', function(broadcastEvent, browserEvent) {
 				updateData();
 			});
 
