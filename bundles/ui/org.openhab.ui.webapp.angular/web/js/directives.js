@@ -142,10 +142,15 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 				}
 				return colIndex;
 			};
+
+			// returns a date instance for the timestamp given as millis since 01-01-1970
+			var getDateFromTimestamp = function(timestamp){
+				return (timestamp ? new Date(timestamp) : new Date());
+			};
 			
-			// returns the row index for the timestamp (as millis since 01-01-1970) given
+			// returns the row index for the timestamp given as millis since 01-01-1970
 			var getRowIndex = function(timestamp, table) {
-				var date = (timestamp ? new Date(timestamp) : new Date());
+				var date = getDateFromTimestamp(timestamp);
 
 				var index = table.addRow();
 				table.setCell(index, 0, date);
@@ -183,8 +188,10 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 				var colIndex = getColumnIndex(item, table);
 
 				var val = parseFloat(item.value);
-				var index = getRowIndex(item.timestamp, widget.data.table);
+				var date = getDateFromTimestamp(item.timestamp);
 
+				var index = table.addRow();
+				table.setCell(index, 0, date);
 				table.setCell(index, colIndex, val);
 
 				// "scroll" forward
@@ -214,7 +221,6 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 					updateData();
 
 				} else {
-					//debugger;
 					updateChart(true);
 				}
 
@@ -234,16 +240,12 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 
 			this.draw = function (table, viewData) {
 				$log.debug("Drawing chart for " + $scope.item);
-				//debugger
-				$scope.$evalAsync(function(){
-					$scope.statusLabel.html("Drawing chart");
-				});
 				
 				var start = new Date().getTime();
 
-				//if(!$scope.view) {
+				if(!$scope.view) {
 					$scope.view = new google.visualization.DataView(table);
-				//}
+				}
 
 				var max = new Date(viewData.end);
 				var min = new Date(viewData.begin);
@@ -255,11 +257,11 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 						maxLines : 1,
 						alignment : 'center'
 					},
-					//title : viewData.label,
+					title : viewData.label,
 					interpolateNulls : true,
 					chartArea : {
-						width : '93%',
-						height : height-40
+						width : '100%',
+						height : height//-40
 					},
 					vAxis : {
 						textPosition : 'in'
@@ -307,10 +309,10 @@ directives.directive('chart', function($timeout, $log, $rootScope) {
 
 					if (widget.period == item.period || !item.period) {
 						if (processItemValues(item, widget.data.table)) {
-							table.sort([ {
-								column : 0,
-								desc : false
-							} ]);
+							//table.sort([ {
+							//	column : 0,
+							//	desc : false
+							//} ]);
 						}
 
 						// the watched binding will receive an update now
