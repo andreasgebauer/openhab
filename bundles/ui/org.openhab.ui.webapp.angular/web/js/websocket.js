@@ -27,7 +27,7 @@ app.provider('webSocket', function() {
 			}
 
 			function onmessage(e) {
-				$log.debug("received message " + e.data);
+				//$log.debug("received message " + e.data);
 				var data = JSON.parse(e.data);
 				callbacks.fire(data);
 			}

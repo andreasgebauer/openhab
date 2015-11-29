@@ -9,6 +9,7 @@
     "angular-touch": "1.4.8",
     "bootstrap": "3.2.0",
     "angular-bootstrap": "0.14.3",
-    "angular-window-events": "1.0.0"
+    "angular-window-events": "1.0.0",
+    "big.js": ""
   }
 }

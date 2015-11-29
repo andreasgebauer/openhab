@@ -38,40 +38,6 @@ public class CmdServlet extends BaseServlet {
 	}
 
 	@Override
-	public void init(final ServletConfig config) throws ServletException {
-		super.init(config);
-
-		try {
-			Class<?> forName = Class.forName("org.openhab.mock.MockItemRegistryImpl");
-			Constructor<?> ctor = forName.getConstructor();
-			ctor = forName.getConstructor();
-			ctor.setAccessible(true);
-			this.itemRegistry = (ItemRegistry) ctor.newInstance();
-
-			this.eventPublisher = new EventPublisher() {
-
-				@Override
-				public void sendCommand(String itemName, Command command) {
-					LOG.info("Received command " + command + " for item " + itemName);
-				}
-
-				@Override
-				public void postUpdate(String itemName, State newState) {
-
-				}
-
-				@Override
-				public void postCommand(String itemName, Command command) {
-
-				}
-			};
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
 	public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
 		for (Object key : req.getParameterMap().keySet()) {
 			String itemName = key.toString();

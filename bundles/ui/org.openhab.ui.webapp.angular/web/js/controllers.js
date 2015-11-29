@@ -303,8 +303,18 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		}
 	);
 
-	$scope.changeState = function(widget, state) {
-		commandService.update(widget, state);
+	$scope.changeState = function(item, state) {
+		commandService.update(item, state);
+	};
+
+	$scope.increaseState = function(widget) {
+		var newState = new Big(widget.value).plus(new Big(widget.step))
+		$scope.changeState(widget.item, newState.toString());
+	};
+
+	$scope.decreaseState = function(widget) {
+		var newState = new Big(widget.value).minus(new Big(widget.step))
+		$scope.changeState(widget.item, newState.toString());
 	};
 
 	$scope.repeatedRequest = function(item, cmd, frequency, switch_) {

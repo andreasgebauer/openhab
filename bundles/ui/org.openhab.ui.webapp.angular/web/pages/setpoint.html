@@ -1,11 +1,11 @@
 <img ng-src="{{widget.icon}}" width=29 height=29 class="iFull" />
 <span class="options">
 	<img src="/images/_down.png"
-		ng-touchstart="changeState(widget.item, widget.value - widget.step)"
-		ng-mousedown="changeState(widget.item, widget.value - widget.step)" />
+		ng-touchstart="decreaseState(widget)"
+		ng-mousedown="decreaseState(widget)" />
 	<img src="/images/_up.png"
-		ng-touchstart="changeState(widget.item, widget.value + widget.step)"
-		ng-mousedown="changeState(widget.item, widget.value + widget.step)" />
+		ng-touchstart="increaseState(widget)"
+		ng-mousedown="increaseState(widget)" />
 </span>
 <label>{{widget.label}}</label>
 <span style="{{widget.valueStyle}}">{{widget.formattedValue}}</span>
