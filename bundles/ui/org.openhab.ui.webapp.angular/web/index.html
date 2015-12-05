@@ -37,15 +37,17 @@
 				<a id="waRightButton" ng-click="stayConnected = !stayConnected" style="right: 70px">{{stayConnected ? 'Stay Open' : 'Close'}}</a>
 				<a href="#/" id="waHomeButton" ng-show="nav.home.visible" class="ng-hide">{{nav.home.text}}</a>
 				<a onclick="return WA.HideBar()">
-					<span id="waHeadTitle" ng-show="nav.title.visible" class="ng-hide">{{nav.title.text}}</span>
+					<span id="waHeadTitle" ng-show="nav.title.visible" ng-animate-swap="nav.title.text" class="ng-hide swap-title {{animationStyle}}">{{nav.title.text}}</span>
 				</a>
 			</div>
 		</div>
 
 		<div id="iGroup">
 			<div class="iLayer ng-hide" id="wa{{viewItem.id}}" title="{{viewItem.label}}" ng-hide="showLoader">
-				<filler ng-repeat="widget in viewItem.children" ng-include src="'pages/' + widget.type + '.html'" ng-hide="showLoader" class="show-hide ng-hide"></filler>
-				<div class="iFooter">&copy;2010-2014 openHAB.org</div>
+				<div ng-repeat="page in pages" ng-hide="showLoader" class="viewRoot {{animationStyle}} pop-up">
+					<filler ng-repeat="widget in page.children" ng-include src="'pages/' + widget.type + '.html'"></filler>
+					<div class="iFooter">&copy;2010-2015 openHAB.org</div>
+				</div>
 			</div>
 			<div class="iLayer ng-hide" id="waColorpicker" title="Color">
 				<div class="iMenu">

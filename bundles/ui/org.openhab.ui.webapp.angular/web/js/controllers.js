@@ -6,7 +6,9 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 	webSocket.init();
 
 	$scope.stayConnected = false;
-	$scope.showLoader = false;
+	$scope.showLoader = true;
+	$scope.pages = [];
+	//$scope.animationStyle = "pop-up";
 
 	var that = this;
 
@@ -54,7 +56,18 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		}
 	};
 
-	// process a widget being shown
+	var updateTitleText = function(viewItem){
+		if(angular.isDefined(viewItem.labelPattern)){
+			formatter.getFormattedValue(viewItem.value, viewItem.labelPattern).then(function(formattedValue){
+				$scope.nav.title.text = formattedValue.replace("[","").replace("]", "");
+			});
+		} else {
+			$scope.nav.title.text = viewItem.label;
+		}
+
+	}
+
+	// process widget used as content of the cuurent page
 	var process = function(widget, isRoot) {
 		$log.debug("process: " + widget.id + ": " + widget.item  + " (" + widget.type + ")");
 
@@ -63,17 +76,13 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		}
 		widget.icon = imageUrl + $scope.sitemapName +"/" + widget.id + "?state=" + encodeURIComponent(widget.value);
 
-		var formatValue_ = function (element) {
-			$log.debug("Formatter: " + element.item);
-			if(angular.isUndefined(element.formattedValue)) {
-				formatter.formatValue(element, element);
-			} else {
-				$log.debug("Formatter: formatted value already defined: " + element.formattedValue);
-			}
-		};
-
 		if(widget.type != "frame" && angular.isDefined(widget.type)) {
-			formatValue_(widget);
+			$log.debug("Formatter: " + widget.item);
+			if(angular.isUndefined(widget.formattedValue)) {
+				formatter.formatValue(widget, widget);
+			} else {
+				$log.debug("Formatter: formatted value already defined: " + widget.formattedValue);
+			}
 		}
 
 		// don't follow links
@@ -115,28 +124,35 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 			$scope.sitemap = data;
 		}
 
-		$scope.nav = {
-			back : {
-				text : "Back",
-				href : data.parentId ? "#" + data.parentId : "#/",
-				visible : sitemap.location !== ""
-			},
-			home : {
-				text : "Home",
-				visible : sitemap.location !== ""
-			},
-			title : {
-				text : data.label,
-				visible : true
-			}
-		};
 
-		$scope.viewItem = sitemap.pageItem($scope.sitemap, data.id);
-		if (angular.isUndefined($scope.viewItem)) {
-			$scope.viewItem = $scope.sitemap;
+		if(angular.isUndefined($scope.nav)) {
+			$scope.nav = {
+				back : {},
+				home : {},
+				title : {}
+			};
 		}
 
-		process($scope.viewItem, true);
+		// update back button
+		$scope.nav.back.text = "Back";
+		$scope.nav.back.href = data.parentId ? "#" + data.parentId : "#/";
+		$scope.nav.back.visible = sitemap.location !== "";
+
+		// update home button
+		$scope.nav.home.text = "Home";
+		$scope.nav.home.visible = sitemap.location !== "";
+
+		// update title button
+		//$scope.nav.title.text = data.label;
+		$scope.nav.title.visible = true;
+		
+
+		$scope.pages[0] = sitemap.pageItem($scope.sitemap, data.id);
+		if (angular.isUndefined($scope.pages[0])) {
+			$scope.pages[0] = $scope.sitemap;
+		}
+
+		process($scope.pages[0], true);
 	};
 
 	var fetchSitemap = function(widgetId, setupModel) {
@@ -163,6 +179,17 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		sitemap.lastLocation = sitemap.location;
 		sitemap.location = path === "/" ? "" : path;
 		$scope.sitemapName = "default";
+		
+		var classToAdd = (oldPath.length > path.length) ? "slide-right" : "slide-left";
+		$scope.animationStyle = classToAdd;
+
+		// add style class to viewRoot to enable animations
+		var el = angular.element($(".viewRoot"));
+		el.removeClass("slide-right slide-left pop-up").addClass(classToAdd);
+
+		// add style class to title to enable animations
+		var el = angular.element($(".swap-title"));
+		el.removeClass("slide-right slide-left pop-up").addClass(classToAdd);
 
 		var widgetId = path.substring(1);
 
@@ -171,39 +198,41 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		} else {
 
 			var viewItem = sitemap.pageItem($scope.sitemap, widgetId);
-			//$scope.viewItem = sitemap.pageItem($scope.sitemap, widgetId);
 
 			if (angular.isUndefined(viewItem) || angular.isUndefined(viewItem.children)) {
 				// we need to load the sitemap data for the page shown
 				fetchSitemap(widgetId, setupModel);
 			} else {
-				
-				if(angular.isUndefined(viewItem)){
-					fetchSitemap(widgetId, setupModel);
-				} else {
-
-					// sitemap already fetched
-					$scope.showLoader = false;
-					viewItem.selected = false;
-					process(viewItem, true);
-					$scope.viewItem = viewItem;
-				}
+				// sitemap already fetched
+				$scope.showLoader = false;
+				viewItem.selected = false;
+				process(viewItem, true);
+				$scope.pages[0] = viewItem;
 			}
 
 			if (angular.isDefined($scope.nav)) {
 				// show back and home when not showing root
 				$scope.nav.home.visible = $scope.nav.back.visible = sitemap.location !== "";
-
 				if (angular.isDefined(viewItem)) {
 					$scope.nav.back.href = viewItem.parentId ? "#" + viewItem.parentId : "#/";
-					$scope.nav.title.text = viewItem.label;
-					if (angular.isDefined(viewItem.formattedValue)) {
-						$scope.nav.title.text += " " + viewItem.formattedValue;
-					}
+					updateTitleText(viewItem);
 				}
 			}
 		}
 	});
+
+	
+	$scope.$watch(
+		function(){
+			return "pages[0].formattedValue";
+		},
+		function(val, old){
+			if(val != old){
+				updateTitleText(widget);
+			}
+		}
+	);
+
 
 	// handles data from the websocket
 	this.handleUpdate = function(item) {
@@ -227,7 +256,7 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 		if (webSocket.isClosed()) {
 			webSocket.reconnect();
 			$log.info("Reconnected");
-			fetchSitemap($scope.viewItem.id, function(widgetId, data){
+			fetchSitemap($scope.pages[0].id, function(widgetId, data){
 
 				var mergeWidgetData = function(root) {
 					for (var int = 0; root.children && int < root.children.length; int++) {
@@ -243,7 +272,7 @@ appControllers.controller('HomeController', function($scope, $log, $location, $t
 						}
 					}
 				}
-				mergeWidgetData($scope.viewItem);
+				mergeWidgetData($scope.pages[0]);
 			});
 		}
 	};
