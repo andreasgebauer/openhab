@@ -1,13 +1,11 @@
-<img ng-src="{{widget.icon}}" width=29 height=29
-	class="iFull" />
-<span class="options"><img src="/images/_down.png"
-	ng-touchstart="repeatedRequest(widget.item, 'DECREASE', widget.frequency, 1)"
-	ng-mousedown="repeatedRequest(widget.item, 'DECREASE', widget.frequency, 1)"
-	ng-mouseup="stopRepeatedRequest(widget.item, 'OFF')" /> <img
-	src="/images/colorwheel.png" width=29 height=29 border=0
-	ng-click="colorItem='{{widget.item}}';$('waColorpicker').title='{{widget.purelabel}}';document.getElementById('colorPickerInput').value='{{widget.state}}';$.minicolors.refresh();document.location.href='#_Colorpicker'" />
-	<img src="/images/_up.png"
-	ng-touchstart="repeatedRequest(widget.item, 'INCREASE', widget.frequency, 1)"
-	ng-mousedown="repeatedRequest(widget.item, 'INCREASE', widget.frequency, 1)"
-	ng-mouseup="stopRepeatedRequest(widget.item, 'ON')" /></span>
-<label style="{{widget.labelStyle}}">{{widget.label}}</label>
+<div class="iMenu" class="minicolor-inline">
+	<h3></h3>
+	<ul class="iArrow">
+		<p></p>
+		<center>
+			<img style="padding: 10px; width: 1%;" src="/images/none.png" />
+			<input id="colorPickerInput" type="text" minicolors="colors" ng-model="widget.valueInput" />
+		</center>
+		<p></p>
+	</ul>
+</div>

@@ -15,83 +15,81 @@
 		<link rel="apple-touch-startup-image" href="images/splash-iphone.png" media="screen and (max-device-width: 320px)" />
 		
 		<link rel="stylesheet" type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="bower_components/jquery-minicolors/jquery.minicolors.css" />
 		
 		<link rel="stylesheet" type="text/css" href="css/Render.css" />
 		<link rel="stylesheet" type="text/css" href="css/RenderRTL.css" />
 		<link rel="stylesheet" type="text/css" href="css/Firefox.css" />
 		<link rel="stylesheet" type="text/css" href="css/openHAB.css" />
 		
-		<link rel="stylesheet" type="text/css" href="css/ext/jquery.miniColors.css" />
 
 	</head>
-<body>
-	<div id="WebApp">
-		<div id="iPL"></div>
-		<div id="iLoader" ng-show="showLoader">
-			<span>Loading...</span>
-		</div>
-
-		<div id="iHeader">
-			<div style="opacity: 1; display: block;">
-				<a href="{{nav.back.href}}" id="waBackButton" ng-show="nav.back.visible" class="ng-hide">{{nav.back.text}}</a>
-				<a id="waRightButton" ng-click="stayConnected = !stayConnected" style="right: 70px">{{stayConnected ? 'Stay Open' : 'Close'}}</a>
-				<a href="#/" id="waHomeButton" ng-show="nav.home.visible" class="ng-hide">{{nav.home.text}}</a>
-				<a onclick="return WA.HideBar()">
-					<span id="waHeadTitle" ng-show="nav.title.visible" ng-animate-swap="nav.title.text" class="ng-hide swap-title {{animationStyle}}">{{nav.title.text}}</span>
-				</a>
+	<body>
+		<div id="WebApp">
+			<div id="iPL"></div>
+			<div id="iLoader" ng-show="showLoader">
+				<span>Loading...</span>
 			</div>
-		</div>
-
-		<div id="iGroup">
-			<div class="iLayer ng-hide" id="wa{{viewItem.id}}" title="{{viewItem.label}}" ng-hide="showLoader">
-				<div ng-repeat="page in pages" ng-hide="showLoader" class="viewRoot {{animationStyle}} pop-up">
-					<filler ng-repeat="widget in page.children" ng-include src="'pages/' + widget.type + '.html'"></filler>
-					<div class="iFooter">&copy;2010-2015 openHAB.org</div>
+	
+			<div id="iHeader">
+				<div style="opacity: 1; display: block;">
+					<a href="{{nav.back.href}}" id="waBackButton" ng-show="nav.back.visible" class="ng-hide">{{nav.back.text}}</a>
+					<a id="waRightButton" ng-click="stayConnected = !stayConnected" class="{{stayConnected ? 'connected' : ''}}">&nbsp;</a>
+					<a href="#/" id="waHomeButton" ng-show="nav.home.visible" class="ng-hide">{{nav.home.text}}</a>
+					<a onclick="return WA.HideBar()">
+						<span id="waHeadTitle" ng-show="nav.title.visible" ng-animate-swap="viewSwap" class="ng-hide swap-title {{animationStyle}}">{{nav.title.text}}</span>
+					</a>
 				</div>
 			</div>
-			<div class="iLayer ng-hide" id="waColorpicker" title="Color">
-				<div class="iMenu">
-					<h3></h3>
-					<ul class="iArrow">
-						<p>
-							<img style="padding: 10px; width: 1%;" src="/images/none.png" /><input
-								id="colorPickerInput" onChange="colorChange()" type="minicolors"
-								value="#ffffff" data-control="inline" data-slider="wheel"
-								data-style="margin: 10px;" />
-						</p>
-					</ul>
+	
+			<div id="iGroup">
+				<div class="iLayer ng-hide" id="wa{{viewRoot.id}}" title="{{viewRoot.label}}" ng-hide="showLoader">
+					<root widget="viewRoot" swap="viewSwap" ng-hide="showLoader" class="viewRoot {{animationStyle}}">
+						<div id="children"></div>
+						<div class="iFooter">&copy;2010-2015 openHAB.org</div>
+					</root>
 				</div>
 			</div>
-			<div class="iLayer" id="waForm" title="Home"></div>
 		</div>
-	</div>
+		
 	
-
-	<script src="js/ext/jquery.js"></script>
-	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-	<script src="bower_components/angular/angular.js"></script>
-	<script src="bower_components/angular-animate/angular-animate.js"></script>
-	<script src="bower_components/angular-touch/angular-touch.js"></script>
-	<script src="bower_components/angular-window-events/release/angular-window-events.min.js"></script>
-	<script src="bower_components/angular-bootstrap/ui-bootstrap.min.js"></script>
-	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
-
-	<script src="bower_components/sprintf/dist/sprintf.min.js"></script>
-	<script src="bower_components/sprintf/dist/angular-sprintf.min.js"></script>
-	<script src="js/ext/format.js"></script>
-	<script src="bower_components/big.js/big.min.js"></script>
-
-	<script src="js/app.js"></script>
-	<script src="js/factories.js"></script>
-	<script src="js/websocket.js"></script>
-	<script src="js/controllers.js"></script>
-	<script src="js/directives.js"></script>
-	<script src="js/services.js"></script>
+		<script src="bower_components/jquery/dist/jquery.min.js"></script>
+		<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="bower_components/angular/angular.min.js"></script>
+		<script src="bower_components/angular-animate/angular-animate.min.js"></script>
+		<script src="bower_components/angular-touch/angular-touch.min.js"></script>
+		<script src="bower_components/angular-window-events/release/angular-window-events.min.js"></script>
+		<script src="bower_components/jquery-minicolors/jquery.minicolors.min.js"></script>
+		<script src="bower_components/angular-minicolors/angular-minicolors.js"></script>
+		<script src="bower_components/angular-bootstrap/ui-bootstrap.min.js"></script>
+		<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+		<script src="bower_components/sprintf/dist/sprintf.min.js"></script>
+		<script src="bower_components/sprintf/dist/angular-sprintf.min.js"></script>
+		<script src="js/ext/format.js"></script>
+		<script src="bower_components/big.js/big.min.js"></script>
 	
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	<script type="text/javascript">
-		google.load("visualization", "1.1", {packages: ["corechart", "line"]});
-    </script>
+		<script src="js/app.js"></script>
+		<script src="js/factories.js"></script>
+		<script src="js/websocket.js"></script>
+		<script src="js/controllers.js"></script>
+		<script src="js/directives.js"></script>
+		<script src="js/services.js"></script>
 	
-</body>
+		<script src="js/components/button.js"></script>
+		<script src="js/components/buttons.js"></script>
+		<script src="js/components/chart.js"></script>
+		<script src="js/components/colorpicker.js"></script>
+		<script src="js/components/group.js"></script>
+		<script src="js/components/setpoint.js"></script>
+		<script src="js/components/slider.js"></script>
+		<script src="js/components/switch.js"></script>
+		<script src="js/components/text.js"></script>
+		<script src="js/components/text_link.js"></script>
+		
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script type="text/javascript">
+			google.load("visualization", "1.1", {packages: ["corechart", "line"]});
+	    </script>
+	
+	</body>
 </html>

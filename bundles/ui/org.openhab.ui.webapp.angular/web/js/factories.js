@@ -25,16 +25,22 @@ appModule.factory('sitemap', function($http, $log) {
 				errorCallback(e);
 			});
 		},
-		// get the widget for the widget id given
-		getWidget: function(root, id) {
+		/*
+		 * get the widget for the widget id starting at root
+		 * will traverse all children recursively to find the widget
+		 */
+		getWidget: function(root, id, ignoreRoot) {
 			//$log.debug("getWidget: " + id);
+			if(!ignoreRoot && root.id == id) {
+				return root;
+			}
 			for (var int = 0; root.children && int < root.children.length; int++) {
 				var child = root.children[int];
 				if (child.id == id) {
 					return child;
 				}
 				if (child.children) {
-					var candidate = this.getWidget(child, id);
+					var candidate = this.getWidget(child, id, true);
 					if (!angular.isUndefined(candidate)) {
 						return candidate;
 					}
@@ -86,28 +92,8 @@ appModule.factory('sitemap', function($http, $log) {
 			return items;
 		},
 		pageItem: function(sitemap, widgetId){
-			// returns the widget for the widget id
-			var getWidget = function(root, widgetId) {
-				if(root.id == widgetId) {
-					return root;
-				}
-				if(angular.isDefined(root.children)) {
-					for(var i=0; i<root.children.length; i++){
-						var child = root.children[i];
-						if(child.id == widgetId){
-							return child;
-						} else {
-							var candidate = getWidget(child, widgetId);
-							if(candidate != null){
-								return candidate;
-							}
-						}
-					}
-				}
-			}
-			
 			if(angular.isDefined(sitemap)) {
-				return getWidget(sitemap, widgetId);
+				return this.getWidget(sitemap, widgetId);
 			}
 		}
 	};
@@ -157,7 +143,7 @@ appModule.factory('sitemap', function($http, $log) {
 				if(w.icon!=null && w.icon != "none") {
 					icon = w.icon;
 				} else {
-					//var itemName = w.item;
+					var itemName = w.item;
 					//if(itemName!=null) {
 					//	iconExists(itemName).success(function(){
 					//		resolve(icon);
@@ -227,58 +213,113 @@ appModule.factory('sitemap', function($http, $log) {
 	};
 })
 
-// I get a rough estimate of the number of watchers on the page. This assumes 
-// that the entire page is inside the same AngularJS application. 
-.factory("getWatchCount", function() {
 
-		// I return the count of watchers on the current page.
-		function getWatchCount() {
+.factory("widgetDataProcessor", function($log, formatter, sitemap) {
+	var processor = {};
 
-			var total = 0;
+	processor.process = function(widget) {
+		$log.debug("process: " + widget.id + ": " + (widget.item ? widget.item : '<no item>')  + " (" + widget.type + ")");
 
-			// AngularJS denotes new scopes in the HTML markup by appending the
-			// class "ng-scope" to appropriate elements. As such, rather than 
-			// attempting to navigate the hierarchical Scope tree, we can simply
-			// query the DOM for the individual scopes. Then, we can pluck the 
-			// watcher-count from each scope.
-			// --
-			// NOTE: Ordinarily, it would be a HUGE SIN for an AngularJS service
-			// to access the DOM (Document Object Model). But, in this case,
-			// we're not really building a true AngularJS service, so we can 
-			// break the rules a bit.
-			angular.element( ".ng-scope" ).each(
-				function ngScopeIterator() {
+		if(angular.isUndefined(widget.originalIcon)){
+			widget.originalIcon = widget.icon;
+		}
+		widget.icon = imageUrl + sitemap.name +"/" + widget.id + "?state=" + encodeURIComponent(widget.value);
 
-					// Get the scope associated with this element node.
-					var scope = $( this ).scope();
+		if(angular.isDefined(widget.type) && widget.type != "frame") {
+			//$log.debug("Formatter: " + widget.item);
+			//if(angular.isUndefined(widget.formattedValue)) {
+				formatter.formatValue(widget, widget);
+			//} else {
+			//	$log.warn("Formatter: formatted value already defined: " + widget.formattedValue);
+			//}
+		}
+	};
 
-					// The $$watchers value starts out as NULL. 
-					total += scope.$$watchers
-						? scope.$$watchers.length
-						: 0
-					;
+	return processor;
+})
 
-				}
-			);
-			
-			return( total );
+.factory("updateService", function($log, $timeout, webSocket, formatter, parser, sitemap) {
 
+	var update = {};
+
+
+	var styleUpdate = function (widget, element) {
+		if(element != undefined){
+
+			var valueElement = element.find(".value");
+
+			if(valueElement.length == 0){
+				console.warn("value element not found");
+				return;
+			}
+
+			valueElement.addClass("red");
+
+			setTimeout(function() {
+				valueElement.addClass("inherit");
+				setTimeout(function() {
+					valueElement.removeClass("red inherit");
+				}, 1000);
+			}, 1000);
+
+			return;
 		}
 
-		// For convenience, let's serialize the above method and convert it to 
-		// a bookmarklet that can easily be run on ANY AngularJS page. 
-		getWatchCount.bookmarklet = ( 
-			"javascript:alert('Watchers:'+(" + 
-			getWatchCount.toString()
-				.replace( /\/\/.*/g, " " )
-				.replace( /\s+/g, " " ) +
-			")());void(0);" 
-		);
+		console.warn("old fashioned style update for " + widget.item);
 
-		return( getWatchCount );
+		widget.styleClass = "red";
+		$timeout(function() {
+			widget.styleClass = "inherit";
+			$timeout(function() {
+				widget.styleClass = "";
+			}, 1000);
+		}, 1000);	
+	};
 
+	update.attach = function(scope, element, callback){
+			var widget = scope.widget;
+
+			var cbFacade = function(data){
+				if(data.id == widget.item) {
+
+					console.debug("Received update " + JSON.stringify(data) + " for " + widget.item);
+
+					styleUpdate(widget, element);
+						
+					scope.$apply(function() {
+
+						// update the widget value
+						widget.value = parser.parseValue(data);
+						formatter.formatValue(widget, data);
+
+						widget.icon = imageUrl + sitemap.name + "/" + widget.id + "?state=" + encodeURIComponent(widget.value);
+
+						// and finally call the callback
+						if(callback){
+							callback(data);
+						}
+					})
+				}
+			};
+
+			webSocket.subscribe(cbFacade);
+
+			scope.$on("$destroy", function(){
+				webSocket.unsubscribe(cbFacade);
+			});
+		};	
+
+	return update;
+})
+
+
+.factory("widgetLinker", function(updateService, widgetDataProcessor){
+	var linker = {};
+	linker.link = function ( scope, element, attributes ) {
+		updateService.attach(scope, element);
+		widgetDataProcessor.process(scope);
 	}
-)
-
+	return linker;
+})
 
 ;

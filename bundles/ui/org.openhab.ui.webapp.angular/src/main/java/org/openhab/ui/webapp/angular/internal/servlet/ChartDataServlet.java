@@ -110,7 +110,7 @@ public class ChartDataServlet extends BaseServlet {
 
 		final AtomicInteger callables = new AtomicInteger(dataToFetch.size());
 
-		logger.info("Need to execute {} tasks", dataToFetch.size());
+		logger.trace("Need to execute {} tasks", dataToFetch.size());
 		for (final FetchDataParameter fetchDataParameter : dataToFetch) {
 			executorService.submit(new Callable<Void>() {
 
@@ -121,10 +121,10 @@ public class ChartDataServlet extends BaseServlet {
 						writeArray.add(fetchData);
 
 					int decrementAndGet = callables.decrementAndGet();
-					logger.info("Need to execute {} more tasks", decrementAndGet);
+					logger.trace("Need to execute {} more tasks", decrementAndGet);
 
 					if (decrementAndGet == 0) {
-						logger.info("Releasing the lock.");
+						logger.trace("Releasing the lock.");
 						LockSupport.unpark(requestThread);
 					}
 					return null;
@@ -133,7 +133,7 @@ public class ChartDataServlet extends BaseServlet {
 		}
 		LockSupport.park();
 
-		logger.info("No more tasks to execute for this request. Writing response.");
+		logger.trace("No more tasks to execute for this request. Writing response.");
 		Json.createWriter(output).writeArray(writeArray.build());
 
 	}

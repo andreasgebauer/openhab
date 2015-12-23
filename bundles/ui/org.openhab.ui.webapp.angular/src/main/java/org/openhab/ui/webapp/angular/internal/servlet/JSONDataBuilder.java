@@ -13,6 +13,7 @@ import javax.json.JsonValue;
 
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.HSBType;
 import org.openhab.core.types.State;
 
 public class JSONDataBuilder {
@@ -39,7 +40,13 @@ public class JSONDataBuilder {
 		if (timestamp != null) {
 			objBuilder.add("timestamp", timestamp.getTime());
 		}
-		if (state instanceof DecimalType) {
+		if (state instanceof HSBType) {
+			float hue = ((HSBType) state).getHue().floatValue();
+			float sat = ((HSBType) state).getSaturation().floatValue();
+			float bri = ((HSBType) state).getBrightness().floatValue();
+			objBuilder.add("value", hue + "," + sat + "," + bri);
+			objBuilder.add("valueType", "hsb");
+		} else if (state instanceof DecimalType) {
 			objBuilder.add("value", ((DecimalType) state).toBigDecimal());
 		} else if (state instanceof DateTimeType) {
 			Calendar calendar = ((DateTimeType) state).getCalendar();

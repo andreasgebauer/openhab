@@ -727,6 +727,12 @@
         }
 
         var result = '';
+
+        if(floatingPart.length > precision) {
+            floatingPart = floatingPart.substring(1);
+            integerPart++;
+        }
+
         if (floatingPart.length > 0) {
             result = integerPart + '.' + floatingPart;
         } else {

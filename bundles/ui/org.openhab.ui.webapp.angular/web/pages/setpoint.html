@@ -1,11 +1,11 @@
-<img ng-src="{{widget.icon}}" width=29 height=29 class="iFull" />
+<img ng-src="{{widget.icon}}" width=29 height=29 class="iFull" ng-controller="SetpointController as setpoint" />
 <span class="options">
 	<img src="/images/_down.png"
-		ng-touchstart="decreaseState(widget)"
-		ng-mousedown="decreaseState(widget)" />
+		ng-touchstart="setpoint.decreaseState(widget)"
+		ng-mousedown="setpoint.decreaseState(widget)" />
 	<img src="/images/_up.png"
-		ng-touchstart="increaseState(widget)"
-		ng-mousedown="increaseState(widget)" />
+		ng-touchstart="setpoint.increaseState(widget)"
+		ng-mousedown="setpoint.increaseState(widget)" />
 </span>
 <label>{{widget.label}}</label>
 <span style="{{widget.valueStyle}}">{{widget.formattedValue}}</span>

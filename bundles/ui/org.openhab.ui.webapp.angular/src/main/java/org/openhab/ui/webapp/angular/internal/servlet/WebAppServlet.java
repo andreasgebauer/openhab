@@ -27,6 +27,7 @@ import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.library.items.RollershutterItem;
 import org.openhab.model.sitemap.Chart;
 import org.openhab.model.sitemap.Frame;
+import org.openhab.model.sitemap.Image;
 import org.openhab.model.sitemap.LinkableWidget;
 import org.openhab.model.sitemap.Mapping;
 import org.openhab.model.sitemap.Setpoint;
@@ -34,6 +35,7 @@ import org.openhab.model.sitemap.Sitemap;
 import org.openhab.model.sitemap.SitemapProvider;
 import org.openhab.model.sitemap.Switch;
 import org.openhab.model.sitemap.Text;
+import org.openhab.model.sitemap.Webview;
 import org.openhab.model.sitemap.Widget;
 import org.openhab.ui.items.ItemUIRegistry;
 import org.openhab.ui.webapp.angular.internal.WebAppActivator;
@@ -120,6 +122,7 @@ public class WebAppServlet extends BaseServlet {
 					if (!(w instanceof LinkableWidget)) {
 						throw new RenderException("Widget '" + w + "' can not have any content");
 					}
+					// every widget shown as view must be a subtype of LinkableWidget
 					EList<Widget> children = itemUIRegistry.getChildren((LinkableWidget) w);
 					String label = itemUIRegistry.getLabel(w);
 					if (label == null)
@@ -190,10 +193,10 @@ public class WebAppServlet extends BaseServlet {
 	private JsonObjectBuilder render(Widget widget) throws ItemNotFoundException {
 
 		String simpleName = widget.getClass().getSimpleName();
-		
+
 		String type = simpleName.substring(0, simpleName.length() - "Impl".length()).toLowerCase();
 
-		if (widget instanceof Text && !((Text) widget).getChildren().isEmpty()) {
+		if (widget instanceof Text || widget instanceof Image && !((LinkableWidget) widget).getChildren().isEmpty()) {
 			// render a link here
 			type += "_link";
 		}
@@ -246,7 +249,7 @@ public class WebAppServlet extends BaseServlet {
 		if (itemName != null) {
 			dataBuilder.add("item", itemName);
 		}
-		
+
 		if (labelPattern != null) {
 			Matcher matcher = EXTRACT_TRANSFORMFUNCTION_PATTERN.matcher(labelPattern);
 			if (matcher.matches()) {
@@ -328,6 +331,20 @@ public class WebAppServlet extends BaseServlet {
 					arr.add(mappingJson);
 				}
 				dataBuilder.add("mappings", arr);
+			}
+		} else if (widget instanceof Webview) {
+			dataBuilder.add("url", ((Webview) widget).getUrl());
+
+			int height = ((Webview) widget).getHeight();
+			if (height != 0) {
+				dataBuilder.add("height", (long) height);
+			}
+		} else if (widget instanceof Image) {
+			dataBuilder.add("url", ((Image) widget).getUrl());
+
+			int refresh = ((Image) widget).getRefresh();
+			if (refresh != 0) {
+				dataBuilder.add("refresh", (long) refresh);
 			}
 		}
 

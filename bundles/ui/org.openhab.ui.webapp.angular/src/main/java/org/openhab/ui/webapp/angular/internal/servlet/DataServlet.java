@@ -21,7 +21,6 @@ import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.types.State;
 import org.openhab.io.net.http.SecureHttpContext;
-import org.openhab.ui.webapp.angular.internal.servlet.DataServlet.UpdateMode;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;

@@ -1,378 +1,166 @@
 'use strict';
 
-var directives = angular.module('app.directives', ['app.controllers', 'window-events']);
+angular.module('app.directives', ['app.controllers', 'window-events'])
 
-directives.directive('chart', function($timeout, $log, $rootScope) {
-	return {
-		template : '<div> \
-						<div> \
-							<div class="row" style="position: relative;"> \
-								<div class="col-md-6 col-xs-8"> \
-									<button scale="2">---</button> \
-									<button scale="1.5">--</button> \
-									<button scale="1.25">-</button> \
-									<button scale="0.8">+</button> \
-									<button scale="0.66666666666">++</button> \
-									<button scale="0.5">+++</button> \
-								</div> \
-								<div class="col-md-6 col-xs-4" style="text-align:right"> \
-									<button class="ng-reload">reload</button>\
-								</div> \
-								<div class="ng-chart-status row col-md-12 col-xs-12" style="text-align: center;position: absolute;left: 15px;right: 15px;top: 0;bottom: 0; display: none;">\
-									<div class="chart-label" style="position: absolute;left: 10px;right: 10px;bottom: 0px; top: 0px; opacity: 0.5;background-color: white; padding: 2pt;"></div>\
-								</div> \
-							</div> \
-						</div> \
-						<div class="ng-chart"></div> \
-					</div>',
-		scope : {
-			item : '@',
-			id : '@',
-			widget: '='
-		},
-		restrict : 'E',
-		replace : true,
-		transclude: true,
-		link : function postLink($scope, element, attrs, ctrl) {
-			$log.debug("Linking chart " + $scope.id);
-		
-			var chartDiv = angular.element(".ng-chart", element);
-			$scope.lineChart = new google.visualization.LineChart(chartDiv[0]);
-			
-			$scope.status = angular.element(".ng-chart-status", element);
-			$scope.statusLabel = angular.element(".chart-label", $scope.status);
-			
-			var reloadButton = angular.element(".ng-reload", element);
-			$scope.reloadButton = reloadButton;
+.directive('root', function($templateRequest, $compile, $animate, $interpolate, commandService, updateService, color) {
 
-			ctrl.init($scope.widget, {});
-		},
-		controller: function($scope, $log, $http, $timeout, webSocket){
-			$log.debug("Chart Controller constructing");
-
-			var view = null;
-			var that = this;
-			var widget = null;
-
-			var initTable = function (widget, forceNew) {
-				
-				if(forceNew || widget.data.table == null) {
-					widget.data.table = new google.visualization.DataTable();
-					widget.data.table.addColumn('datetime', "Datum", "Datum");
-
-					widget.items.sort();
-					var now = new Date().getTime();
-
-					var begin = now - widget.period;
-					var end = now;
+	var template = function(type) {
+		if(type == "group") {
+			type = "frame";
+		}
+		return "pages/" + type + ".html";
+	};
 
 
-					angular.forEach(widget.items, function(el){
-						widget.data.table.addColumn('number', el, el);
+	var render = function(scope, element, parent, childScopes){
+		var widget = scope.viewRoot;
+		if(!widget) {
+			return;
+		}
+
+		var after = element.find("div#children");
+
+		var children;
+		if(widget.type == "group" || widget.type == "colorpicker"){
+			// for groups: wrap the single widget into a child.
+			children = [widget];
+		} else {
+			children = widget.children;	
+		}
+
+		var itemsInserted = 0;
+		angular.forEach(children, function(child, index){
+			$templateRequest(template(child.type), true).then(function(response) {
+				var childScope = scope.$new();
+				childScopes.push(childScope);
+
+				childScope.widget = child;
+				var el = angular.element(response);
+
+				if(child.type == "colorpicker"){
+					childScope.colors = {
+						inline: true,
+						control: "wheel",
+						style: "margin: 10px;",
+						theme: "default",
+						format: "rgb"
+					};
+
+					var updateInProgress = false;
+
+					updateService.attach(childScope, el, function(data){
+						var hex = color.hsvStrToHexStr(data.value);
+						updateInProgress = true;
+						widget.valueInput = hex;
+						widget.initialValue = data.value;
+						updateInProgress = false;
+					});
+
+					childScope.$watch("widget.valueInput", function(value, oldValue){
+						if(value != oldValue) {
+							var val = value;
+							var oldVal = oldValue;
+							if(value[0] == '#')
+								val = value.substring(1);
+							if(oldValue && oldValue[0] == '#')
+								oldVal = oldValue.substring(1);
+							if(val != oldVal) {
+								console.info("HSB-Value: " + val);
+
+								var r = parseInt("0x" + val.substring(0,2));
+								var g = parseInt("0x" + val.substring(2,4));
+								var b = parseInt("0x" + val.substring(4,6));
+
+								var hsb = color.rgbToHsv(r,g,b);
+								hsb[0] *= 360;
+								hsb[1] *= 100;
+								hsb[2] *= 100;
+
+								var initial = color.hsvStrToHexStr(child.initialValue);
+
+								if(initial != val){
+									commandService.update(child.item, hsb[0]+","+hsb[1]+","+hsb[2]);
+								}
+							}
+						}
 					});
 				}
-			};
 
-			var updateData = function(timespan) {
-				$log.debug("Forcing data update for " + $scope.item);
-				$scope.statusLabel.html("Updating data");
-				$scope.status.show();
+				$compile(el)(childScope);
 
-				var now = new Date().getTime();
-				var ts = timespan || {
-					begin : now - widget.period,
-					end : now
-				};
-				widget.data.viewData.begin = ts.begin;
-				widget.data.viewData.end = ts.end;
+				el.insertAfter(after);
+				after = el;
 
-				var pendingChartData = {};
-				for (var i = 0; i < widget.items.length; i++) {
-					var itemName = widget.items[i];
-					if (!pendingChartData[itemName]) {
-						pendingChartData[itemName] = new Array;
-					}
-					pendingChartData[itemName].push(ts);
+				// if all elements inserted
+				if(++itemsInserted == children.length){
+					element.addClass(scope.animationStyle);
+					$animate.enter(element, parent);
 				}
+			});	
+		});
 
-				// delete all rows
-				widget.data.table.removeRows(0, widget.data.table.getNumberOfRows() - 1);
-
-				$http.post(chartDataUrl, pendingChartData)
-				.success(function(data) {
-					$scope.statusLabel.html("Data received");
-					that.processChartData(data);
-				})
-				.error(function() {
-					$log.error("Command was not successful for " + $scope.item);
-					$scope.statusLabel.html("error");
-					$timeout(function(){
-						$scope.status.hide();
-					}, 1000);
-				});
-			};
-
-			var updateChart = function(newValue, oldValue) {
-				if (newValue !== oldValue) {
-					if (widget.data) {
-						//$log.debug("Drawing chart for " + $scope.item);
-						var data = widget.data.table;
-						var viewData = widget.data.viewData;
-
-						if (data && viewData) {
-							//$log.debug("Data updated");
-							that.draw(data, viewData);
-						}
-					}
-				}
-			};
-
-			// returns the column index for the item given
-			var getColumnIndex = function(item, table) {
-				var colIndex = table.getColumnIndex(item.id);
-				if (colIndex == -1) {
-					colIndex = table.addColumn('number', item.id, item.id);
-				}
-				return colIndex;
-			};
-
-			// returns a date instance for the timestamp given as millis since 01-01-1970
-			var getDateFromTimestamp = function(timestamp){
-				return (timestamp ? new Date(timestamp) : new Date());
-			};
-			
-			// processes a single item for the given widget (graph) sent from websocket
-			var processItemUpdate = function (item, widget){
-				$log.info("Received Update for " + $scope.item);
-				// update chart status
-				var statusLabel = $scope.statusLabel;
-				var status = $scope.status;
-				$scope.$evalAsync(function(){
-					statusLabel.html("Received update");
-					status.show();
-				});
-
-				var table = widget.data.table;
-				var colIndex = getColumnIndex(item, table);
-
-				var val = parseFloat(item.value);
-				var date = getDateFromTimestamp(item.timestamp);
-
-				var index = table.addRow();
-				table.setCell(index, 0, date);
-				table.setCell(index, colIndex, val);
-
-				// "scroll" forward
-				if (item.timestamp > widget.data.viewData.end) {
-					widget.data.viewData.end = item.timestamp;
-					widget.data.viewData.begin = item.timestamp - widget.period;
-				}
-
-				widget.data.counter++;
-			};
-
-			this.init = function(widgetP) {
-				$log.debug("Chart Controller initializing");
-				widget = widgetP;
-				if(angular.isUndefined(widget.data)) {
-					widget.data = {
-						counter : 0,
-						viewData : {
-							begin : new Date().getTime() - widget.period,
-							end : new Date().getTime(),
-							max : widget.period,
-							id : widget.id,
-							item : widget.item,
-							label : widget.label
-						},
-					};
-					initTable(widget);
-				}
-
-				updateData();
-
-				webSocket.subscribe(this.processUpdate);
-
-				$scope.$watch(function() {
-					if (widget.data) {
-						return widget.data.counter;
-					}
-				}, updateChart, false);
-
-				$scope.reloadButton.on('mousedown', function(event) {
-					updateData();
-				});
-
-			};
-
-			this.draw = function (table, viewData) {
-				$log.debug("Drawing chart for " + $scope.item);
-				
-				var start = new Date().getTime();
-
-				if(!$scope.view) {
-					$scope.view = new google.visualization.DataView(table);
-				}
-
-				//var max = new Date(viewData.end);
-				//var min = new Date(viewData.begin);
-
-				var height = 250;
-				var chartOptions = {
-					legend : {
-						position : 'in',
-						maxLines : 1,
-						alignment : 'center'
-					},
-					//title : viewData.label,
-					interpolateNulls : true,
-					chartArea : {
-						top: 0,
-						//left: 0,
-						//right: 0,
-						//bottom: 0,
-						width: '100%',
-						height : height
-					},
-					vAxis : {
-						textPosition : 'in'
-					},
-					hAxis : {
-						textPosition : 'in',
-						viewWindow : {
-							min : new Date(viewData.end),
-							max : new Date(viewData.begin)
-						}
-					},
-					lineWidth : 1,
-					height : height
-				};
-
-				$scope.lineChart.draw($scope.view, chartOptions);
-
-				var took = new Date().getTime() - start;
-				$log.debug("Drawing chart for " + $scope.item +" done in " + took +"ms");
-
-				$scope.statusLabel.html("Chart drawn");
-				$timeout(function(){
-					$scope.status.hide();
-				}, 200);
-			};
-			
-			// processes a single item update sent via websocket
-			this.processUpdate = function(item) {
-				for(var i = 0; i < widget.items.length; i++) {
-					if(widget.items[i] == item.id) {
-						processItemUpdate(item, widget);
-					}
-				}
-			};
-			
-
-			// returns the row index for the timestamp given as millis since 01-01-1970
-			var getRowIndex = function(timestamp, table, tsToRowMap) {
-
-				if(!angular.isUndefined(tsToRowMap[timestamp])){
-					return tsToRowMap[timestamp];
-				}
-
-				var date = getDateFromTimestamp(timestamp);
-
-				var index = table.addRow();
-				table.setCell(index, 0, date);
-				
-				tsToRowMap[timestamp] = index;
-
-				return index;
-			};
-
-			var processItemValues = function (item, table, tsToRowMap) {
-				var colIndex = getColumnIndex(item, table);
-
-				var rowAdded = false;
-				var minTS = Math.max, maxTS = 0;
-
-				for (var j = 0; j < item.values.length; j++) {
-					var value = item.values[j];
-					table.setCell(getRowIndex(value.timestamp, table, tsToRowMap), colIndex, parseFloat(value.value));
-					rowAdded = true;
-				}
-				return rowAdded;
-			};
-
-			// process the chart data received from (chart) data servlet
-			this.processChartData = function(data) {
-				$log.debug("Processing chart data for " + $scope.item);
-
-				var table = widget.data.table;
-				
-				var tsToRowMap = {};
-
-				for(var k=0; k < data.length; k++){
-					var item = data[k];
-
-					if (widget.period == item.period || !item.period) {
-						processItemValues(item, widget.data.table, tsToRowMap);
-
-						// the watched binding will receive an update now
-						widget.data.counter++;
-					}
-				}
-
-				table.sort([ {
-					column : 0,
-					desc : false
-				} ]);
-
-			};
-
-			this.narrow = function(factor) {
-				this.scale(factor);
-			};
-
-			this.expand = function(factor) {
-				this.scale(factor);
-			};
-			
-			this.scale = function(factor) {
-				widget.period *= factor;
-				updateData();
-			};
-		
-			// update data when chart is shown
-			$scope.$on('windowShow', function(broadcastEvent, browserEvent) {
-				updateData();
-			});
-
-			$scope.$on('$destroy', function(){
-				webSocket.unsubscribe(that.processUpdate);
-			});
-		}
 	};
-})
 
-
-.directive('scale', function($log) {
 	return {
-		template:"<button ng-transclude></button>",
-		scope : {
-			scale : '@',
-		},
-		require: '^chart',
-		restrict : 'A',
-		transclude: true,
+		template: '',
+		restrict: 'E',
 		replace: true,
-		link : function postLink($scope, element, attrs, chartCtrl) {
-			element.on('mousedown', function(event) {
-				// Prevent default dragging of selected content
-				//event.preventDefault();
-				$scope.$evalAsync(function(){
-					chartCtrl.expand(eval(attrs.scale));
+		compile: function compile(element, attr) {
+		  return {
+			post: function postLink(scope, iElement, iAttrs, controller) { 
+				var parentScope = scope.$parent;
+				var original = iElement.clone();
+				var previousElement, previousChildScopes = new Array();
+				var parent = element.parent();
+
+
+				scope.$watchCollection(iAttrs.swap, function(val, old){
+					var newElement = element;
+					if(previousElement) {
+						newElement = original.clone();
+						angular.forEach(previousChildScopes, function(previousChildScope, index){
+							previousChildScope.$destroy();
+						});
+						previousChildScopes = new Array();
+						$animate.leave(previousElement);
+					}
+
+					render(scope, newElement, parent, previousChildScopes);
+
+					previousElement = newElement;
+
 				});
-			});
+			}
+		  }
 		}
 	};
 })
+
+
+.directive('proxy', function ($parse, $injector, $controller, $compile) {
+	return {
+		replace: true,
+		link: function (scope, element, attrs) {
+			var nameGetter = $parse(attrs.proxy);
+			var name = nameGetter(scope);
+			var normalizedName = attrs.$normalize(name);
+			var value = undefined;
+			if (attrs.proxyValue) {
+			  var valueGetter = $parse(attrs.proxyValue);
+			  value = valueGetter(scope);
+			}
+
+			if (value !== undefined) {
+				attrs[normalizedName] = value;
+			}
+
+			var el = angular.element("<div " + name +  "></div>");
+			el = $compile(el)(scope);
+			element.append(el);
+		}
+	}
+})
+
 		
 
 
